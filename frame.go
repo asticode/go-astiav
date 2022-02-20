@@ -2,6 +2,7 @@ package astiav
 
 //#cgo pkg-config: libavutil
 //#include <libavutil/frame.h>
+//#include <libavutil/samplefmt.h>
 import "C"
 
 const NumDataPointers = uint(C.AV_NUM_DATA_POINTERS)
@@ -26,6 +27,10 @@ func (f *Frame) AllocBuffer(align int) error {
 	return newError(C.av_frame_get_buffer(f.c, C.int(align)))
 }
 
+func (f *Frame) AllocSamples(sf SampleFormat, nbChannels, nbSamples, align int) error {
+	return newError(C.av_samples_alloc(&f.c.data[0], &f.c.linesize[0], C.int(nbChannels), C.int(nbSamples), (C.enum_AVSampleFormat)(sf), C.int(align)))
+}
+
 func (f *Frame) ChannelLayout() ChannelLayout {
 	return ChannelLayout(f.c.channel_layout)
 }
@@ -38,7 +43,12 @@ func (f *Frame) Data() [NumDataPointers][]byte {
 	b := [NumDataPointers][]byte{}
 	for i := 0; i < int(NumDataPointers); i++ {
 		b[i] = bytesFromC(func(size *C.int) *C.uint8_t {
-			*size = f.c.linesize[i] * f.c.height
+			*size = f.c.linesize[i]
+			if f.c.height > 0 {
+				*size = *size * f.c.height
+			} else if f.c.channels > 0 {
+				*size = *size * f.c.channels
+			}
 			return f.c.data[i]
 		})
 	}

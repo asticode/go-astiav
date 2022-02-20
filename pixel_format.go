@@ -6,6 +6,7 @@ package astiav
 //#include <libavutil/pixdesc.h>
 //#include <libavutil/pixfmt.h>
 import "C"
+import "unsafe"
 
 // https://github.com/FFmpeg/FFmpeg/blob/n5.0/libavutil/pixfmt.h#L64
 type PixelFormat C.enum_AVPixelFormat
@@ -209,4 +210,10 @@ func (f PixelFormat) Name() string {
 
 func (f PixelFormat) String() string {
 	return f.Name()
+}
+
+func FindPixelFormatByName(name string) PixelFormat {
+	cn := C.CString(name)
+	defer C.free(unsafe.Pointer(cn))
+	return PixelFormat(C.av_get_pix_fmt(cn))
 }

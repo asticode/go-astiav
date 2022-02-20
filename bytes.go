@@ -1,6 +1,7 @@
 package astiav
 
 //#include <stdlib.h>
+//#include <stdint.h>
 import "C"
 import (
 	"errors"

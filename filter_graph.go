@@ -58,7 +58,15 @@ func (g *FilterGraph) NewFilterContext(f *Filter, name string, args FilterArgs) 
 func (g *FilterGraph) Parse(content string, inputs, outputs *FilterInOut) error {
 	cc := C.CString(content)
 	defer C.free(unsafe.Pointer(cc))
-	return newError(C.avfilter_graph_parse_ptr(g.c, cc, &inputs.c, &outputs.c, nil))
+	var ic **C.struct_AVFilterInOut
+	if inputs != nil {
+		ic = &inputs.c
+	}
+	var oc **C.struct_AVFilterInOut
+	if outputs != nil {
+		oc = &outputs.c
+	}
+	return newError(C.avfilter_graph_parse_ptr(g.c, cc, ic, oc, nil))
 }
 
 func (g *FilterGraph) Configure() error {

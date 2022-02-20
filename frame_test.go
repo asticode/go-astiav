@@ -175,4 +175,16 @@ func TestFrame(t *testing.T) {
 
 	f3.Unref()
 	require.Equal(t, 0, f3.Height())
+
+	f4 := astiav.AllocFrame()
+	require.NotNil(t, f4)
+	defer f4.Free()
+	f4.SetNbSamples(960)
+	f4.SetChannelLayout(astiav.ChannelLayoutStereo)
+	f4.SetSampleFormat(astiav.SampleFormatS16)
+	f4.SetSampleRate(48000)
+	err = f4.AllocBuffer(0)
+	require.NoError(t, err)
+	err = f4.AllocSamples(astiav.SampleFormatS16, 2, 960, 0)
+	require.NoError(t, err)
 }

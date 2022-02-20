@@ -8,5 +8,7 @@ import (
 )
 
 func TestPixelFormat(t *testing.T) {
-	require.Equal(t, "yuv420p", astiav.PixelFormatYuv420P.String())
+	p := astiav.FindPixelFormatByName("yuv420p")
+	require.Equal(t, astiav.PixelFormatYuv420P, p)
+	require.Equal(t, "yuv420p", p.String())
 }
