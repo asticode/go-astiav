@@ -37,7 +37,7 @@ type stream struct {
 func main() {
 	// Handle ffmpeg logs
 	astiav.SetLogLevel(astiav.LogLevelDebug)
-	astiav.SetLogCallback(func(l astiav.LogLevel, msg, parent string) {
+	astiav.SetLogCallback(func(l astiav.LogLevel, fmt, msg, parent string) {
 		log.Printf("ffmpeg log: %s (level: %d)\n", strings.TrimSpace(msg), l)
 	})
 

@@ -8,14 +8,16 @@ import (
 )
 
 type logItem struct {
+	fmt string
 	l   astiav.LogLevel
 	msg string
 }
 
 func TestLog(t *testing.T) {
 	var lis []logItem
-	astiav.SetLogCallback(func(l astiav.LogLevel, msg, parent string) {
+	astiav.SetLogCallback(func(l astiav.LogLevel, fmt, msg, parent string) {
 		lis = append(lis, logItem{
+			fmt: fmt,
 			l:   l,
 			msg: msg,
 		})
@@ -27,14 +29,17 @@ func TestLog(t *testing.T) {
 	astiav.Log(astiav.LogLevelFatal, "fatal")
 	require.Equal(t, []logItem{
 		{
+			fmt: "warning",
 			l:   astiav.LogLevelWarning,
 			msg: "warning",
 		},
 		{
+			fmt: "error",
 			l:   astiav.LogLevelError,
 			msg: "error",
 		},
 		{
+			fmt: "fatal",
 			l:   astiav.LogLevelFatal,
 			msg: "fatal",
 		},
