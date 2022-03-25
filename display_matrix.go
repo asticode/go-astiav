@@ -11,12 +11,15 @@ import (
 
 type DisplayMatrix [9]uint32
 
-func NewDisplayMatrixFromBytes(b []byte) (m DisplayMatrix, err error) {
+func NewDisplayMatrixFromBytes(b []byte) (m *DisplayMatrix, err error) {
 	// Check length
 	if len(b) < 36 {
 		err = fmt.Errorf("astiav: invalid length %d < 36", len(b))
 		return
 	}
+
+	// Create display matrix
+	m = &DisplayMatrix{}
 
 	// Loop
 	for idx := 0; idx < 9; idx++ {
