@@ -23,7 +23,7 @@ func NewDisplayMatrixFromBytes(b []byte) (m *DisplayMatrix, err error) {
 
 	// Loop
 	for idx := 0; idx < 9; idx++ {
-		m[idx] = binary.BigEndian.Uint32(b[idx*4 : (idx+1)*4])
+		m[idx] = binary.LittleEndian.Uint32(b[idx*4 : (idx+1)*4])
 	}
 	return
 }
