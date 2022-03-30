@@ -34,7 +34,7 @@ func (p *Packet) SetData(data []byte) {
 	bytesToC(data, func(b *C.uint8_t, size C.int) error {
 		p.c.data = b
 		p.c.size = size
-		return newError(0)
+		return nil
 	})
 }
 
