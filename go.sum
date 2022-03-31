@@ -1,9 +1,9 @@
-github.com/asticode/go-astiav v0.3.2 h1:HXT+nxQiEloYgduhaOedh//iHFVET5c3Y+7FzMbJmbY=
-github.com/asticode/go-astiav v0.3.2/go.mod h1:phvUnSSlV91S/PELeLkDisYiRLOssxWOsj4oDrqM/54=
 github.com/asticode/go-astikit v0.28.2 h1:c2shjqarbZwcQGQ7GPfchG2sSOL/7NHGbdgHTx43RH8=
 github.com/asticode/go-astikit v0.28.2/go.mod h1:h4ly7idim1tNhaVkdVBeXQZEE3L0xblP7fCWbgwipF0=
 github.com/davecgh/go-spew v1.1.0 h1:ZDRjVQ15GmhC3fiQ8ni8+OwkZQO4DARzQgrnXU1Liz8=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
+github.com/galaxywave-dev/go-astiav v0.3.3-gw h1:GFDUExFPdAfUZHYAeL/AgYRyyhN4NIbOck+F/KAdBsY=
+github.com/galaxywave-dev/go-astiav v0.3.3-gw/go.mod h1:phvUnSSlV91S/PELeLkDisYiRLOssxWOsj4oDrqM/54=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
