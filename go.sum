@@ -1,3 +1,5 @@
+github.com/asticode/go-astiav v0.3.2 h1:HXT+nxQiEloYgduhaOedh//iHFVET5c3Y+7FzMbJmbY=
+github.com/asticode/go-astiav v0.3.2/go.mod h1:phvUnSSlV91S/PELeLkDisYiRLOssxWOsj4oDrqM/54=
 github.com/asticode/go-astikit v0.28.2 h1:c2shjqarbZwcQGQ7GPfchG2sSOL/7NHGbdgHTx43RH8=
 github.com/asticode/go-astikit v0.28.2/go.mod h1:h4ly7idim1tNhaVkdVBeXQZEE3L0xblP7fCWbgwipF0=
 github.com/davecgh/go-spew v1.1.0 h1:ZDRjVQ15GmhC3fiQ8ni8+OwkZQO4DARzQgrnXU1Liz8=
