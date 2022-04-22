@@ -4,6 +4,10 @@ package astiav
 //#include <libavutil/frame.h>
 //#include <libavutil/samplefmt.h>
 import "C"
+import (
+	"errors"
+	"unsafe"
+)
 
 const NumDataPointers = uint(C.AV_NUM_DATA_POINTERS)
 
@@ -53,6 +57,34 @@ func (f *Frame) Data() [NumDataPointers][]byte {
 		})
 	}
 	return b
+}
+
+// DataBytes returns the frame's data as byte slice.
+func (f *Frame) DataBytes() ([]byte, error) {
+
+	isVideoFrame := f.Height() > 0 && f.Width() > 0
+
+	if isVideoFrame {
+
+		// retrieve the image buffer size
+		bufferSize := C.av_image_get_buffer_size(C.enum_AVPixelFormat(f.c.format), f.c.width, f.c.height, 1)
+		if bufferSize < 0 {
+			return nil, newError(bufferSize)
+		}
+
+		// create a buffer and copy the raw image data into it
+		buffer := make([]byte, int(bufferSize))
+		n := C.av_image_copy_to_buffer((*C.uint8_t)(unsafe.Pointer(&buffer[0])), bufferSize, (**C.uint8_t)(unsafe.Pointer(&f.c.data)), (*C.int)(unsafe.Pointer(&f.c.linesize)), C.enum_AVPixelFormat(f.c.format), f.c.width, f.c.height, 1)
+		if n < 0 {
+			return nil, newError(n)
+		}
+
+		return buffer, nil
+
+	} else {
+		return nil, errors.New("astiav: not implemented")
+	}
+
 }
 
 func (f *Frame) Height() int {
