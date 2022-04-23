@@ -74,11 +74,6 @@ func main() {
 		// Create stream
 		s := &stream{inputStream: is}
 
-		if sd := is.SideData(astiav.PacketSideDataTypeDisplaymatrix); len(sd) > 0 {
-			m, _ := astiav.NewDisplayMatrixFromBytes(sd)
-			log.Fatalf("rotation: %v | sd: %+v", m.Rotation(), sd)
-		}
-
 		// Find decoder
 		if s.decCodec = astiav.FindDecoder(is.CodecParameters().CodecID()); s.decCodec == nil {
 			log.Fatal(errors.New("main: codec is nil"))
