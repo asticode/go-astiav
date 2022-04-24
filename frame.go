@@ -2,10 +2,12 @@ package astiav
 
 //#cgo pkg-config: libavutil
 //#include <libavutil/frame.h>
+//#include <libavutil/imgutils.h>
 //#include <libavutil/samplefmt.h>
 import "C"
 import (
 	"errors"
+	"fmt"
 	"unsafe"
 )
 
@@ -85,6 +87,35 @@ func (f *Frame) DataBytes() ([]byte, error) {
 		return nil, errors.New("astiav: not implemented")
 	}
 
+}
+
+// SetDataBytes fills the frame data with given raw data. The data must match the pixel format and the dimensions of the frame.
+func (f *Frame) SetDataBytes(data []byte) (err error) {
+
+	// Get the expected buffer length and check data. If data does not have the correct length, we stop and return an
+	// error. Otherwise, pointers will be used to access unexpected memory addresses.
+	expectedBufferLength := C.av_image_get_buffer_size(C.enum_AVPixelFormat(f.c.format), f.c.width, f.c.height, 1)
+	if expectedBufferLength < 0 {
+		return newError(expectedBufferLength)
+	}
+	if int(expectedBufferLength) != len(data) {
+		return fmt.Errorf("astiav: invalid data length of %d for frame. Expected %d", len(data), int(expectedBufferLength))
+	}
+
+	// copy data to c
+	buf := (*C.uint8_t)(C.av_malloc(C.size_t(len(data))))
+	if buf == nil {
+		return errors.New("astiav: buf is nil")
+	}
+	C.memcpy(unsafe.Pointer(buf), unsafe.Pointer(&data[0]), C.size_t(len(data)))
+
+	// fill frame with data
+	err = newError(C.av_image_fill_arrays(&f.c.data[0], (*C.int)(&f.c.linesize[0]), buf, (C.enum_AVPixelFormat)(f.c.format), f.c.width, f.c.height, 1))
+	if err != nil {
+		C.av_free(unsafe.Pointer(buf))
+	}
+
+	return
 }
 
 func (f *Frame) Height() int {

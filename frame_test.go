@@ -10,6 +10,9 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// 4x4 image (all red) in YUV420P format
+var rawYuv420P4x4Red = []byte{0x51, 0x51, 0x51, 0x51, 0x51, 0x51, 0x51, 0x51, 0x51, 0x51, 0x51, 0x51, 0x51, 0x51, 0x51, 0x51, 0x5a, 0x5a, 0x5a, 0x5a, 0xf0, 0xf0, 0xf0, 0xf0}
+
 func videoInputLastVideoFrame() (f *astiav.Frame, err error) {
 	if global.frame != nil {
 		return global.frame, nil
@@ -124,11 +127,31 @@ func videoInputLastVideoFrame() (f *astiav.Frame, err error) {
 	return
 }
 
+func TestFrame_DataBytes(t *testing.T) {
+	f := astiav.AllocFrame()
+	require.NotNil(t, f)
+	defer f.Free()
+
+	f.SetWidth(4)
+	f.SetHeight(4)
+	f.SetPixelFormat(astiav.PixelFormatYuv420P)
+	require.Nil(t, f.SetDataBytes(rawYuv420P4x4Red))
+
+	outBytes, err := f.DataBytes()
+	require.Nil(t, err)
+
+	require.Equal(t,
+		rawYuv420P4x4Red,
+		outBytes,
+	)
+}
+
 func TestFrame(t *testing.T) {
 	f1, err := videoInputLastVideoFrame()
 	require.NoError(t, err)
 	b, err := ioutil.ReadFile("testdata/frame")
 	require.NoError(t, err)
+
 	require.Equal(t, string(b), fmt.Sprintf("%+v", f1.Data()))
 	require.Equal(t, [8]int{384, 192, 192, 0, 0, 0, 0, 0}, f1.Linesize())
 	require.Equal(t, int64(60928), f1.PktDts())
@@ -187,4 +210,5 @@ func TestFrame(t *testing.T) {
 	require.NoError(t, err)
 	err = f4.AllocSamples(astiav.SampleFormatS16, 2, 960, 0)
 	require.NoError(t, err)
+
 }
