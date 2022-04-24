@@ -3,6 +3,10 @@ package astiav
 //#cgo pkg-config: libavcodec
 //#include <libavcodec/avcodec.h>
 import "C"
+import (
+	"errors"
+	"unsafe"
+)
 
 // https://github.com/FFmpeg/FFmpeg/blob/n5.0/libavcodec/packet.h#L350
 type Packet struct {
@@ -18,6 +22,29 @@ func newPacketFromC(c *C.struct_AVPacket) *Packet {
 
 func AllocPacket() *Packet {
 	return newPacketFromC(C.av_packet_alloc())
+}
+
+func AllocPacketFromData(data []byte) (*Packet, error) {
+
+	cPkt := C.av_packet_alloc()
+
+	size := C.size_t(len(data))
+
+	buf := (*C.uint8_t)(C.av_malloc(size))
+	if buf == nil {
+		return nil, errors.New("astiav: buf is nil")
+	}
+	if len(data) > 0 {
+		C.memcpy(unsafe.Pointer(buf), unsafe.Pointer(&data[0]), size)
+	}
+
+	err := newError(C.av_packet_from_data(cPkt, buf, C.int(len(data))))
+	if err != nil {
+		C.av_free(unsafe.Pointer(buf))
+		return nil, err
+	}
+
+	return newPacketFromC(cPkt), nil
 }
 
 func (p *Packet) Data() []byte {

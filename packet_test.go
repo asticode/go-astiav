@@ -96,3 +96,14 @@ func TestPacket(t *testing.T) {
 
 	// TODO Test SideData
 }
+
+func TestAllocPacketFromData(t *testing.T) {
+
+	data := []byte{0x01, 0x02, 0x03}
+
+	pack, err := astiav.AllocPacketFromData(data)
+	require.Nil(t, err)
+	defer pack.Free()
+
+	require.Equal(t, data, pack.Data())
+}
