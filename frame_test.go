@@ -136,6 +136,7 @@ func TestFrame_DataBytes(t *testing.T) {
 	f.SetHeight(4)
 	f.SetPixelFormat(astiav.PixelFormatYuv420P)
 	require.Nil(t, f.SetDataBytes(rawYuv420P4x4Red))
+	require.Equal(t, [astiav.NumDataPointers]int{4, 2, 2, 0, 0, 0, 0, 0}, f.Linesize())
 
 	outBytes, err := f.DataBytes()
 	require.Nil(t, err)
