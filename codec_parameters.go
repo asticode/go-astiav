@@ -40,12 +40,24 @@ func (cp *CodecParameters) CodecID() CodecID {
 	return CodecID(cp.c.codec_id)
 }
 
+func (cp *CodecParameters) SetCodecID(i CodecID) {
+	cp.c.codec_id = uint32(i)
+}
+
 func (cp *CodecParameters) CodecTag() CodecTag {
 	return CodecTag(cp.c.codec_tag)
 }
 
 func (cp *CodecParameters) SetCodecTag(t CodecTag) {
 	cp.c.codec_tag = C.uint(t)
+}
+
+func (cp *CodecParameters) CodecType() MediaType {
+	return MediaType(cp.c.codec_type)
+}
+
+func (cp *CodecParameters) SetCodecType(t MediaType) {
+	cp.c.codec_type = int32(t)
 }
 
 func (cp *CodecParameters) ChromaLocation() ChromaLocation {
@@ -76,6 +88,10 @@ func (cp *CodecParameters) Height() int {
 	return int(cp.c.height)
 }
 
+func (cp *CodecParameters) SetHeight(h int) {
+	cp.c.height = C.int(h)
+}
+
 func (cp *CodecParameters) Level() Level {
 	return Level(cp.c.level)
 }
@@ -88,12 +104,20 @@ func (cp *CodecParameters) PixelFormat() PixelFormat {
 	return PixelFormat(cp.c.format)
 }
 
+func (cp *CodecParameters) SetPixelFormat(f PixelFormat) {
+	cp.c.format = C.int(f)
+}
+
 func (cp *CodecParameters) Profile() Profile {
 	return Profile(cp.c.profile)
 }
 
 func (cp *CodecParameters) SampleAspectRatio() Rational {
 	return newRationalFromC(cp.c.sample_aspect_ratio)
+}
+
+func (cp *CodecParameters) SetSampleAspectRatio(r Rational) {
+	cp.c.sample_aspect_ratio = r.c
 }
 
 func (cp *CodecParameters) SampleFormat() SampleFormat {
@@ -106,6 +130,10 @@ func (cp *CodecParameters) SampleRate() int {
 
 func (cp *CodecParameters) Width() int {
 	return int(cp.c.width)
+}
+
+func (cp *CodecParameters) SetWidth(w int) {
+	cp.c.width = C.int(w)
 }
 
 func (cp *CodecParameters) FromCodecContext(cc *CodecContext) error {
