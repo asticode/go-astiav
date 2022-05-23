@@ -185,6 +185,6 @@ func TestFrame(t *testing.T) {
 	f4.SetSampleRate(48000)
 	err = f4.AllocBuffer(0)
 	require.NoError(t, err)
-	err = f4.AllocSamples(astiav.SampleFormatS16, 2, 960, 0)
+	err = f4.AllocSamples(0)
 	require.NoError(t, err)
 }

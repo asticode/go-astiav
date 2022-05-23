@@ -1,6 +1,7 @@
 package astiav
 
 //#cgo pkg-config: libavutil
+//#include <libavutil/channel_layout.h>
 //#include <libavutil/frame.h>
 //#include <libavutil/samplefmt.h>
 import "C"
@@ -27,8 +28,8 @@ func (f *Frame) AllocBuffer(align int) error {
 	return newError(C.av_frame_get_buffer(f.c, C.int(align)))
 }
 
-func (f *Frame) AllocSamples(sf SampleFormat, nbChannels, nbSamples, align int) error {
-	return newError(C.av_samples_alloc(&f.c.data[0], &f.c.linesize[0], C.int(nbChannels), C.int(nbSamples), (C.enum_AVSampleFormat)(sf), C.int(align)))
+func (f *Frame) AllocSamples(align int) error {
+	return newError(C.av_samples_alloc(&f.c.data[0], &f.c.linesize[0], C.av_get_channel_layout_nb_channels(f.c.channel_layout), f.c.nb_samples, (C.enum_AVSampleFormat)(f.c.format), C.int(align)))
 }
 
 func (f *Frame) ChannelLayout() ChannelLayout {
