@@ -3,6 +3,10 @@ package astiav
 //#cgo pkg-config: libavcodec
 //#include <libavcodec/avcodec.h>
 import "C"
+import (
+	"errors"
+	"unsafe"
+)
 
 // https://github.com/FFmpeg/FFmpeg/blob/n5.0/libavcodec/packet.h#L350
 type Packet struct {
@@ -118,4 +122,16 @@ func (p *Packet) MoveRef(src *Packet) {
 
 func (p *Packet) RescaleTs(src, dst Rational) {
 	C.av_packet_rescale_ts(p.c, src.c, dst.c)
+}
+
+func (p *Packet) FromData(data []byte) error {
+	// Create buf
+	buf := (*C.uint8_t)(C.av_malloc(C.size_t(len(data))))
+	if buf == nil {
+		return errors.New("astiav: allocating buffer failed")
+	}
+	C.memcpy(unsafe.Pointer(buf), unsafe.Pointer(&data[0]), C.size_t(len(data)))
+
+	// From data
+	return newError(C.av_packet_from_data(p.c, buf, C.int(len(data))))
 }

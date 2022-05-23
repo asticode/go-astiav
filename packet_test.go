@@ -94,5 +94,12 @@ func TestPacket(t *testing.T) {
 	require.Equal(t, int64(2), pkt3.Duration())
 	require.Equal(t, int64(3), pkt3.Pts())
 
+	pkt4 := astiav.AllocPacket()
+	require.NotNil(t, pkt4)
+	defer pkt4.Free()
+	b := []byte("test")
+	require.NoError(t, pkt4.FromData(b))
+	require.Equal(t, b, pkt4.Data())
+
 	// TODO Test SideData
 }
