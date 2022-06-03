@@ -32,8 +32,16 @@ func (cp *CodecParameters) ChannelLayout() ChannelLayout {
 	return ChannelLayout(cp.c.channel_layout)
 }
 
+func (cp *CodecParameters) SetChannelLayout(l ChannelLayout) {
+	cp.c.channel_layout = C.uint64_t(l)
+}
+
 func (cp *CodecParameters) Channels() int {
 	return int(cp.c.channels)
+}
+
+func (cp *CodecParameters) SetChannels(c int) {
+	cp.c.channels = C.int(c)
 }
 
 func (cp *CodecParameters) CodecID() CodecID {
@@ -124,8 +132,16 @@ func (cp *CodecParameters) SampleFormat() SampleFormat {
 	return SampleFormat(cp.c.format)
 }
 
+func (cp *CodecParameters) SetSampleFormat(f SampleFormat) {
+	cp.c.format = C.int(f)
+}
+
 func (cp *CodecParameters) SampleRate() int {
 	return int(cp.c.sample_rate)
+}
+
+func (cp *CodecParameters) SetSampleRate(r int) {
+	cp.c.sample_rate = C.int(r)
 }
 
 func (cp *CodecParameters) Width() int {
