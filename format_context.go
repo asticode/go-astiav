@@ -16,11 +16,12 @@ AVIOInterruptCB astiavNewInterruptCallback(int *ret)
 */
 import "C"
 import (
+	"math"
 	"unsafe"
 )
 
 const (
-	maxArraySize = 1<<29 - 1
+	maxArraySize = math.MaxInt32 - 1
 )
 
 // https://github.com/FFmpeg/FFmpeg/blob/n5.0/libavformat/avformat.h#L1202
