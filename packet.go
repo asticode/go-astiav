@@ -74,6 +74,18 @@ func (p *Packet) SetPts(v int64) {
 	p.c.pts = C.int64_t(v)
 }
 
+func (p *Packet) AddSideData(t PacketSideDataType, data []byte) error {
+	// Create buf
+	buf := (*C.uint8_t)(C.av_malloc(C.size_t(len(data))))
+	if buf == nil {
+		return errors.New("astiav: allocating buffer failed")
+	}
+	C.memcpy(unsafe.Pointer(buf), unsafe.Pointer(&data[0]), C.size_t(len(data)))
+
+	// Add
+	return newError(C.av_packet_add_side_data(p.c, (C.enum_AVPacketSideDataType)(t), buf, C.size_t(len(data))))
+}
+
 func (p *Packet) SideData(t PacketSideDataType) []byte {
 	return bytesFromC(func(size *C.int) *C.uint8_t {
 		return C.av_packet_get_side_data(p.c, (C.enum_AVPacketSideDataType)(t), size)

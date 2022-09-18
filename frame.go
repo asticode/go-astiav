@@ -140,6 +140,14 @@ func (f *Frame) SetSampleRate(r int) {
 	f.c.sample_rate = C.int(r)
 }
 
+func (f *Frame) NewSideData(t FrameSideDataType, size int) *FrameSideData {
+	return newFrameSideDataFromC(C.av_frame_new_side_data(f.c, (C.enum_AVFrameSideDataType)(t), C.int(size)))
+}
+
+func (f *Frame) SideData(t FrameSideDataType) *FrameSideData {
+	return newFrameSideDataFromC(C.av_frame_get_side_data(f.c, (C.enum_AVFrameSideDataType)(t)))
+}
+
 func (f *Frame) Width() int {
 	return int(f.c.width)
 }
