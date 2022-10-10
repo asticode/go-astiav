@@ -1,6 +1,7 @@
 package astiav_test
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -197,9 +198,19 @@ func TestFrame(t *testing.T) {
 	sd = f5.SideData(astiav.FrameSideDataTypeAudioServiceType)
 	require.NotNil(t, sd)
 	require.Equal(t, astiav.FrameSideDataTypeAudioServiceType, sd.Type())
-	require.Equal(t, []byte{1, 2, 3, 0}, sd.Data())
+	require.True(t, bytes.HasPrefix(sd.Data(), []byte{1, 2, 3}))
+	require.Len(t, sd.Data(), 4)
 	sd.SetData([]byte{1, 2, 3, 4, 5})
 	sd = f5.SideData(astiav.FrameSideDataTypeAudioServiceType)
 	require.NotNil(t, sd)
 	require.Equal(t, []byte{1, 2, 3, 4}, sd.Data())
+
+	f6 := astiav.AllocFrame()
+	require.NotNil(t, f6)
+	defer f6.Free()
+	f6.SetHeight(2)
+	f6.SetPixelFormat(astiav.PixelFormatYuv420P)
+	f6.SetWidth(4)
+	require.NoError(t, f6.AllocBuffer(0))
+	require.NoError(t, f6.AllocImage(0))
 }

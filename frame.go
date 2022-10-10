@@ -3,6 +3,7 @@ package astiav
 //#cgo pkg-config: libavutil
 //#include <libavutil/channel_layout.h>
 //#include <libavutil/frame.h>
+//#include <libavutil/imgutils.h>
 //#include <libavutil/samplefmt.h>
 import "C"
 
@@ -26,6 +27,10 @@ func AllocFrame() *Frame {
 
 func (f *Frame) AllocBuffer(align int) error {
 	return newError(C.av_frame_get_buffer(f.c, C.int(align)))
+}
+
+func (f *Frame) AllocImage(align int) error {
+	return newError(C.av_image_alloc(&f.c.data[0], &f.c.linesize[0], f.c.width, f.c.height, (C.enum_AVPixelFormat)(f.c.format), C.int(align)))
 }
 
 func (f *Frame) AllocSamples(align int) error {
