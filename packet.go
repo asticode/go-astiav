@@ -136,14 +136,27 @@ func (p *Packet) RescaleTs(src, dst Rational) {
 	C.av_packet_rescale_ts(p.c, src.c, dst.c)
 }
 
-func (p *Packet) FromData(data []byte) error {
+func (p *Packet) FromData(data []byte) (err error) {
 	// Create buf
 	buf := (*C.uint8_t)(C.av_malloc(C.size_t(len(data))))
 	if buf == nil {
-		return errors.New("astiav: allocating buffer failed")
+		err = errors.New("astiav: allocating buffer failed")
+		return
 	}
-	C.memcpy(unsafe.Pointer(buf), unsafe.Pointer(&data[0]), C.size_t(len(data)))
+
+	// Make sure to free buf in case of error
+	defer func() {
+		if err != nil {
+			C.av_freep(unsafe.Pointer(&buf))
+		}
+	}()
+
+	// Copy
+	if len(data) > 0 {
+		C.memcpy(unsafe.Pointer(buf), unsafe.Pointer(&data[0]), C.size_t(len(data)))
+	}
 
 	// From data
-	return newError(C.av_packet_from_data(p.c, buf, C.int(len(data))))
+	err = newError(C.av_packet_from_data(p.c, buf, C.int(len(data))))
+	return
 }
