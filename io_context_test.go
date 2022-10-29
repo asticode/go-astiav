@@ -67,14 +67,12 @@ func TestIOContext_Read(t *testing.T) {
 			astiav.IOContextFlagRead))
 		require.NoError(t, err)
 
-		// Read from file (using astiav.IOContext.Read())
 		d := make([]byte, 16)
 		n, err := c.Read(d)
 		require.NoError(t, err)
 		require.Equal(t, 7, n)
 		require.Equal(t, "testing", string(d[:n]))
 
-		// Close context
 		err = c.Closep()
 		require.NoError(t, err)
 	})
@@ -89,7 +87,6 @@ func TestIOContext_ReadCopy(t *testing.T) {
 			astiav.IOContextFlagRead))
 		require.NoError(t, err)
 
-		// Read from file (using astiav.IOContext.Read())
 		buf := bytes.NewBufferString("")
 		n, err := io.Copy(buf, c)
 		require.Equal(t, int64(7), n)

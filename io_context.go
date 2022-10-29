@@ -41,7 +41,7 @@ func (ic *IOContext) Open(filename string, flags IOContextFlags) error {
 }
 
 func (ic *IOContext) Write(b []byte) (int, error) {
-	if len(b) == 0 {
+	if b == nil {
 		return 0, nil
 	}
 	C.avio_write(ic.c, (*C.uchar)(unsafe.Pointer(&b[0])), C.int(len(b)))
