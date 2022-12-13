@@ -16,7 +16,6 @@ func TestIOContext_Open_ReadWriteSeek(t *testing.T) {
 	c := astiav.NewIOContext()
 	path := filepath.Join(t.TempDir(), "iocontext.txt")
 
-	// Write Test
 	err := c.Open(path, astiav.NewIOContextFlags(astiav.IOContextFlagWrite))
 	require.NoError(t, err)
 
@@ -59,7 +58,6 @@ func TestIOContext_OpenWith_Write(t *testing.T) {
 	c := astiav.NewIOContext()
 	path := filepath.Join(t.TempDir(), "iocontext.txt")
 
-	// Write Test
 	dict := astiav.NewDictionary()
 	defer dict.Free()
 	dict.Set("test", "test", 0)
