@@ -136,7 +136,7 @@ func (fc *FormatContext) OutputFormat() *OutputFormat {
 }
 
 func (fc *FormatContext) Pb() *IOContext {
-	if fc.c == nil {
+	if fc.c == nil && fc.c.pb == nil {
 		return nil
 	}
 	return newIOContextFromC(fc.c.pb)
@@ -185,9 +185,7 @@ func (fc *FormatContext) CloseInput() {
 }
 
 func (fc *FormatContext) Free() {
-	if fc.c != nil {
-		C.avformat_free_context(fc.c)
-	}
+	C.avformat_free_context(fc.c)
 }
 
 func (fc *FormatContext) NewStream(c *Codec) *Stream {
@@ -226,12 +224,6 @@ func (fc *FormatContext) WriteHeader(d *Dictionary) error {
 	var dc **C.struct_AVDictionary
 	if d != nil {
 		dc = &d.c
-	}
-	if fc.c == nil {
-		panic("nil format context")
-	}
-	if fc.c.pb == nil {
-		panic("nil format context")
 	}
 	return newError(C.avformat_write_header(fc.c, dc))
 }
