@@ -1,8 +1,11 @@
 package astiav
 
 //#cgo pkg-config: libavutil
+//#include <stdlib.h>
 //#include <libavutil/log.h>
 /*
+#include <stdio.h>
+
 extern void goAstiavLogCallback(int level, char* fmt, char* msg, char* parent);
 
 static inline void astiavLogCallback(void *avcl, int level, const char *fmt, va_list vl)
@@ -31,7 +34,10 @@ static inline void astiavLog(int level, const char *fmt)
 }
 */
 import "C"
-import "unsafe"
+import (
+	"fmt"
+	"unsafe"
+)
 
 type LogLevel int
 
@@ -49,6 +55,28 @@ const (
 
 func SetLogLevel(l LogLevel) {
 	C.av_log_set_level(C.int(l))
+}
+
+func (l LogLevel) String() string {
+	switch l {
+	case LogLevelQuiet:
+		return "quiet"
+	case LogLevelPanic:
+		return "panic"
+	case LogLevelFatal:
+		return "fatal"
+	case LogLevelError:
+		return "error"
+	case LogLevelWarning:
+		return "warning"
+	case LogLevelInfo:
+		return "info"
+	case LogLevelVerbose:
+		return "verbose"
+	case LogLevelDebug:
+		return "debug"
+	}
+	return ""
 }
 
 type LogCallback func(l LogLevel, fmt, msg, parent string)
@@ -74,6 +102,12 @@ func ResetLogCallback() {
 
 func Log(l LogLevel, msg string) {
 	msgc := C.CString(msg)
+	defer C.free(unsafe.Pointer(msgc))
+	C.astiavLog(C.int(l), msgc)
+}
+
+func Logf(l LogLevel, msg string, args ...interface{}) {
+	msgc := C.CString(fmt.Sprintf(msg, args...))
 	defer C.free(unsafe.Pointer(msgc))
 	C.astiavLog(C.int(l), msgc)
 }

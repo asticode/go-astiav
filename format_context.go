@@ -64,6 +64,19 @@ func AllocOutputFormatContext(o *OutputFormat, formatName, filename string) (*Fo
 	return fc, err
 }
 
+func (fc *FormatContext) DumpFormat(index int, url string, isOutput bool) {
+	curl := (*C.char)(nil)
+	if len(url) > 0 {
+		curl = C.CString(url)
+		defer C.free(unsafe.Pointer(curl))
+	}
+	outputC := C.int(0)
+	if isOutput {
+		outputC = C.int(1)
+	}
+	C.av_dump_format(fc.c, C.int(index), curl, outputC)
+}
+
 func (fc *FormatContext) BitRate() int64 {
 	return int64(fc.c.bit_rate)
 }
@@ -86,6 +99,10 @@ func (fc *FormatContext) Filename() string {
 
 func (fc *FormatContext) Flags() FormatContextFlags {
 	return FormatContextFlags(fc.c.flags)
+}
+
+func (fc *FormatContext) SetFlags(f FormatContextFlags) {
+	fc.c.flags = C.int(f)
 }
 
 func (fc *FormatContext) SetInterruptCallback() *int {
@@ -119,6 +136,9 @@ func (fc *FormatContext) OutputFormat() *OutputFormat {
 }
 
 func (fc *FormatContext) Pb() *IOContext {
+	if fc.c == nil {
+		return nil
+	}
 	return newIOContextFromC(fc.c.pb)
 }
 
@@ -165,7 +185,9 @@ func (fc *FormatContext) CloseInput() {
 }
 
 func (fc *FormatContext) Free() {
-	C.avformat_free_context(fc.c)
+	if fc.c != nil {
+		C.avformat_free_context(fc.c)
+	}
 }
 
 func (fc *FormatContext) NewStream(c *Codec) *Stream {
@@ -204,6 +226,12 @@ func (fc *FormatContext) WriteHeader(d *Dictionary) error {
 	var dc **C.struct_AVDictionary
 	if d != nil {
 		dc = &d.c
+	}
+	if fc.c == nil {
+		panic("nil format context")
+	}
+	if fc.c.pb == nil {
+		panic("nil format context")
 	}
 	return newError(C.avformat_write_header(fc.c, dc))
 }
