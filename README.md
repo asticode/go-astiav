@@ -1,3 +1,7 @@
+[![GoReportCard](http://goreportcard.com/badge/github.com/asticode/go-astiav)](http://goreportcard.com/report/github.com/asticode/go-astiav)
+[![Go Reference](https://pkg.go.dev/badge/github.com/asticode/go-astiav.svg)](https://pkg.go.dev/github.com/asticode/go-astiav)
+[![Coveralls](https://coveralls.io/repos/github/asticode/go-astiav/badge.svg?branch=master)](https://coveralls.io/github/asticode/go-astiav)
+
 `astiav` is a Golang library providing C bindings for [ffmpeg](https://github.com/FFmpeg/FFmpeg)
 
 It's only compatible with `ffmpeg` `n4.4.1`.
