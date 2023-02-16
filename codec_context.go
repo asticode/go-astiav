@@ -149,6 +149,14 @@ func (cc *CodecContext) Profile() Profile {
 	return Profile(cc.c.profile)
 }
 
+func (cc *CodecContext) Qmin() int {
+	return int(cc.c.qmin)
+}
+
+func (cc *CodecContext) SetQmin(qmin int) {
+	cc.c.qmin = C.int(qmin)
+}
+
 func (cc *CodecContext) SampleAspectRatio() Rational {
 	return newRationalFromC(cc.c.sample_aspect_ratio)
 }
