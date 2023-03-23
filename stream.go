@@ -57,7 +57,7 @@ func (s *Stream) SampleAspectRatio() Rational {
 }
 
 func (s *Stream) SideData(t PacketSideDataType) []byte {
-	return bytesFromC(func(size *C.int) *C.uint8_t {
+	return bytesFromC(func(size *C.ulong) *C.uint8_t {
 		return C.av_stream_get_side_data(s.c, (C.enum_AVPacketSideDataType)(t), size)
 	})
 }

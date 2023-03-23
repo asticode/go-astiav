@@ -80,10 +80,6 @@ func (fc *FormatContext) EventFlags() FormatEventFlags {
 	return FormatEventFlags(fc.c.event_flags)
 }
 
-func (fc *FormatContext) Filename() string {
-	return C.GoString(&fc.c.filename[0])
-}
-
 func (fc *FormatContext) Flags() FormatContextFlags {
 	return FormatContextFlags(fc.c.flags)
 }

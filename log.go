@@ -2,6 +2,8 @@ package astiav
 
 //#cgo pkg-config: libavutil
 //#include <libavutil/log.h>
+//#include <stdio.h>
+//#include <stdlib.h>
 /*
 extern void goAstiavLogCallback(int level, char* fmt, char* msg, char* parent);
 

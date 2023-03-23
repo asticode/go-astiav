@@ -28,12 +28,12 @@ func (cp *CodecParameters) BitRate() int64 {
 	return int64(cp.c.bit_rate)
 }
 
-func (cp *CodecParameters) ChannelLayout() ChannelLayout {
-	return ChannelLayout(cp.c.channel_layout)
+func (cp *CodecParameters) ChannelLayout() *ChannelLayout {
+	return newChannelLayoutFromC(&cp.c.ch_layout)
 }
 
-func (cp *CodecParameters) SetChannelLayout(l ChannelLayout) {
-	cp.c.channel_layout = C.uint64_t(l)
+func (cp *CodecParameters) SetChannelLayout(l *ChannelLayout) {
+	l.copy(&cp.c.ch_layout) //nolint: errcheck
 }
 
 func (cp *CodecParameters) Channels() int {

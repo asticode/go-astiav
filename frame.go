@@ -34,26 +34,26 @@ func (f *Frame) AllocImage(align int) error {
 }
 
 func (f *Frame) AllocSamples(align int) error {
-	return newError(C.av_samples_alloc(&f.c.data[0], &f.c.linesize[0], C.av_get_channel_layout_nb_channels(f.c.channel_layout), f.c.nb_samples, (C.enum_AVSampleFormat)(f.c.format), C.int(align)))
+	return newError(C.av_samples_alloc(&f.c.data[0], &f.c.linesize[0], f.c.ch_layout.nb_channels, f.c.nb_samples, (C.enum_AVSampleFormat)(f.c.format), C.int(align)))
 }
 
-func (f *Frame) ChannelLayout() ChannelLayout {
-	return ChannelLayout(f.c.channel_layout)
+func (f *Frame) ChannelLayout() *ChannelLayout {
+	return newChannelLayoutFromC(&f.c.ch_layout)
 }
 
-func (f *Frame) SetChannelLayout(l ChannelLayout) {
-	f.c.channel_layout = C.uint64_t(l)
+func (f *Frame) SetChannelLayout(l *ChannelLayout) {
+	l.copy(&f.c.ch_layout) //nolint: errcheck
 }
 
 func (f *Frame) Data() [NumDataPointers][]byte {
 	b := [NumDataPointers][]byte{}
 	for i := 0; i < int(NumDataPointers); i++ {
-		b[i] = bytesFromC(func(size *C.int) *C.uint8_t {
-			*size = f.c.linesize[i]
+		b[i] = bytesFromC(func(size *C.ulong) *C.uint8_t {
+			*size = C.ulong(f.c.linesize[i])
 			if f.c.height > 0 {
-				*size = *size * f.c.height
+				*size = *size * C.ulong(f.c.height)
 			} else if f.c.channels > 0 {
-				*size = *size * f.c.channels
+				*size = *size * C.ulong(f.c.channels)
 			}
 			return f.c.data[i]
 		})
@@ -113,10 +113,6 @@ func (f *Frame) SetPixelFormat(pf PixelFormat) {
 	f.c.format = C.int(pf)
 }
 
-func (f *Frame) PktPts() int64 {
-	return int64(f.c.pkt_pts)
-}
-
 func (f *Frame) PktDts() int64 {
 	return int64(f.c.pkt_dts)
 }
@@ -145,8 +141,8 @@ func (f *Frame) SetSampleRate(r int) {
 	f.c.sample_rate = C.int(r)
 }
 
-func (f *Frame) NewSideData(t FrameSideDataType, size int) *FrameSideData {
-	return newFrameSideDataFromC(C.av_frame_new_side_data(f.c, (C.enum_AVFrameSideDataType)(t), C.int(size)))
+func (f *Frame) NewSideData(t FrameSideDataType, size uint64) *FrameSideData {
+	return newFrameSideDataFromC(C.av_frame_new_side_data(f.c, (C.enum_AVFrameSideDataType)(t), C.ulong(size)))
 }
 
 func (f *Frame) SideData(t FrameSideDataType) *FrameSideData {

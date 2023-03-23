@@ -1,7 +1,8 @@
 package astiav
 
-//#cgo pkg-config: libavcodec
+//#cgo pkg-config: libavcodec libavutil
 //#include <libavcodec/avcodec.h>
+//#include <libavutil/channel_layout.h>
 import "C"
 import (
 	"unsafe"
@@ -27,17 +28,17 @@ func (c *Codec) String() string {
 	return c.Name()
 }
 
-func (c *Codec) ChannelLayouts() (o []ChannelLayout) {
-	if c.c.channel_layouts == nil {
+func (c *Codec) ChannelLayouts() (o []*ChannelLayout) {
+	if c.c.ch_layouts == nil {
 		return nil
 	}
-	size := unsafe.Sizeof(*c.c.channel_layouts)
+	size := unsafe.Sizeof(*c.c.ch_layouts)
 	for i := 0; ; i++ {
-		p := *(*C.int64_t)(unsafe.Pointer(uintptr(unsafe.Pointer(c.c.channel_layouts)) + uintptr(i)*size))
-		if p == 0 {
+		v := newChannelLayoutFromC((*C.struct_AVChannelLayout)(unsafe.Pointer(uintptr(unsafe.Pointer(c.c.ch_layouts)) + uintptr(i)*size)))
+		if !v.Valid() {
 			break
 		}
-		o = append(o, ChannelLayout(p))
+		o = append(o, v)
 	}
 	return
 }

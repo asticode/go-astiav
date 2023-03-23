@@ -133,7 +133,6 @@ func TestFrame(t *testing.T) {
 	require.Equal(t, string(b), fmt.Sprintf("%+v", f1.Data()))
 	require.Equal(t, [8]int{384, 192, 192, 0, 0, 0, 0, 0}, f1.Linesize())
 	require.Equal(t, int64(60928), f1.PktDts())
-	require.Equal(t, int64(60928), f1.PktPts())
 
 	f2 := astiav.AllocFrame()
 	require.NotNil(t, f2)
@@ -150,7 +149,7 @@ func TestFrame(t *testing.T) {
 	require.Equal(t, astiav.SampleFormatDbl, f2.SampleFormat())
 	f2.SetSampleRate(9)
 	f2.SetWidth(10)
-	require.Equal(t, astiav.ChannelLayout21, f2.ChannelLayout())
+	require.True(t, f2.ChannelLayout().Equal(astiav.ChannelLayout21))
 	require.Equal(t, 2, f2.Height())
 	require.True(t, f2.KeyFrame())
 	require.Equal(t, 4, f2.NbSamples())

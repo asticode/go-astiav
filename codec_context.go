@@ -53,12 +53,12 @@ func (cc *CodecContext) SetChannels(channels int) {
 	cc.c.channels = C.int(channels)
 }
 
-func (cc *CodecContext) ChannelLayout() ChannelLayout {
-	return ChannelLayout(cc.c.channel_layout)
+func (cc *CodecContext) ChannelLayout() *ChannelLayout {
+	return newChannelLayoutFromC(&cc.c.ch_layout)
 }
 
-func (cc *CodecContext) SetChannelLayout(l ChannelLayout) {
-	cc.c.channel_layout = C.uint64_t(l)
+func (cc *CodecContext) SetChannelLayout(l *ChannelLayout) {
+	l.copy(&cc.c.ch_layout) //nolint: errcheck
 }
 
 func (cc *CodecContext) ChromaLocation() ChromaLocation {

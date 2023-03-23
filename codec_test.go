@@ -20,7 +20,7 @@ func TestCodec(t *testing.T) {
 
 	c = astiav.FindDecoderByName("aac")
 	require.NotNil(t, c)
-	require.Equal(t, []astiav.ChannelLayout{
+	els := []*astiav.ChannelLayout{
 		astiav.ChannelLayoutMono,
 		astiav.ChannelLayoutStereo,
 		astiav.ChannelLayoutSurround,
@@ -28,7 +28,12 @@ func TestCodec(t *testing.T) {
 		astiav.ChannelLayout5Point0Back,
 		astiav.ChannelLayout5Point1Back,
 		astiav.ChannelLayout7Point1WideBack,
-	}, c.ChannelLayouts())
+	}
+	gls := c.ChannelLayouts()
+	require.Len(t, gls, len(els))
+	for idx := range els {
+		require.True(t, els[idx].Equal(gls[idx]))
+	}
 	require.True(t, c.IsDecoder())
 	require.False(t, c.IsEncoder())
 	require.Equal(t, []astiav.SampleFormat{astiav.SampleFormatFltp}, c.SampleFormats())
@@ -56,6 +61,9 @@ func TestCodec(t *testing.T) {
 		astiav.PixelFormatYuvj420P,
 		astiav.PixelFormatYuvj422P,
 		astiav.PixelFormatYuvj444P,
+		astiav.PixelFormatYuv420P,
+		astiav.PixelFormatYuv422P,
+		astiav.PixelFormatYuv444P,
 	}, c.PixelFormats())
 	require.Equal(t, "mjpeg", c.Name())
 	require.Equal(t, "mjpeg", c.String())
