@@ -1,7 +1,6 @@
 package astiav_test
 
 import (
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -19,7 +18,7 @@ func TestIOContext(t *testing.T) {
 	c.Write([]byte("test"))
 	err = c.Closep()
 	require.NoError(t, err)
-	b, err := ioutil.ReadFile(path)
+	b, err := os.ReadFile(path)
 	require.NoError(t, err)
 	require.Equal(t, "test", string(b))
 	err = os.Remove(path)
