@@ -45,6 +45,14 @@ func (f *Frame) SetChannelLayout(l *ChannelLayout) {
 	l.copy(&f.c.ch_layout) //nolint: errcheck
 }
 
+func (f *Frame) ColorRange() ColorRange {
+	return ColorRange(f.c.color_range)
+}
+
+func (f *Frame) SetColorRange(r ColorRange) {
+	f.c.color_range = C.enum_AVColorRange(r)
+}
+
 func (f *Frame) Data() [NumDataPointers][]byte {
 	b := [NumDataPointers][]byte{}
 	for i := 0; i < int(NumDataPointers); i++ {
@@ -79,6 +87,14 @@ func (f *Frame) SetKeyFrame(k bool) {
 		i = 1
 	}
 	f.c.key_frame = C.int(i)
+}
+
+func (f *Frame) ImageFillBlack() error {
+	linesize := [NumDataPointers]C.long{}
+	for i := 0; i < int(NumDataPointers); i++ {
+		linesize[i] = C.long(f.c.linesize[i])
+	}
+	return newError(C.av_image_fill_black(&f.c.data[0], &linesize[0], (C.enum_AVPixelFormat)(f.c.format), (C.enum_AVColorRange)(f.c.color_range), f.c.width, f.c.height))
 }
 
 func (f *Frame) Linesize() [NumDataPointers]int {
