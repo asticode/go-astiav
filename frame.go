@@ -1,10 +1,10 @@
 package astiav
 
-//#cgo pkg-config: libavutil
-//#include <libavutil/channel_layout.h>
-//#include <libavutil/frame.h>
-//#include <libavutil/imgutils.h>
-//#include <libavutil/samplefmt.h>
+// #cgo pkg-config: libavutil
+// #include <libavutil/channel_layout.h>
+// #include <libavutil/frame.h>
+// #include <libavutil/imgutils.h>
+// #include <libavutil/samplefmt.h>
 import "C"
 
 const NumDataPointers = uint(C.AV_NUM_DATA_POINTERS)
@@ -42,7 +42,7 @@ func (f *Frame) ChannelLayout() *ChannelLayout {
 }
 
 func (f *Frame) SetChannelLayout(l *ChannelLayout) {
-	l.copy(&f.c.ch_layout) //nolint: errcheck
+	l.copy(&f.c.ch_layout) // nolint: errcheck
 }
 
 func (f *Frame) ColorRange() ColorRange {
@@ -191,4 +191,8 @@ func (f *Frame) Unref() {
 
 func (f *Frame) MoveRef(src *Frame) {
 	C.av_frame_move_ref(f.c, src.c)
+}
+
+func (f *Frame) BestEffortTimestamp() int64 {
+	return int64(f.c.best_effort_timestamp)
 }
