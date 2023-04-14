@@ -1,8 +1,8 @@
 package astiav
 
-//#cgo pkg-config: libavcodec libavutil
-//#include <libavcodec/avcodec.h>
-//#include <libavutil/frame.h>
+// #cgo pkg-config: libavcodec libavutil
+// #include <libavcodec/avcodec.h>
+// #include <libavutil/frame.h>
 import "C"
 
 // https://github.com/FFmpeg/FFmpeg/blob/n5.0/libavcodec/avcodec.h#L383
@@ -58,7 +58,7 @@ func (cc *CodecContext) ChannelLayout() *ChannelLayout {
 }
 
 func (cc *CodecContext) SetChannelLayout(l *ChannelLayout) {
-	l.copy(&cc.c.ch_layout) //nolint: errcheck
+	l.copy(&cc.c.ch_layout) // nolint: errcheck
 }
 
 func (cc *CodecContext) ChromaLocation() ChromaLocation {
@@ -259,4 +259,8 @@ func (cc *CodecContext) SendFrame(f *Frame) error {
 		fc = f.c
 	}
 	return newError(C.avcodec_send_frame(cc.c, fc))
+}
+
+func (cc *CodecContext) CodecType() MediaType {
+	return MediaType(cc.c.codec_type)
 }
