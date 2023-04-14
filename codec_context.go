@@ -264,3 +264,7 @@ func (cc *CodecContext) SendFrame(f *Frame) error {
 func (cc *CodecContext) CodecType() MediaType {
 	return MediaType(cc.c.codec_type)
 }
+
+func (cc *CodecContext) TicksPerFrame() int {
+	return int(cc.c.ticks_per_frame)
+}
