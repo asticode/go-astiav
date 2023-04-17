@@ -21,17 +21,20 @@ static void set_vaapi_format(AVCodecContext *ctx) {
 	ctx->get_format = get_vaapi_format;
 }
 
-static enum AVPixelFormat get_qsv_format(AVCodecContext *ctx,
-                                           const enum AVPixelFormat *pix_fmts)
+static int get_qsv_format(AVCodecContext *avctx, const enum AVPixelFormat *pix_fmts)
 {
-    const enum AVPixelFormat *p;
+    while (*pix_fmts != AV_PIX_FMT_NONE) {
+        fprintf(stderr, "FMT:%d(%d)", *pix_fmts, AV_PIX_FMT_QSV);
 
-    for (p = pix_fmts; *p != AV_PIX_FMT_NONE; p++) {
-        if (*p == AV_PIX_FMT_QSV)
-            return *p;
+        if (*pix_fmts == AV_PIX_FMT_QSV) {
+            return AV_PIX_FMT_QSV;
+        }
+
+        pix_fmts++;
     }
 
-    fprintf(stderr, "Unable to decode this file using QSV.\n");
+    fprintf(stderr, "The QSV pixel format not offered in get_format()\n");
+
     return AV_PIX_FMT_NONE;
 }
 
@@ -327,4 +330,12 @@ func (cc *CodecContext) FramesContext() *BufferRef {
 
 func (cc *CodecContext) SetFramesContext(br *BufferRef) {
 	cc.c.hw_frames_ctx = br.c
+}
+
+func (cc *CodecContext) PacketTimeBase() Rational {
+	return newRationalFromC(cc.c.pkt_timebase)
+}
+
+func (cc *CodecContext) SetPacketTimeBase(tb Rational) {
+	cc.c.pkt_timebase = tb.c
 }
