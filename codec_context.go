@@ -298,3 +298,11 @@ func (cc *CodecContext) SetDeviceContext(ref *BufferRef) {
 func (cc *CodecContext) SetGetVAAPIFormat() {
 	C.set_vaapi_format(cc.c)
 }
+
+func (cc *CodecContext) FramesContext() *BufferRef {
+	return newBufferFromC(cc.c.hw_frames_ctx)
+}
+
+func (cc *CodecContext) SetFramesContext(br *BufferRef) {
+	cc.c.hw_frames_ctx = br.c
+}
