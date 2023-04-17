@@ -25,5 +25,5 @@ func (br *BufferRef) Ref() *BufferRef {
 }
 
 func (br *BufferRef) Unref() {
-	C.av_buffer_unref(br.c)
+	C.av_buffer_unref(&br.c)
 }
