@@ -1,8 +1,8 @@
 package astiav
 
-//#cgo pkg-config: libavcodec libavformat
-//#include <libavcodec/avcodec.h>
-//#include <libavformat/avformat.h>
+// #cgo pkg-config: libavcodec libavformat
+// #include <libavcodec/avcodec.h>
+// #include <libavformat/avformat.h>
 /*
 int astiavInterruptCallback(void *ret)
 {
@@ -242,6 +242,16 @@ func (fc *FormatContext) GuessFrameRate(s *Stream, f *Frame) Rational {
 
 func (fc *FormatContext) SDPCreate() (string, error) {
 	return sdpCreate([]*FormatContext{fc})
+}
+
+func (fc *FormatContext) FindBestStream(mediaType MediaType, wantedStreamNb int, relatedStream int, flags int) (int, *Codec, error) {
+	var decoder *C.AVCodec = nil
+	ret := C.av_find_best_stream(fc.c, int32(mediaType), C.int(wantedStreamNb), C.int(relatedStream), &decoder, C.int(flags))
+	if ret < 0 {
+		return -1, nil, newError(ret)
+	} else {
+		return int(ret), newCodecFromC(decoder), nil
+	}
 }
 
 func sdpCreate(fcs []*FormatContext) (string, error) {
