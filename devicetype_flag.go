@@ -9,4 +9,5 @@ type DeviceTypeFlag uint32
 
 const (
 	DeviceTypeVAAPI = DeviceTypeFlag(C.AV_HWDEVICE_TYPE_VAAPI)
+	DeviceTypeQSV   = DeviceTypeFlag(C.AV_HWDEVICE_TYPE_QSV)
 )

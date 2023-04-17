@@ -21,6 +21,24 @@ static void set_vaapi_format(AVCodecContext *ctx) {
 	ctx->get_format = get_vaapi_format;
 }
 
+static enum AVPixelFormat get_qsv_format(AVCodecContext *ctx,
+                                           const enum AVPixelFormat *pix_fmts)
+{
+    const enum AVPixelFormat *p;
+
+    for (p = pix_fmts; *p != AV_PIX_FMT_NONE; p++) {
+        if (*p == AV_PIX_FMT_QSV)
+            return *p;
+    }
+
+    fprintf(stderr, "Unable to decode this file using QSV.\n");
+    return AV_PIX_FMT_NONE;
+}
+
+static void set_qsv_format(AVCodecContext *ctx) {
+	ctx->get_format = get_qsv_format;
+}
+
 */
 // #cgo pkg-config: libavcodec libavutil
 // #include <libavcodec/avcodec.h>
@@ -297,6 +315,10 @@ func (cc *CodecContext) SetDeviceContext(ref *BufferRef) {
 
 func (cc *CodecContext) SetGetVAAPIFormat() {
 	C.set_vaapi_format(cc.c)
+}
+
+func (cc *CodecContext) SetGetQSVFormat() {
+	C.set_qsv_format(cc.c)
 }
 
 func (cc *CodecContext) FramesContext() *BufferRef {
