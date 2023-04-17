@@ -1,5 +1,27 @@
 package astiav
 
+/*
+#include <libavcodec/avcodec.h>
+
+static enum AVPixelFormat get_vaapi_format(AVCodecContext *ctx,
+                                           const enum AVPixelFormat *pix_fmts)
+{
+    const enum AVPixelFormat *p;
+
+    for (p = pix_fmts; *p != AV_PIX_FMT_NONE; p++) {
+        if (*p == AV_PIX_FMT_VAAPI)
+            return *p;
+    }
+
+    fprintf(stderr, "Unable to decode this file using VA-API.\n");
+    return AV_PIX_FMT_NONE;
+}
+
+static void set_vaapi_format(AVCodecContext *ctx) {
+	ctx->get_format = get_vaapi_format;
+}
+
+*/
 // #cgo pkg-config: libavcodec libavutil
 // #include <libavcodec/avcodec.h>
 // #include <libavutil/frame.h>
@@ -267,4 +289,12 @@ func (cc *CodecContext) CodecType() MediaType {
 
 func (cc *CodecContext) TicksPerFrame() int {
 	return int(cc.c.ticks_per_frame)
+}
+
+func (cc *CodecContext) SetDeviceContext(ref *BufferRef) {
+	cc.c.hw_device_ctx = ref.c
+}
+
+func (cc *CodecContext) SetGetVAAPIFormat() {
+	C.set_vaapi_format(cc.c)
 }
