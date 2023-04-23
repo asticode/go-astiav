@@ -141,6 +141,14 @@ func (f *Frame) SetPts(i int64) {
 	f.c.pts = C.int64_t(i)
 }
 
+func (f *Frame) SampleAspectRatio() Rational {
+	return newRationalFromC(f.c.sample_aspect_ratio)
+}
+
+func (f *Frame) SetSampleAspectRatio(r Rational) {
+	f.c.sample_aspect_ratio = r.c
+}
+
 func (f *Frame) SampleFormat() SampleFormat {
 	return SampleFormat(f.c.format)
 }

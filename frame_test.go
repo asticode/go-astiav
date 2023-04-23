@@ -146,6 +146,7 @@ func TestFrame(t *testing.T) {
 	f2.SetPixelFormat(astiav.PixelFormat0Bgr)
 	require.Equal(t, astiav.PixelFormat0Bgr, f2.PixelFormat()) // Need to test it right away as sample format actually updates the same field
 	f2.SetPts(7)
+	f2.SetSampleAspectRatio(astiav.NewRational(10, 2))
 	f2.SetSampleFormat(astiav.SampleFormatDbl)
 	require.Equal(t, astiav.SampleFormatDbl, f2.SampleFormat())
 	f2.SetSampleRate(9)
@@ -157,6 +158,7 @@ func TestFrame(t *testing.T) {
 	require.Equal(t, 4, f2.NbSamples())
 	require.Equal(t, astiav.PictureTypeB, f2.PictureType())
 	require.Equal(t, int64(7), f2.Pts())
+	require.Equal(t, astiav.NewRational(10, 2), f2.SampleAspectRatio())
 	require.Equal(t, 9, f2.SampleRate())
 	require.Equal(t, 10, f2.Width())
 
