@@ -10,12 +10,6 @@ type InputFormat struct {
 	c *C.struct_AVInputFormat
 }
 
-func FindInputFormat(name string) *InputFormat {
-	cname := C.CString(name)
-	defer C.free(unsafe.Pointer(cname))
-	return newInputFormatFromC(C.av_find_input_format(cname))
-}
-
 func newInputFormatFromC(c *C.struct_AVInputFormat) *InputFormat {
 	if c == nil {
 		return nil
@@ -23,6 +17,25 @@ func newInputFormatFromC(c *C.struct_AVInputFormat) *InputFormat {
 	return &InputFormat{c: c}
 }
 
+func FindInputFormat(name string) *InputFormat {
+	cname := C.CString(name)
+	defer C.free(unsafe.Pointer(cname))
+	return newInputFormatFromC(C.av_find_input_format(cname))
+}
+
 func (f *InputFormat) Flags() IOFormatFlags {
 	return IOFormatFlags(f.c.flags)
+}
+
+func (f *InputFormat) Name() string {
+	return C.GoString(f.c.name)
+}
+
+// LongName Description of the format, meant to be more human-readable than Name.
+func (f *InputFormat) LongName() string {
+	return C.GoString(f.c.long_name)
+}
+
+func (f *InputFormat) String() string {
+	return f.Name()
 }

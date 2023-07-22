@@ -6,7 +6,9 @@ import (
 	"testing"
 )
 
-func TestFindInputFormat(t *testing.T) {
-	inputFormat := astiav.FindInputFormat("video4linux2")
-	require.True(t, inputFormat.Flags().Has(astiav.IOFormatFlagNoByteSeek))
+func TestInputFormat(t *testing.T) {
+	formatName := "rawvideo"
+	inputFormat := astiav.FindInputFormat(formatName)
+	require.NotNil(t, inputFormat)
+	require.True(t, inputFormat.Name() == formatName)
 }

@@ -6,5 +6,5 @@ import (
 )
 
 func TestDevice(t *testing.T) {
-	astiav.DeviceRegisterAll()
+	astiav.RegisterAllDevices()
 }
