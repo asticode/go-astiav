@@ -1,0 +1,15 @@
+# https://trac.ffmpeg.org/ticket/6620
+diff --git a/ffbuild/library.mak b/ffbuild/library.mak
+index 793e9d41fa..e3c15e1d67 100644
+--- a/ffbuild/library.mak
++++ b/ffbuild/library.mak
+@@ -35,7 +35,8 @@ OBJS += $(SHLIBOBJS)
+ endif
+ $(SUBDIR)$(LIBNAME): $(OBJS) $(STLIBOBJS)
+ 	$(RM) $@
+-	$(AR) $(ARFLAGS) $(AR_O) $^
++	$(file > objs.txt, $^)
++	$(AR) $(ARFLAGS) $(AR_O) @objs.txt
+ 	$(RANLIB) $@
+ 
+ install-headers: install-lib$(NAME)-headers install-lib$(NAME)-pkgconfig

@@ -28,8 +28,8 @@ func (p *Packet) Data() []byte {
 	if p.c.data == nil {
 		return nil
 	}
-	return bytesFromC(func(size *C.ulong) *C.uint8_t {
-		*size = C.ulong(p.c.size)
+	return bytesFromC(func(size *cUlong) *C.uint8_t {
+		*size = cUlong(p.c.size)
 		return p.c.data
 	})
 }
@@ -87,7 +87,7 @@ func (p *Packet) AddSideData(t PacketSideDataType, data []byte) error {
 }
 
 func (p *Packet) SideData(t PacketSideDataType) []byte {
-	return bytesFromC(func(size *C.ulong) *C.uint8_t {
+	return bytesFromC(func(size *cUlong) *C.uint8_t {
 		return C.av_packet_get_side_data(p.c, (C.enum_AVPacketSideDataType)(t), size)
 	})
 }

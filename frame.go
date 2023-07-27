@@ -56,12 +56,12 @@ func (f *Frame) SetColorRange(r ColorRange) {
 func (f *Frame) Data() [NumDataPointers][]byte {
 	b := [NumDataPointers][]byte{}
 	for i := 0; i < int(NumDataPointers); i++ {
-		b[i] = bytesFromC(func(size *C.ulong) *C.uint8_t {
-			*size = C.ulong(f.c.linesize[i])
+		b[i] = bytesFromC(func(size *cUlong) *C.uint8_t {
+			*size = cUlong(f.c.linesize[i])
 			if f.c.height > 0 {
-				*size = *size * C.ulong(f.c.height)
+				*size = *size * cUlong(f.c.height)
 			} else if f.c.channels > 0 {
-				*size = *size * C.ulong(f.c.channels)
+				*size = *size * cUlong(f.c.channels)
 			}
 			return f.c.data[i]
 		})
@@ -90,9 +90,9 @@ func (f *Frame) SetKeyFrame(k bool) {
 }
 
 func (f *Frame) ImageFillBlack() error {
-	linesize := [NumDataPointers]C.long{}
+	linesize := [NumDataPointers]cLong{}
 	for i := 0; i < int(NumDataPointers); i++ {
-		linesize[i] = C.long(f.c.linesize[i])
+		linesize[i] = cLong(f.c.linesize[i])
 	}
 	return newError(C.av_image_fill_black(&f.c.data[0], &linesize[0], (C.enum_AVPixelFormat)(f.c.format), (C.enum_AVColorRange)(f.c.color_range), f.c.width, f.c.height))
 }
@@ -166,7 +166,7 @@ func (f *Frame) SetSampleRate(r int) {
 }
 
 func (f *Frame) NewSideData(t FrameSideDataType, size uint64) *FrameSideData {
-	return newFrameSideDataFromC(C.av_frame_new_side_data(f.c, (C.enum_AVFrameSideDataType)(t), C.ulong(size)))
+	return newFrameSideDataFromC(C.av_frame_new_side_data(f.c, (C.enum_AVFrameSideDataType)(t), cUlong(size)))
 }
 
 func (f *Frame) SideData(t FrameSideDataType) *FrameSideData {

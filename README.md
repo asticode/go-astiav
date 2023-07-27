@@ -1,5 +1,6 @@
-[![GoReportCard](https://goreportcard.com/badge/github.com/asticode/go-astiav)](https://goreportcard.com/report/github.com/asticode/go-astiav)
-[![Go Reference](https://pkg.go.dev/badge/github.com/asticode/go-astiav.svg)](https://pkg.go.dev/github.com/asticode/go-astiav)
+[![GoReportCard](http://goreportcard.com/badge/github.com/asticode/go-astiav)](http://goreportcard.com/report/github.com/asticode/go-astiav)
+[![GoDoc](https://godoc.org/github.com/asticode/go-astiav?status.svg)](https://godoc.org/github.com/asticode/go-astiav)
+[![Test](https://github.com/asticode/go-astiav/actions/workflows/test.yml/badge.svg)](https://github.com/asticode/go-astiav/actions/workflows/test.yml)
 [![Coveralls](https://coveralls.io/repos/github/asticode/go-astiav/badge.svg?branch=master)](https://coveralls.io/github/asticode/go-astiav)
 
 `astiav` is a Golang library providing C bindings for [ffmpeg](https://github.com/FFmpeg/FFmpeg)
@@ -45,7 +46,7 @@ For your GO code to pick up `ffmpeg` dependency automatically, you'll need to ad
 
 ```sh
 export CGO_LDFLAGS="-L{{ path to your working directory }}/tmp/n5.1.2/lib/",
-export CGO_CXXFLAGS="-I{{ path to your working directory }}/tmp/n5.1.2/include/",
+export CGO_CFLAGS="-I{{ path to your working directory }}/tmp/n5.1.2/include/",
 export PKG_CONFIG_PATH="{{ path to your working directory }}/tmp/n5.1.2/lib/pkgconfig",
 ```
 
