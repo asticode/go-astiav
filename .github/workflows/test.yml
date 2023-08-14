@@ -2,7 +2,7 @@ name: Test
 
 on:
   push:
-    branches: [ "master" ]
+    branches: [ "master", "test" ]
   pull_request:
     branches: [ "master" ]
 
@@ -94,7 +94,7 @@ jobs:
 
     - name: Run tests
       run: |
-        go test -race -covermode atomic -coverprofile=covprofile ./...
+        go test -v -race -covermode atomic -coverprofile=covprofile ./...
 
     - if: github.event_name != 'pull_request'
       name: Send coverage

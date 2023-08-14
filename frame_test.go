@@ -130,6 +130,7 @@ func TestFrame(t *testing.T) {
 	require.NoError(t, err)
 	_, err = os.ReadFile("testdata/frame")
 	require.NoError(t, err)
+	// TODO Fix in Github action
 	//require.Equal(t, string(b), fmt.Sprintf("%+v", f1.Data()))
 	require.Equal(t, [8]int{384, 192, 192, 0, 0, 0, 0, 0}, f1.Linesize())
 	require.Equal(t, int64(60928), f1.PktDts())

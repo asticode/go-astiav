@@ -1,9 +1,10 @@
 package astiav_test
 
 import (
+	"testing"
+
 	"github.com/asticode/go-astiav"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func TestInputFormat(t *testing.T) {

@@ -1,8 +1,9 @@
 package astiav_test
 
 import (
-	"github.com/asticode/go-astiav"
 	"testing"
+
+	"github.com/asticode/go-astiav"
 )
 
 func TestDevice(t *testing.T) {
