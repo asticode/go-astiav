@@ -8,8 +8,12 @@ import (
 )
 
 func TestCodecParameters(t *testing.T) {
-	_, s1, s2, err := videoInputStreams()
+	fc, err := globalHelper.inputFormatContext("video.mp4")
 	require.NoError(t, err)
+	ss := fc.Streams()
+	require.Len(t, ss, 2)
+	s1 := ss[0]
+	s2 := ss[1]
 
 	cp1 := s1.CodecParameters()
 	require.Equal(t, int64(441324), cp1.BitRate())

@@ -2,7 +2,7 @@ name: Test
 
 on:
   push:
-    branches: [ "master", "test" ]
+    branches: [ "master", "dev" ]
   pull_request:
     branches: [ "master" ]
 
@@ -10,6 +10,7 @@ jobs:
 
   test:
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
 
@@ -41,34 +42,41 @@ jobs:
       run: |
         echo "FFMPEG_CACHE_PATH=${{ env.FFMPEG_PATH }}" >> $GITHUB_ENV
 
-    - name: Cache windows ffmpeg
-      id: cache-ffmpeg
+    - name: Load ffmpeg cache
+      id: load-ffmpeg-cache
       uses: actions/cache@v3
       with:
         path: ${{ env.FFMPEG_CACHE_PATH }}
         key: ffmpeg-${{ env.FFMPEG_VERSION }}-${{ runner.os }}
 
-    - if: ${{ steps.cache-ffmpeg.outputs.cache-hit != 'true' && runner.os == 'Linux' }}
+    - if: ${{ steps.load-ffmpeg-cache.outputs.cache-hit != 'true' && runner.os == 'Linux' }}
       name: Prepare linux ffmpeg install
       run: |
         sudo apt-get install yasm
 
-    - if: ${{ steps.cache-ffmpeg.outputs.cache-hit != 'true' && runner.os == 'macOS' }}
+    - if: ${{ steps.load-ffmpeg-cache.outputs.cache-hit != 'true' && runner.os == 'macOS' }}
       name: Prepare macos ffmpeg install
       run: |
         brew install yasm
 
-    - if: ${{ steps.cache-ffmpeg.outputs.cache-hit != 'true' && runner.os == 'Windows' }}
+    - if: ${{ steps.load-ffmpeg-cache.outputs.cache-hit != 'true' && runner.os == 'Windows' }}
       name: Prepare windows ffmpeg install
       run: |
         choco install make
         choco install yasm
         echo "FFMPEG_POST_CHECKOUT='&& git apply $(cygpath -u ${{ github.WORKSPACE }})/.github/workflows/windows.patch'" >> $env:GITHUB_ENV
 
-    - if: ${{ steps.cache-ffmpeg.outputs.cache-hit != 'true' }}
+    - if: ${{ steps.load-ffmpeg-cache.outputs.cache-hit != 'true' }}
       name: Install ffmpeg
       run: |
         make install-ffmpeg srcPath=${{ env.FFMPEG_PATH }}/src version=${{ env.FFMPEG_VERSION }} postCheckout=${{ env.FFMPEG_POST_CHECKOUT }}
+
+    - if: ${{ steps.load-ffmpeg-cache.outputs.cache-hit != 'true' }}
+      name: Save ffmpeg cache
+      uses: actions/cache/save@v3
+      with:
+        path: ${{ env.FFMPEG_CACHE_PATH }}
+        key: ffmpeg-${{ env.FFMPEG_VERSION }}-${{ runner.os }}
 
     - if: ${{ runner.os == 'Windows' }}
       name: Set windows environment variables

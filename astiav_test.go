@@ -1,31 +1,242 @@
 package astiav_test
 
 import (
+	"errors"
+	"fmt"
 	"os"
+	"sync"
 	"testing"
 
 	"github.com/asticode/go-astiav"
 	"github.com/asticode/go-astikit"
 )
 
-var global = struct {
-	closer             *astikit.Closer
-	frame              *astiav.Frame
-	inputFormatContext *astiav.FormatContext
-	inputStream1       *astiav.Stream
-	inputStream2       *astiav.Stream
-	pkt                *astiav.Packet
-}{
-	closer: astikit.NewCloser(),
-}
+var globalHelper = newHelper()
 
 func TestMain(m *testing.M) {
 	// Run
 	m.Run()
 
-	// Make sure to close closer
-	global.closer.Close()
+	// Make sure to close global helper
+	globalHelper.close()
 
 	// Exit
 	os.Exit(0)
+}
+
+type helper struct {
+	closer *astikit.Closer
+	inputs map[string]*helperInput
+	m      *sync.Mutex // Locks inputs
+}
+
+func newHelper() *helper {
+	return &helper{
+		closer: astikit.NewCloser(),
+		inputs: make(map[string]*helperInput),
+		m:      &sync.Mutex{},
+	}
+}
+
+func (h *helper) close() {
+	h.closer.Close()
+}
+
+type helperInput struct {
+	firstPkt      *astiav.Packet
+	formatContext *astiav.FormatContext
+	lastFrame     *astiav.Frame
+}
+
+func (h *helper) inputFormatContext(name string) (fc *astiav.FormatContext, err error) {
+	h.m.Lock()
+	i, ok := h.inputs[name]
+	if ok && i.formatContext != nil {
+		h.m.Unlock()
+		return i.formatContext, nil
+	}
+	h.m.Unlock()
+
+	if fc = astiav.AllocFormatContext(); fc == nil {
+		err = errors.New("astiav_test: allocated format context is nil")
+		return
+	}
+	h.closer.Add(fc.Free)
+
+	if err = fc.OpenInput("testdata/"+name, nil, nil); err != nil {
+		err = fmt.Errorf("astiav_test: opening input failed: %w", err)
+		return
+	}
+	h.closer.Add(fc.CloseInput)
+
+	if err = fc.FindStreamInfo(nil); err != nil {
+		err = fmt.Errorf("astiav_test: finding stream info failed: %w", err)
+		return
+	}
+
+	h.m.Lock()
+	if _, ok := h.inputs[name]; !ok {
+		h.inputs[name] = &helperInput{}
+	}
+	h.inputs[name].formatContext = fc
+	h.m.Unlock()
+	return
+}
+
+func (h *helper) inputFirstPacket(name string) (pkt *astiav.Packet, err error) {
+	h.m.Lock()
+	i, ok := h.inputs[name]
+	if ok && i.firstPkt != nil {
+		h.m.Unlock()
+		return i.firstPkt, nil
+	}
+	h.m.Unlock()
+
+	var fc *astiav.FormatContext
+	if fc, err = h.inputFormatContext(name); err != nil {
+		err = fmt.Errorf("astiav_test: getting input format context failed")
+		return
+	}
+
+	pkt = astiav.AllocPacket()
+	if pkt == nil {
+		err = errors.New("astiav_test: pkt is nil")
+		return
+	}
+	h.closer.Add(pkt.Free)
+
+	if err = fc.ReadFrame(pkt); err != nil {
+		err = fmt.Errorf("astiav_test: reading frame failed: %w", err)
+		return
+	}
+
+	h.m.Lock()
+	h.inputs[name].firstPkt = pkt
+	h.m.Unlock()
+	return
+}
+
+func (h *helper) inputLastFrame(name string, mediaType astiav.MediaType) (f *astiav.Frame, err error) {
+	h.m.Lock()
+	i, ok := h.inputs[name]
+	if ok && i.lastFrame != nil {
+		h.m.Unlock()
+		return i.lastFrame, nil
+	}
+	h.m.Unlock()
+
+	var fc *astiav.FormatContext
+	if fc, err = h.inputFormatContext(name); err != nil {
+		err = fmt.Errorf("astiav_test: getting input format context failed: %w", err)
+		return
+	}
+
+	var cc *astiav.CodecContext
+	var cs *astiav.Stream
+	for _, s := range fc.Streams() {
+		if s.CodecParameters().MediaType() != mediaType {
+			continue
+		}
+
+		cs = s
+
+		c := astiav.FindDecoder(s.CodecParameters().CodecID())
+		if c == nil {
+			err = errors.New("astiav_test: no codec")
+			return
+		}
+
+		cc = astiav.AllocCodecContext(c)
+		if cc == nil {
+			err = errors.New("astiav_test: no codec context")
+			return
+		}
+		h.closer.Add(cc.Free)
+
+		if err = cs.CodecParameters().ToCodecContext(cc); err != nil {
+			err = fmt.Errorf("astiav_test: updating codec context failed: %w", err)
+			return
+		}
+
+		if err = cc.Open(c, nil); err != nil {
+			err = fmt.Errorf("astiav_test: opening codec context failed: %w", err)
+			return
+		}
+		break
+	}
+
+	if cs == nil {
+		err = errors.New("astiav_test: no valid video stream")
+		return
+	}
+
+	var pkt1 *astiav.Packet
+	if pkt1, err = h.inputFirstPacket(name); err != nil {
+		err = fmt.Errorf("astiav_test: getting input first packet failed: %w", err)
+		return
+	}
+
+	pkt2 := astiav.AllocPacket()
+	h.closer.Add(pkt2.Free)
+
+	f = astiav.AllocFrame()
+	h.closer.Add(f.Free)
+
+	lastFrame := astiav.AllocFrame()
+	h.closer.Add(lastFrame.Free)
+
+	pkts := []*astiav.Packet{pkt1}
+	for {
+		if err = fc.ReadFrame(pkt2); err != nil {
+			if errors.Is(err, astiav.ErrEof) || errors.Is(err, astiav.ErrEagain) {
+				if len(pkts) == 0 {
+					if err = f.Ref(lastFrame); err != nil {
+						err = fmt.Errorf("astiav_test: last refing frame failed: %w", err)
+						return
+					}
+					err = nil
+					break
+				}
+			} else {
+				err = fmt.Errorf("astiav_test: reading frame failed: %w", err)
+				return
+			}
+		} else {
+			pkts = append(pkts, pkt2)
+		}
+
+		for _, pkt := range pkts {
+			if pkt.StreamIndex() != cs.Index() {
+				continue
+			}
+
+			if err = cc.SendPacket(pkt); err != nil {
+				err = fmt.Errorf("astiav_test: sending packet failed: %w", err)
+				return
+			}
+
+			for {
+				if err = cc.ReceiveFrame(f); err != nil {
+					if errors.Is(err, astiav.ErrEof) || errors.Is(err, astiav.ErrEagain) {
+						err = nil
+						break
+					}
+					err = fmt.Errorf("astiav_test: receiving frame failed: %w", err)
+					return
+				}
+
+				if err = lastFrame.Ref(f); err != nil {
+					err = fmt.Errorf("astiav_test: refing frame failed: %w", err)
+					return
+				}
+			}
+		}
+
+		pkts = []*astiav.Packet{}
+	}
+
+	h.m.Lock()
+	h.inputs[name].lastFrame = f
+	h.m.Unlock()
+	return
 }

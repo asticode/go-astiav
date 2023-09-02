@@ -2,136 +2,15 @@ package astiav_test
 
 import (
 	"bytes"
-	"errors"
-	"fmt"
-	"os"
 	"testing"
 
 	"github.com/asticode/go-astiav"
 	"github.com/stretchr/testify/require"
 )
 
-func videoInputLastVideoFrame() (f *astiav.Frame, err error) {
-	if global.frame != nil {
-		return global.frame, nil
-	}
-
-	var fc *astiav.FormatContext
-	if fc, err = videoInputFormatContext(); err != nil {
-		err = fmt.Errorf("astiav_test: getting input format context failed: %w", err)
-		return
-	}
-
-	var cc *astiav.CodecContext
-	var cs *astiav.Stream
-	for _, s := range fc.Streams() {
-		if s.CodecParameters().MediaType() != astiav.MediaTypeVideo {
-			continue
-		}
-
-		cs = s
-
-		c := astiav.FindDecoder(s.CodecParameters().CodecID())
-		if c == nil {
-			err = errors.New("astiav_test: no codec")
-			return
-		}
-
-		cc = astiav.AllocCodecContext(c)
-		if cc == nil {
-			err = errors.New("astiav_test: no codec context")
-			return
-		}
-		global.closer.Add(cc.Free)
-
-		if err = cs.CodecParameters().ToCodecContext(cc); err != nil {
-			err = fmt.Errorf("astiav_test: updating codec context failed: %w", err)
-			return
-		}
-
-		if err = cc.Open(c, nil); err != nil {
-			err = fmt.Errorf("astiav_test: opening codec context failed: %w", err)
-			return
-		}
-		break
-	}
-
-	if cs == nil {
-		err = errors.New("astiav_test: no valid video stream")
-		return
-	}
-
-	var pkt1 *astiav.Packet
-	if pkt1, err = videoInputFirstPacket(); err != nil {
-		err = fmt.Errorf("astiav_test: getting input first packet failed: %w", err)
-		return
-	}
-
-	pkt2 := astiav.AllocPacket()
-	global.closer.Add(pkt2.Free)
-
-	f = astiav.AllocFrame()
-	global.closer.Add(f.Free)
-
-	lastFrame := astiav.AllocFrame()
-	global.closer.Add(lastFrame.Free)
-
-	pkts := []*astiav.Packet{pkt1}
-	for {
-		if err = fc.ReadFrame(pkt2); err != nil {
-			if errors.Is(err, astiav.ErrEof) || errors.Is(err, astiav.ErrEagain) {
-				if err = f.Ref(lastFrame); err != nil {
-					err = fmt.Errorf("astiav_test: refing frame failed: %w", err)
-					return
-				}
-				err = nil
-				break
-			}
-			err = fmt.Errorf("astiav_test: reading frame failed: %w", err)
-			return
-		}
-
-		pkts = append(pkts, pkt2)
-
-		for _, pkt := range pkts {
-			if pkt.StreamIndex() != cs.Index() {
-				continue
-			}
-
-			if err = cc.SendPacket(pkt); err != nil {
-				err = fmt.Errorf("astiav_test: sending packet failed: %w", err)
-				return
-			}
-
-			for {
-				if err = cc.ReceiveFrame(f); err != nil {
-					if errors.Is(err, astiav.ErrEof) || errors.Is(err, astiav.ErrEagain) {
-						err = nil
-						break
-					}
-					err = fmt.Errorf("astiav_test: receiving frame failed: %w", err)
-					return
-				}
-
-				if err = lastFrame.Ref(f); err != nil {
-					err = fmt.Errorf("astiav_test: refing frame failed: %w", err)
-					return
-				}
-			}
-		}
-
-		pkts = []*astiav.Packet{}
-	}
-	return
-}
-
 func TestFrame(t *testing.T) {
-	f1, err := videoInputLastVideoFrame()
+	f1, err := globalHelper.inputLastFrame("video.mp4", astiav.MediaTypeVideo)
 	require.NoError(t, err)
-	_, err = os.ReadFile("testdata/frame")
-	require.NoError(t, err)
-	// TODO Fix in Github action
-	//require.Equal(t, string(b), fmt.Sprintf("%+v", f1.Data()))
 	require.Equal(t, [8]int{384, 192, 192, 0, 0, 0, 0, 0}, f1.Linesize())
 	require.Equal(t, int64(60928), f1.PktDts())
 
@@ -216,7 +95,16 @@ func TestFrame(t *testing.T) {
 	f6.SetHeight(2)
 	f6.SetPixelFormat(astiav.PixelFormatYuv420P)
 	f6.SetWidth(4)
-	require.NoError(t, f6.AllocBuffer(1))
-	require.NoError(t, f6.AllocImage(1))
+	const align = 1
+	require.NoError(t, f6.AllocBuffer(align))
+	require.NoError(t, f6.AllocImage(align))
 	require.NoError(t, f6.ImageFillBlack())
+	n, err := f6.ImageBufferSize(align)
+	require.NoError(t, err)
+	require.Equal(t, 12, n)
+	b := make([]byte, n)
+	n, err = f6.ImageCopyToBuffer(b, align)
+	require.NoError(t, err)
+	require.Equal(t, 12, n)
+	require.Equal(t, []byte{0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x80, 0x80, 0x80, 0x80}, b)
 }

@@ -1,40 +1,19 @@
 package astiav_test
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/asticode/go-astiav"
 	"github.com/stretchr/testify/require"
 )
 
-func videoInputStreams() (fc *astiav.FormatContext, s1, s2 *astiav.Stream, err error) {
-	if global.inputFormatContext != nil && global.inputStream1 != nil && global.inputStream2 != nil {
-		return global.inputFormatContext, global.inputStream1, global.inputStream2, nil
-	}
-
-	if fc, err = videoInputFormatContext(); err != nil {
-		err = fmt.Errorf("astiav_test: getting video input format context failed: %w", err)
-		return
-	}
-
-	ss := fc.Streams()
-	if len(ss) < 2 {
-		err = fmt.Errorf("astiav_test: invalid streams len: %d", len(ss))
-		return
-	}
-
-	s1 = ss[0]
-	s2 = ss[1]
-
-	global.inputStream1 = s1
-	global.inputStream2 = s2
-	return
-}
-
 func TestStream(t *testing.T) {
-	_, s1, s2, err := videoInputStreams()
+	fc, err := globalHelper.inputFormatContext("video.mp4")
 	require.NoError(t, err)
+	ss := fc.Streams()
+	require.Len(t, ss, 2)
+	s1 := ss[0]
+	s2 := ss[1]
 
 	require.Equal(t, 0, s1.Index())
 	require.Equal(t, astiav.NewRational(24, 1), s1.AvgFrameRate())

@@ -1,43 +1,18 @@
 package astiav_test
 
 import (
-	"errors"
-	"fmt"
 	"testing"
 
 	"github.com/asticode/go-astiav"
 	"github.com/stretchr/testify/require"
 )
 
-func videoInputFormatContext() (fc1 *astiav.FormatContext, err error) {
-	if global.inputFormatContext != nil {
-		return global.inputFormatContext, nil
-	}
-
-	if fc1 = astiav.AllocFormatContext(); fc1 == nil {
-		err = errors.New("astiav_test: allocated format context is nil")
-		return
-	}
-	global.closer.Add(fc1.Free)
-
-	if err = fc1.OpenInput("testdata/video.mp4", nil, nil); err != nil {
-		err = fmt.Errorf("astiav_test: opening input failed: %w", err)
-		return
-	}
-	global.closer.Add(fc1.CloseInput)
-
-	if err = fc1.FindStreamInfo(nil); err != nil {
-		err = fmt.Errorf("astiav_test: finding stream info failed: %w", err)
-		return
-	}
-
-	global.inputFormatContext = fc1
-	return
-}
-
 func TestFormatContext(t *testing.T) {
-	fc1, s1, _, err := videoInputStreams()
+	fc1, err := globalHelper.inputFormatContext("video.mp4")
 	require.NoError(t, err)
+	ss := fc1.Streams()
+	require.Len(t, ss, 2)
+	s1 := ss[0]
 
 	require.Equal(t, int64(607583), fc1.BitRate())
 	require.Equal(t, astiav.NewFormatContextCtxFlags(0), fc1.CtxFlags())
