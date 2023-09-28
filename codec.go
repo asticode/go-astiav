@@ -28,13 +28,13 @@ func (c *Codec) String() string {
 	return c.Name()
 }
 
-func (c *Codec) ChannelLayouts() (o []*ChannelLayout) {
+func (c *Codec) ChannelLayouts() (o []ChannelLayout) {
 	if c.c.ch_layouts == nil {
 		return nil
 	}
 	size := unsafe.Sizeof(*c.c.ch_layouts)
 	for i := 0; ; i++ {
-		v := newChannelLayoutFromC((*C.struct_AVChannelLayout)(unsafe.Pointer(uintptr(unsafe.Pointer(c.c.ch_layouts)) + uintptr(i)*size)))
+		v, _ := newChannelLayoutFromC((*C.struct_AVChannelLayout)(unsafe.Pointer(uintptr(unsafe.Pointer(c.c.ch_layouts)) + uintptr(i)*size))).clone()
 		if !v.Valid() {
 			break
 		}

@@ -20,7 +20,7 @@ func TestCodec(t *testing.T) {
 
 	c = astiav.FindDecoderByName("aac")
 	require.NotNil(t, c)
-	els := []*astiav.ChannelLayout{
+	els := []astiav.ChannelLayout{
 		astiav.ChannelLayoutMono,
 		astiav.ChannelLayoutStereo,
 		astiav.ChannelLayoutSurround,

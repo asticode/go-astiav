@@ -75,15 +75,15 @@ type ChannelLayout struct {
 	c *C.struct_AVChannelLayout
 }
 
-func newChannelLayoutFromC(c *C.struct_AVChannelLayout) *ChannelLayout {
-	return &ChannelLayout{c: c}
+func newChannelLayoutFromC(c *C.struct_AVChannelLayout) ChannelLayout {
+	return ChannelLayout{c: c}
 }
 
-func (l *ChannelLayout) NbChannels() int {
+func (l ChannelLayout) NbChannels() int {
 	return int(l.c.nb_channels)
 }
 
-func (l *ChannelLayout) String() string {
+func (l ChannelLayout) String() string {
 	b := make([]byte, 1024)
 	n, err := l.Describe(b)
 	if err != nil {
@@ -92,7 +92,7 @@ func (l *ChannelLayout) String() string {
 	return string(b[:n])
 }
 
-func (l *ChannelLayout) Describe(b []byte) (int, error) {
+func (l ChannelLayout) Describe(b []byte) (int, error) {
 	ret := C.av_channel_layout_describe(l.c, (*C.char)(unsafe.Pointer(&b[0])), cUlong(len(b)))
 	if ret < 0 {
 		return 0, newError(ret)
@@ -100,11 +100,11 @@ func (l *ChannelLayout) Describe(b []byte) (int, error) {
 	return int(ret), nil
 }
 
-func (l *ChannelLayout) Valid() bool {
+func (l ChannelLayout) Valid() bool {
 	return C.av_channel_layout_check(l.c) > 0
 }
 
-func (l *ChannelLayout) Compare(l2 *ChannelLayout) (equal bool, err error) {
+func (l ChannelLayout) Compare(l2 ChannelLayout) (equal bool, err error) {
 	ret := C.av_channel_layout_compare(l.c, l2.c)
 	if ret < 0 {
 		return false, newError(ret)
@@ -112,11 +112,19 @@ func (l *ChannelLayout) Compare(l2 *ChannelLayout) (equal bool, err error) {
 	return ret == 0, nil
 }
 
-func (l *ChannelLayout) Equal(l2 *ChannelLayout) bool {
+func (l ChannelLayout) Equal(l2 ChannelLayout) bool {
 	v, _ := l.Compare(l2)
 	return v
 }
 
-func (l *ChannelLayout) copy(dst *C.struct_AVChannelLayout) error {
+func (l ChannelLayout) copy(dst *C.struct_AVChannelLayout) error {
 	return newError(C.av_channel_layout_copy(dst, l.c))
+}
+
+func (l ChannelLayout) clone() (ChannelLayout, error) {
+	// TODO Should it be freed?
+	cl := C.struct_AVChannelLayout{}
+	err := l.copy(&cl)
+	dst := newChannelLayoutFromC(&cl)
+	return dst, err
 }

@@ -53,11 +53,12 @@ func (cc *CodecContext) SetChannels(channels int) {
 	cc.c.channels = C.int(channels)
 }
 
-func (cc *CodecContext) ChannelLayout() *ChannelLayout {
-	return newChannelLayoutFromC(&cc.c.ch_layout)
+func (cc *CodecContext) ChannelLayout() ChannelLayout {
+	l, _ := newChannelLayoutFromC(&cc.c.ch_layout).clone()
+	return l
 }
 
-func (cc *CodecContext) SetChannelLayout(l *ChannelLayout) {
+func (cc *CodecContext) SetChannelLayout(l ChannelLayout) {
 	l.copy(&cc.c.ch_layout) //nolint: errcheck
 }
 

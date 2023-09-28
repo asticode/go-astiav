@@ -38,11 +38,12 @@ func (f *Frame) AllocSamples(align int) error {
 	return newError(C.av_samples_alloc(&f.c.data[0], &f.c.linesize[0], f.c.ch_layout.nb_channels, f.c.nb_samples, (C.enum_AVSampleFormat)(f.c.format), C.int(align)))
 }
 
-func (f *Frame) ChannelLayout() *ChannelLayout {
-	return newChannelLayoutFromC(&f.c.ch_layout)
+func (f *Frame) ChannelLayout() ChannelLayout {
+	l, _ := newChannelLayoutFromC(&f.c.ch_layout).clone()
+	return l
 }
 
-func (f *Frame) SetChannelLayout(l *ChannelLayout) {
+func (f *Frame) SetChannelLayout(l ChannelLayout) {
 	l.copy(&f.c.ch_layout) //nolint: errcheck
 }
 
