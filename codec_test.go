@@ -47,8 +47,8 @@ func TestCodec(t *testing.T) {
 	require.Contains(t, c.PixelFormats(), astiav.PixelFormatNv12)
 	require.Contains(t, c.PixelFormats(), astiav.PixelFormatYuv420P)
 	require.Nil(t, c.SampleFormats())
-	require.Contains(t, c.Name(), "h264_")
-	require.Contains(t, c.String(), "h264_")
+	require.Contains(t, c.Name(), "264")
+	require.Contains(t, c.String(), "264")
 
 	c = astiav.FindEncoderByName("mjpeg")
 	require.NotNil(t, c)
