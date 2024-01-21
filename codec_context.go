@@ -4,11 +4,31 @@ package astiav
 //#include <libavcodec/avcodec.h>
 //#include <libavutil/frame.h>
 import "C"
+import (
+	"unsafe"
+)
 
 // https://github.com/FFmpeg/FFmpeg/blob/n5.0/libavcodec/avcodec.h#L383
 type CodecContext struct {
 	c *C.struct_AVCodecContext
 }
+
+type HWDeviceType int
+
+const (
+	HWDeviceTypeNone         HWDeviceType = C.AV_HWDEVICE_TYPE_NONE
+	HWDeviceTypeVDPAU        HWDeviceType = C.AV_HWDEVICE_TYPE_VDPAU
+	HWDeviceTypeCUDA         HWDeviceType = C.AV_HWDEVICE_TYPE_CUDA
+	HWDeviceTypeVAAPI        HWDeviceType = C.AV_HWDEVICE_TYPE_VAAPI
+	HWDeviceTypeDXVA2        HWDeviceType = C.AV_HWDEVICE_TYPE_DXVA2
+	HWDeviceTypeQSV          HWDeviceType = C.AV_HWDEVICE_TYPE_QSV
+	HWDeviceTypeVideoToolbox HWDeviceType = C.AV_HWDEVICE_TYPE_VIDEOTOOLBOX
+	HWDeviceTypeD3D11VA      HWDeviceType = C.AV_HWDEVICE_TYPE_D3D11VA
+	HWDeviceTypeDRM          HWDeviceType = C.AV_HWDEVICE_TYPE_DRM
+	HWDeviceTypeOpenCL       HWDeviceType = C.AV_HWDEVICE_TYPE_OPENCL
+	HWDeviceTypeMediaCodec   HWDeviceType = C.AV_HWDEVICE_TYPE_MEDIACODEC
+	HWDeviceTypeVulkan       HWDeviceType = C.AV_HWDEVICE_TYPE_VULKAN
+)
 
 func AllocCodecContext(c *Codec) *CodecContext {
 	var cc *C.struct_AVCodec
@@ -16,6 +36,45 @@ func AllocCodecContext(c *Codec) *CodecContext {
 		cc = c.c
 	}
 	return newCodecContextFromC(C.avcodec_alloc_context3(cc))
+}
+
+func AllocHWDeviceContext(c *Codec, hwType HWDeviceType) *CodecContext {
+	ctx := AllocCodecContext(c)
+	if ctx == nil {
+		return nil
+	}
+
+	var hwDeviceCtx *C.AVBufferRef
+	errorCode := C.av_hwdevice_ctx_create(&hwDeviceCtx, C.enum_AVHWDeviceType(hwType), nil, nil, 0)
+	if errorCode < 0 {
+		ctx.Free()
+		return nil
+	}
+
+	ctx.c.hw_device_ctx = hwDeviceCtx
+
+	return ctx
+}
+
+func AllocHWDeviceContextWithDevice(c *Codec, hwType HWDeviceType, device string) *CodecContext {
+	ctx := AllocCodecContext(c)
+	if ctx == nil {
+		return nil
+	}
+
+	var hwDeviceCtx *C.AVBufferRef
+	deviceC := C.CString(device)
+	defer C.free(unsafe.Pointer(deviceC))
+
+	errorCode := C.av_hwdevice_ctx_create(&hwDeviceCtx, C.enum_AVHWDeviceType(hwType), deviceC, nil, 0)
+	if errorCode < 0 {
+		ctx.Free()
+		return nil
+	}
+
+	ctx.c.hw_device_ctx = hwDeviceCtx
+
+	return ctx
 }
 
 func newCodecContextFromC(c *C.struct_AVCodecContext) *CodecContext {

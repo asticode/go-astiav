@@ -114,6 +114,9 @@ func TestCodecContext(t *testing.T) {
 	require.Equal(t, astiav.NewRational(15, 1), cc4.TimeBase())
 	require.Equal(t, 16, cc4.Width())
 
+	c5 := astiav.FindDecoder(astiav.CodecIDH264)
+	hwctx := astiav.AllocHWDeviceContext(c5, astiav.HWDeviceTypeCUDA)
+	require.NotNil(t, hwctx)
 	// TODO Test ReceivePacket
 	// TODO Test SendPacket
 	// TODO Test ReceiveFrame
