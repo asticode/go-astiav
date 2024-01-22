@@ -99,7 +99,6 @@ func main() {
 	}
 
 	sws_created := false
-	reso_changed := false
 	var sws *astiav.SWSContext
 
 	dstFrame := astiav.AllocFrame()
@@ -136,8 +135,9 @@ func main() {
 				log.Fatal(fmt.Errorf("main: receiving frame failed: %w", err))
 			}
 
+			// SWS context alloc on first frame otherwise we dont no the frame w,h and pixel format
 			if !sws_created {
-				sws = astiav.CreateSwsContext(f.Width(), f.Height(), f.PixelFormat(), 480, 270, astiav.PixelFormatRgba, astiav.SWS_BILINEAR, dstFrame)
+				sws = astiav.AllocSwsContext(f.Width(), f.Height(), f.PixelFormat(), 480, 270, astiav.PixelFormatRgba, astiav.SWS_BILINEAR, dstFrame)
 				sws_created = true
 			}
 
@@ -148,12 +148,6 @@ func main() {
 				// Do something with decoded frame
 				log.Printf("orig frame: %dx%d %s", f.Width(), f.Height(), f.PixelFormat().String())
 				log.Printf("scaled frame: %dx%d %s", dstFrame.Width(), dstFrame.Height(), dstFrame.PixelFormat().String())
-
-				// Change reso after first scaled frame just for demo
-				if !reso_changed {
-					sws = sws.ChangeResolution(100, 100)
-					reso_changed = true
-				}
 			}
 
 		}
