@@ -79,7 +79,9 @@ func main() {
 			log.Fatal(errors.New("main: codec is nil"))
 		}
 
-		// Alloc codec context
+		// For software decoding use AllocCodecContext(codec)
+		// and for hardware decoding AllocHWDeviceContext(codec, HWDeviceType)
+		// HW Example CUDA: AllocHWDeviceContext(s.decCodec, astiav.HWDeviceTypeCUDA)
 		if s.decCodecContext = astiav.AllocCodecContext(s.decCodec); s.decCodecContext == nil {
 			log.Fatal(errors.New("main: codec context is nil"))
 		}
