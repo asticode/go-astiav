@@ -5,6 +5,7 @@ package astiav
 //#include <libavutil/frame.h>
 import "C"
 import (
+	"fmt"
 	"unsafe"
 )
 
@@ -310,7 +311,42 @@ func (cc *CodecContext) ReceiveFrame(f *Frame) error {
 	if f != nil {
 		fc = f.c
 	}
-	return newError(C.avcodec_receive_frame(cc.c, fc))
+	err := newError(C.avcodec_receive_frame(cc.c, fc))
+	if err != nil {
+		return err
+	}
+	if isHardwarePixelFormat(f.PixelFormat()) {
+		temp_frame := AllocFrame()
+		ret := C.av_hwframe_transfer_data(temp_frame.c, f.c, 0)
+		if int(ret) < 0 {
+			return fmt.Errorf("Unable to transfer data from GPU: %d", int(ret))
+		}
+		f.Free()
+		f.c = temp_frame.c
+	}
+	return nil
+}
+
+func isHardwarePixelFormat(pf PixelFormat) bool {
+	hwPixelFormats := []PixelFormat{
+		PixelFormatCuda,
+		PixelFormatD3D11,
+		PixelFormatQsv,
+		PixelFormatD3D11VaVld,
+		PixelFormatDxva2Vld,
+		PixelFormatVaapi,
+		PixelFormatVdpau,
+		PixelFormatVideotoolbox,
+		PixelFormatMmal,
+		PixelFormatXvmc,
+	}
+
+	for _, hwPf := range hwPixelFormats {
+		if pf == hwPf {
+			return true
+		}
+	}
+	return false
 }
 
 func (cc *CodecContext) SendFrame(f *Frame) error {
