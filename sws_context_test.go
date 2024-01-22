@@ -42,28 +42,23 @@ func TestSWS(t *testing.T) {
 	srcFrame.ImageFillBlack() // Fill the source frame with black for testing
 
 	// Create SWSContext for scaling and verify it's not nil
-	swsc := astiav.CreateSwsContext(srcW, srcH, srcFormat, dstW, dstH, dstFormat, astiav.SWS_BILINEAR, dstFrame)
+	swsc := astiav.AllocSwsContext(srcW, srcH, srcFormat, dstW, dstH, dstFormat, astiav.SWS_BILINEAR, dstFrame)
 	require.NotNil(t, swsc)
 
 	// Perform scaling and verify no errors
 	err := swsc.Scale(srcFrame, dstFrame)
 	require.NoError(t, err)
 
-	// Change resolution and perform scaling again
-	swsc = swsc.ChangeResolution(secondDstW, secondDstH)
-	err2 := swsc.Scale(srcFrame, dstFrame)
-	require.NoError(t, err2)
-
 	// Verify the dimensions and format of the destination frame
-	require.Equal(t, secondDstH, dstFrame.Height())
-	require.Equal(t, secondDstW, dstFrame.Width())
+	require.Equal(t, dstW, dstFrame.Height())
+	require.Equal(t, dstH, dstFrame.Width())
 	require.Equal(t, dstFormat, dstFrame.PixelFormat())
 
 	// Convert frame data to image and perform additional verifications
 	i1, err := dstFrame.Data().Image()
 	require.NoError(t, err)
-	require.Equal(t, secondDstW, i1.Bounds().Dx())
-	require.Equal(t, secondDstH, i1.Bounds().Dy())
+	require.Equal(t, dstW, i1.Bounds().Dx())
+	require.Equal(t, dstH, i1.Bounds().Dy())
 	assertImageType(t, i1, reflect.TypeOf((*image.NRGBA)(nil)))
 	swsc.Free()
 }

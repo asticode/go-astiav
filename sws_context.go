@@ -34,7 +34,7 @@ const (
 	SWS_SPLINE        = C.SWS_SPLINE
 )
 
-func CreateSwsContext(srcW, srcH int, srcFormat PixelFormat, dstW, dstH int, dstFormat PixelFormat, flags int, dstFrame *Frame) *SWSContext {
+func AllocSwsContext(srcW, srcH int, srcFormat PixelFormat, dstW, dstH int, dstFormat PixelFormat, flags int, dstFrame *Frame) *SWSContext {
 	dstFrame.SetPixelFormat(dstFormat)
 	dstFrame.SetWidth(dstW)
 	dstFrame.SetHeight(dstH)
@@ -54,11 +54,6 @@ func CreateSwsContext(srcW, srcH int, srcFormat PixelFormat, dstW, dstH int, dst
 		return nil
 	}
 	return &SWSContext{c: swsCtx, dstFormat: dstFormat, srcFormat: srcFormat, srcW: srcW, srcH: srcH, dstW: dstW, dstH: dstH, flags: flags, dstFrame: dstFrame}
-}
-
-func (sc *SWSContext) ChangeResolution(dstW, dstH int) *SWSContext {
-	sc.Free()
-	return CreateSwsContext(sc.srcW, sc.srcH, sc.srcFormat, dstW, dstH, sc.dstFormat, sc.flags, sc.dstFrame)
 }
 
 func (sc *SWSContext) Scale(srcFrame, dstFrame *Frame) error {
