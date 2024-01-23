@@ -44,7 +44,7 @@ func (d *FrameData) Bytes(align int) ([]byte, error) {
 	return nil, errors.New("astiav: frame type not implemented")
 }
 
-func (d *FrameData) planeData(i int, sizeFunc func(linesize int) int) []byte {
+func (d *FrameData) PlaneData(i int, sizeFunc func(linesize int) int) []byte {
 	return bytesFromC(func(size *cUlong) *C.uint8_t {
 		*size = cUlong(sizeFunc(int(d.f.c.linesize[i])))
 		return d.f.c.data[i]
@@ -70,7 +70,7 @@ func (d *FrameData) imageYCbCrSubsampleRatio() image.YCbCrSubsampleRatio {
 
 func (d *FrameData) imageNRGBA() *image.NRGBA {
 	return &image.NRGBA{
-		Pix:    d.planeData(0, func(linesize int) int { return linesize * d.f.Height() }),
+		Pix:    d.PlaneData(0, func(linesize int) int { return linesize * d.f.Height() }),
 		Stride: d.f.Linesize()[0],
 		Rect:   image.Rect(0, 0, d.f.Width(), d.f.Height()),
 	}
@@ -78,9 +78,9 @@ func (d *FrameData) imageNRGBA() *image.NRGBA {
 
 func (d *FrameData) imageYCbCr() *image.YCbCr {
 	return &image.YCbCr{
-		Y:              d.planeData(0, func(linesize int) int { return linesize * d.f.Height() }),
-		Cb:             d.planeData(1, func(linesize int) int { return linesize * d.f.Height() }),
-		Cr:             d.planeData(2, func(linesize int) int { return linesize * d.f.Height() }),
+		Y:              d.PlaneData(0, func(linesize int) int { return linesize * d.f.Height() }),
+		Cb:             d.PlaneData(1, func(linesize int) int { return linesize * d.f.Height() }),
+		Cr:             d.PlaneData(2, func(linesize int) int { return linesize * d.f.Height() }),
 		YStride:        d.f.Linesize()[0],
 		CStride:        d.f.Linesize()[1],
 		SubsampleRatio: d.imageYCbCrSubsampleRatio(),
@@ -91,7 +91,7 @@ func (d *FrameData) imageYCbCr() *image.YCbCr {
 func (d *FrameData) imageNYCbCrA() *image.NYCbCrA {
 	return &image.NYCbCrA{
 		YCbCr:   *d.imageYCbCr(),
-		A:       d.planeData(3, func(linesize int) int { return linesize * d.f.Height() }),
+		A:       d.PlaneData(3, func(linesize int) int { return linesize * d.f.Height() }),
 		AStride: d.f.Linesize()[3],
 	}
 }
