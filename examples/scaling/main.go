@@ -56,21 +56,19 @@ func main() {
 	defer swsCtx.Free()
 
 	err = swsCtx.Scale(srcFrame, dstFrame)
-
 	if err != nil {
-		log.Fatalf("Unable to scale: %w", err)
-	}
+                log.Fatalf("Unable to scale: %s", err.Error())
+        }
 
-	img, err := dstFrame.Data().Image()
+        img, err := dstFrame.Data().Image()
+        if err != nil {
+                log.Fatalf("Unable to get image: %s", err.Error())
+        }
 
-	if err != nil {
-		log.Fatalf("Unable to get image: %w", err)
-	}
-
-	err = png.Encode(dstFile, img)
-	if err != nil {
-		log.Fatalf("Unable to encode image to png: %w", err)
-	}
+        err = png.Encode(dstFile, img)
+        if err != nil {
+                log.Fatalf("Unable to encode image to png: %s", err.Error())
+        }
 
 	log.Printf("Successfully scale to %dx%d and write image to: %s", dstWidth, dstHeight, dstFilename)
 }
