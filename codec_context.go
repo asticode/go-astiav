@@ -63,10 +63,10 @@ func AllocHWDeviceContext(c *Codec, hwType HWDeviceType) (*CodecContext, error) 
 	return ctx, nil
 }
 
-func AllocHWDeviceContextWithDevice(c *Codec, hwType HWDeviceType, device string) *CodecContext {
+func AllocHWDeviceContextWithDevice(c *Codec, hwType HWDeviceType, device string) (*CodecContext, error) {
 	ctx := AllocCodecContext(c)
 	if ctx == nil {
-		return nil
+		return nil, errors.New("Unable to alloc codec context")
 	}
 
 	var hwDeviceCtx *C.AVBufferRef
@@ -76,12 +76,12 @@ func AllocHWDeviceContextWithDevice(c *Codec, hwType HWDeviceType, device string
 	errorCode := C.av_hwdevice_ctx_create(&hwDeviceCtx, C.enum_AVHWDeviceType(hwType), deviceC, nil, 0)
 	if errorCode < 0 {
 		ctx.Free()
-		return nil
+		return nil, newError(errorCode)
 	}
 
 	ctx.c.hw_device_ctx = hwDeviceCtx
 
-	return ctx
+	return ctx, nil
 }
 
 // Returns a list of supported hw codecs, user can check for support like checking if h264_cuvid is in slice
