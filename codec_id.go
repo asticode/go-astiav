@@ -159,6 +159,7 @@ const (
 	CodecIDH263I                    = CodecID(C.AV_CODEC_ID_H263I)
 	CodecIDH263P                    = CodecID(C.AV_CODEC_ID_H263P)
 	CodecIDH264                     = CodecID(C.AV_CODEC_ID_H264)
+	CodecIDH265                     = CodecID(C.AV_CODEC_ID_H265)
 	CodecIDHdmvPgsSubtitle          = CodecID(C.AV_CODEC_ID_HDMV_PGS_SUBTITLE)
 	CodecIDHevc                     = CodecID(C.AV_CODEC_ID_HEVC)
 	CodecIDHevcDeprecated           = CodecID(C.AV_CODEC_ID_HEVC)
