@@ -11,14 +11,10 @@ import (
 
 // Test constants for source and destination dimensions and formats
 const (
-	srcW       = 100
-	srcH       = 100
-	dstW       = 200
-	dstH       = 200
-	secondDstW = 300
-	secondDstH = 300
-	srcFormat  = astiav.PixelFormatYuv420P
-	dstFormat  = astiav.PixelFormatRgba
+	srcW = 100
+	srcH = 100
+	dstW = 200
+	dstH = 200
 )
 
 // assertImageType is a helper function to check the type of an image.
@@ -37,22 +33,18 @@ func TestSWS(t *testing.T) {
 
 	srcFrame.SetHeight(srcH)
 	srcFrame.SetWidth(srcW)
-	srcFrame.SetPixelFormat(srcFormat)
+	srcFrame.SetPixelFormat(astiav.PixelFormatYuv420P)
 	srcFrame.AllocBuffer(1)
-	srcFrame.ImageFillBlack() // Fill the source frame with black for testing
 
-	// Create SWSContext for scaling and verify it's not nil
-	swsc := astiav.AllocSwsContext(srcW, srcH, srcFormat, dstW, dstH, dstFormat, astiav.SWS_BILINEAR, dstFrame)
+	swsc := astiav.SwsGetContext(srcW, srcH, astiav.PixelFormatYuv420P, dstW, dstH, astiav.PixelFormatRgba, astiav.SWS_BILINEAR, dstFrame)
 	require.NotNil(t, swsc)
 
-	// Perform scaling and verify no errors
 	err := swsc.Scale(srcFrame, dstFrame)
 	require.NoError(t, err)
 
-	// Verify the dimensions and format of the destination frame
 	require.Equal(t, dstW, dstFrame.Height())
 	require.Equal(t, dstH, dstFrame.Width())
-	require.Equal(t, dstFormat, dstFrame.PixelFormat())
+	require.Equal(t, astiav.PixelFormatRgba, dstFrame.PixelFormat())
 
 	// Convert frame data to image and perform additional verifications
 	i1, err := dstFrame.Data().Image()
@@ -60,5 +52,15 @@ func TestSWS(t *testing.T) {
 	require.Equal(t, dstW, i1.Bounds().Dx())
 	require.Equal(t, dstH, i1.Bounds().Dy())
 	assertImageType(t, i1, reflect.TypeOf((*image.NRGBA)(nil)))
+
+	// Update sws ctx tests
+	err = swsc.UpdateScalingParameters(50, 50, astiav.PixelFormatRgb24)
+	require.NoError(t, err)
+	require.Equal(t, astiav.PixelFormatRgb24, dstFrame.PixelFormat())
+	err = swsc.Scale(srcFrame, dstFrame)
+	require.NoError(t, err)
+	require.Equal(t, dstFrame.Width(), 50)
+	require.Equal(t, dstFrame.Height(), 50)
+
 	swsc.Free()
 }

@@ -27,6 +27,7 @@ Examples are located in the [examples](examples) directory and mirror as much as
 |Filtering|[see](examples/filtering/main.go)|[see](https://github.com/FFmpeg/FFmpeg/blob/n5.1.2/doc/examples/filtering_video.c)
 |Remuxing|[see](examples/remuxing/main.go)|[see](https://github.com/FFmpeg/FFmpeg/blob/n5.1.2/doc/examples/remuxing.c)
 |Transcoding|[see](examples/transcoding/main.go)|[see](https://github.com/FFmpeg/FFmpeg/blob/n5.1.2/doc/examples/transcoding.c)
+|Scaling|[see](examples/scaling/main.go)|[see](https://github.com/FFmpeg/FFmpeg/blob/n5.1.2/doc/examples/scaling_video.c)
 
 *Tip: you can use the video sample located in the `testdata` directory for your tests*
 

@@ -1,158 +1,76 @@
 package main
 
 import (
-	"errors"
 	"flag"
 	"fmt"
+	"image/png"
 	"log"
-	"strings"
+	"os"
 
 	"github.com/asticode/go-astiav"
 )
 
-var (
-	input = flag.String("i", "", "the input path")
-)
-
-type stream struct {
-	decCodec        *astiav.Codec
-	decCodecContext *astiav.CodecContext
-	inputStream     *astiav.Stream
-}
-
 func main() {
-	// Handle ffmpeg logs
-	astiav.SetLogLevel(astiav.LogLevelDebug)
-	astiav.SetLogCallback(func(l astiav.LogLevel, fmt, msg, parent string) {
-		log.Printf("ffmpeg log: %s (level: %d)\n", strings.TrimSpace(msg), l)
-	})
+	var (
+		dstFilename string
+		dstWidth    int
+		dstHeight   int
+	)
 
-	// Parse flags
+	flag.StringVar(&dstFilename, "output", "", "Output file name")
+	flag.IntVar(&dstWidth, "w", 0, "Destination width")
+	flag.IntVar(&dstHeight, "h", 0, "Destination height")
 	flag.Parse()
 
-	// Usage
-	if *input == "" {
-		log.Println("Usage: <binary path> -i <input path>")
-		return
+	if dstFilename == "" || dstWidth <= 0 || dstHeight <= 0 {
+		fmt.Fprintf(os.Stderr, "Usage: %s -output output_file -w W -h H\n", os.Args[0])
+		flag.PrintDefaults()
+		os.Exit(1)
 	}
 
-	// Alloc packet
-	pkt := astiav.AllocPacket()
-	defer pkt.Free()
-
-	// Alloc frame
-	f := astiav.AllocFrame()
-	defer f.Free()
-
-	// Alloc input format context
-	inputFormatContext := astiav.AllocFormatContext()
-	if inputFormatContext == nil {
-		log.Fatal(errors.New("main: input format context is nil"))
+	dstFile, err := os.Create(dstFilename)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Could not open destination file %s\n", dstFilename)
+		os.Exit(1)
 	}
-	defer inputFormatContext.Free()
+	defer dstFile.Close()
 
-	// Open input
-	if err := inputFormatContext.OpenInput(*input, nil, nil); err != nil {
-		log.Fatal(fmt.Errorf("main: opening input failed: %w", err))
-	}
-	defer inputFormatContext.CloseInput()
-
-	// Find stream info
-	if err := inputFormatContext.FindStreamInfo(nil); err != nil {
-		log.Fatal(fmt.Errorf("main: finding stream info failed: %w", err))
-	}
-
-	// Loop through streams
-	streams := make(map[int]*stream) // Indexed by input stream index
-	for _, is := range inputFormatContext.Streams() {
-		// Only process audio or video
-		if is.CodecParameters().MediaType() != astiav.MediaTypeVideo {
-			continue
-		}
-
-		// Create stream
-		s := &stream{inputStream: is}
-
-		// Find decoder
-		if s.decCodec = astiav.FindDecoder(is.CodecParameters().CodecID()); s.decCodec == nil {
-			log.Fatal(errors.New("main: codec is nil"))
-		}
-
-		// Alloc codec context
-		if s.decCodecContext = astiav.AllocCodecContext(s.decCodec); s.decCodecContext == nil {
-			log.Fatal(errors.New("main: codec context is nil"))
-		}
-		defer s.decCodecContext.Free()
-
-		// Update codec context
-		if err := is.CodecParameters().ToCodecContext(s.decCodecContext); err != nil {
-			log.Fatal(fmt.Errorf("main: updating codec context failed: %w", err))
-		}
-
-		// Open codec context
-		if err := s.decCodecContext.Open(s.decCodec, nil); err != nil {
-			log.Fatal(fmt.Errorf("main: opening codec context failed: %w", err))
-		}
-
-		// Add stream
-		streams[is.Index()] = s
-	}
-
-	sws_created := false
-	var sws *astiav.SWSContext
+	srcW, srcH := 320, 240
+	srcPixFmt, dstPixFmt := astiav.PixelFormatYuv420P, astiav.PixelFormatRgba
+	srcFrame := astiav.AllocFrame()
+	srcFrame.SetHeight(srcH)
+	srcFrame.SetWidth(srcW)
+	srcFrame.SetPixelFormat(srcPixFmt)
+	srcFrame.AllocBuffer(1)
+	srcFrame.ImageFillBlack()
+	defer srcFrame.Free()
 
 	dstFrame := astiav.AllocFrame()
 	defer dstFrame.Free()
 
-	// Loop through packets
-	for {
-		// Read frame
-		if err := inputFormatContext.ReadFrame(pkt); err != nil {
-			if errors.Is(err, astiav.ErrEof) {
-				break
-			}
-			log.Fatal(fmt.Errorf("main: reading frame failed: %w", err))
-		}
+	swsCtx := astiav.SwsGetContext(srcW, srcH, srcPixFmt, dstWidth, dstHeight, dstPixFmt, astiav.SWS_POINT, dstFrame)
+	if swsCtx == nil {
+		fmt.Fprintln(os.Stderr, "Unable to create scale context")
+		os.Exit(1)
+	}
+	defer swsCtx.Free()
 
-		// Get stream
-		s, ok := streams[pkt.StreamIndex()]
-		if !ok {
-			continue
-		}
+	err = swsCtx.Scale(srcFrame, dstFrame)
 
-		// Send packet
-		if err := s.decCodecContext.SendPacket(pkt); err != nil {
-			log.Fatal(fmt.Errorf("main: sending packet failed: %w", err))
-		}
-
-		// Loop
-		for {
-			// Receive frame
-			if err := s.decCodecContext.ReceiveFrame(f); err != nil {
-				if errors.Is(err, astiav.ErrEof) || errors.Is(err, astiav.ErrEagain) {
-					break
-				}
-				log.Fatal(fmt.Errorf("main: receiving frame failed: %w", err))
-			}
-
-			// SWS context alloc on first frame otherwise we dont no the frame w,h and pixel format
-			if !sws_created {
-				sws = astiav.AllocSwsContext(f.Width(), f.Height(), f.PixelFormat(), 480, 270, astiav.PixelFormatRgba, astiav.SWS_BILINEAR, dstFrame)
-				sws_created = true
-			}
-
-			err := sws.Scale(f, dstFrame)
-			if err != nil {
-				log.Println("Scaling fails")
-			} else {
-				// Do something with decoded frame
-				log.Printf("orig frame: %dx%d %s", f.Width(), f.Height(), f.PixelFormat().String())
-				log.Printf("scaled frame: %dx%d %s", dstFrame.Width(), dstFrame.Height(), dstFrame.PixelFormat().String())
-			}
-
-		}
+	if err != nil {
+		log.Fatalf("Unable to scale: %w", err)
 	}
 
-	// Success
-	log.Println("success")
+	img, err := dstFrame.Data().Image()
+
+	if err != nil {
+		log.Fatalf("Unable to get image: %w", err)
+	}
+
+	err = png.Encode(dstFile, img)
+	if err != nil {
+		log.Fatalf("Unable to encode image to png: %w", err)
+	}
+
+	log.Printf("Successfully scale to %dx%d and write image to: %s", dstWidth, dstHeight, dstFilename)
 }
