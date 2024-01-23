@@ -4,38 +4,11 @@ package astiav
 //#include <libavcodec/avcodec.h>
 //#include <libavutil/frame.h>
 import "C"
-import (
-	"errors"
-	"fmt"
-	"unsafe"
-)
 
 // https://github.com/FFmpeg/FFmpeg/blob/n5.0/libavcodec/avcodec.h#L383
 type CodecContext struct {
 	c *C.struct_AVCodecContext
 }
-
-type HWDeviceType int
-
-type HwCodecInfo struct {
-	Name      string
-	MediaType string
-}
-
-const (
-	HWDeviceTypeNone         HWDeviceType = C.AV_HWDEVICE_TYPE_NONE
-	HWDeviceTypeVDPAU        HWDeviceType = C.AV_HWDEVICE_TYPE_VDPAU
-	HWDeviceTypeCUDA         HWDeviceType = C.AV_HWDEVICE_TYPE_CUDA
-	HWDeviceTypeVAAPI        HWDeviceType = C.AV_HWDEVICE_TYPE_VAAPI
-	HWDeviceTypeDXVA2        HWDeviceType = C.AV_HWDEVICE_TYPE_DXVA2
-	HWDeviceTypeQSV          HWDeviceType = C.AV_HWDEVICE_TYPE_QSV
-	HWDeviceTypeVideoToolbox HWDeviceType = C.AV_HWDEVICE_TYPE_VIDEOTOOLBOX
-	HWDeviceTypeD3D11VA      HWDeviceType = C.AV_HWDEVICE_TYPE_D3D11VA
-	HWDeviceTypeDRM          HWDeviceType = C.AV_HWDEVICE_TYPE_DRM
-	HWDeviceTypeOpenCL       HWDeviceType = C.AV_HWDEVICE_TYPE_OPENCL
-	HWDeviceTypeMediaCodec   HWDeviceType = C.AV_HWDEVICE_TYPE_MEDIACODEC
-	HWDeviceTypeVulkan       HWDeviceType = C.AV_HWDEVICE_TYPE_VULKAN
-)
 
 func AllocCodecContext(c *Codec) *CodecContext {
 	var cc *C.struct_AVCodec
@@ -43,73 +16,6 @@ func AllocCodecContext(c *Codec) *CodecContext {
 		cc = c.c
 	}
 	return newCodecContextFromC(C.avcodec_alloc_context3(cc))
-}
-
-func AllocHWDeviceContext(c *Codec, hwType HWDeviceType) (*CodecContext, error) {
-	ctx := AllocCodecContext(c)
-	if ctx == nil {
-		return nil, errors.New("Unable to alloc codec context")
-	}
-
-	var hwDeviceCtx *C.AVBufferRef
-	errorCode := C.av_hwdevice_ctx_create(&hwDeviceCtx, C.enum_AVHWDeviceType(hwType), nil, nil, 0)
-	if errorCode < 0 {
-		ctx.Free()
-		return nil, newError(errorCode)
-	}
-
-	ctx.c.hw_device_ctx = hwDeviceCtx
-
-	return ctx, nil
-}
-
-func AllocHWDeviceContextWithDevice(c *Codec, hwType HWDeviceType, device string) (*CodecContext, error) {
-	ctx := AllocCodecContext(c)
-	if ctx == nil {
-		return nil, errors.New("Unable to alloc codec context")
-	}
-
-	var hwDeviceCtx *C.AVBufferRef
-	deviceC := C.CString(device)
-	defer C.free(unsafe.Pointer(deviceC))
-
-	errorCode := C.av_hwdevice_ctx_create(&hwDeviceCtx, C.enum_AVHWDeviceType(hwType), deviceC, nil, 0)
-	if errorCode < 0 {
-		ctx.Free()
-		return nil, newError(errorCode)
-	}
-
-	ctx.c.hw_device_ctx = hwDeviceCtx
-
-	return ctx, nil
-}
-
-// Returns a list of supported hw codecs, user can check for support like checking if h264_cuvid is in slice
-func GetHardwareCodecs() []HwCodecInfo {
-	var hardwareCodecs []HwCodecInfo
-	var codec *C.AVCodec
-	var iter unsafe.Pointer
-
-	for {
-		codec = C.av_codec_iterate(&iter)
-		if codec == nil {
-			break
-		}
-
-		if codec.capabilities&C.AV_CODEC_CAP_HARDWARE != 0 {
-			mediaType := "audio"
-			if codec._type == C.AVMEDIA_TYPE_VIDEO {
-				mediaType = "video"
-			}
-
-			codecInfo := HwCodecInfo{
-				Name:      C.GoString(codec.name),
-				MediaType: mediaType,
-			}
-			hardwareCodecs = append(hardwareCodecs, codecInfo)
-		}
-	}
-	return hardwareCodecs
 }
 
 func newCodecContextFromC(c *C.struct_AVCodecContext) *CodecContext {
@@ -120,9 +26,6 @@ func newCodecContextFromC(c *C.struct_AVCodecContext) *CodecContext {
 }
 
 func (cc *CodecContext) Free() {
-	if cc.c.hw_device_ctx != nil {
-		C.av_buffer_unref(&cc.c.hw_device_ctx)
-	}
 	C.avcodec_free_context(&cc.c)
 }
 
@@ -348,42 +251,7 @@ func (cc *CodecContext) ReceiveFrame(f *Frame) error {
 	if f != nil {
 		fc = f.c
 	}
-	err := newError(C.avcodec_receive_frame(cc.c, fc))
-	if err != nil {
-		return err
-	}
-	if isHardwarePixelFormat(f.PixelFormat()) {
-		temp_frame := AllocFrame()
-		ret := C.av_hwframe_transfer_data(temp_frame.c, f.c, 0)
-		if int(ret) < 0 {
-			return fmt.Errorf("Unable to transfer data from GPU: %d", int(ret))
-		}
-		f.Free()
-		f.c = temp_frame.c
-	}
-	return nil
-}
-
-func isHardwarePixelFormat(pf PixelFormat) bool {
-	hwPixelFormats := []PixelFormat{
-		PixelFormatCuda,
-		PixelFormatD3D11,
-		PixelFormatQsv,
-		PixelFormatD3D11VaVld,
-		PixelFormatDxva2Vld,
-		PixelFormatVaapi,
-		PixelFormatVdpau,
-		PixelFormatVideotoolbox,
-		PixelFormatMmal,
-		PixelFormatXvmc,
-	}
-
-	for _, hwPf := range hwPixelFormats {
-		if pf == hwPf {
-			return true
-		}
-	}
-	return false
+	return newError(C.avcodec_receive_frame(cc.c, fc))
 }
 
 func (cc *CodecContext) SendFrame(f *Frame) error {
@@ -392,4 +260,8 @@ func (cc *CodecContext) SendFrame(f *Frame) error {
 		fc = f.c
 	}
 	return newError(C.avcodec_send_frame(cc.c, fc))
+}
+
+func (cc *CodecContext) SetHardwareDeviceContext(hdc *HardwareDeviceContext) {
+	cc.c.hw_device_ctx = hdc.c
 }
