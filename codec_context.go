@@ -5,6 +5,7 @@ package astiav
 //#include <libavutil/frame.h>
 import "C"
 import (
+	"errors"
 	"fmt"
 	"unsafe"
 )
@@ -15,6 +16,11 @@ type CodecContext struct {
 }
 
 type HWDeviceType int
+
+type HwCodecInfo struct {
+	Name      string
+	MediaType string
+}
 
 const (
 	HWDeviceTypeNone         HWDeviceType = C.AV_HWDEVICE_TYPE_NONE
@@ -39,22 +45,22 @@ func AllocCodecContext(c *Codec) *CodecContext {
 	return newCodecContextFromC(C.avcodec_alloc_context3(cc))
 }
 
-func AllocHWDeviceContext(c *Codec, hwType HWDeviceType) *CodecContext {
+func AllocHWDeviceContext(c *Codec, hwType HWDeviceType) (*CodecContext, error) {
 	ctx := AllocCodecContext(c)
 	if ctx == nil {
-		return nil
+		return nil, errors.New("Unable to alloc codec context")
 	}
 
 	var hwDeviceCtx *C.AVBufferRef
 	errorCode := C.av_hwdevice_ctx_create(&hwDeviceCtx, C.enum_AVHWDeviceType(hwType), nil, nil, 0)
 	if errorCode < 0 {
 		ctx.Free()
-		return nil
+		return nil, newError(errorCode)
 	}
 
 	ctx.c.hw_device_ctx = hwDeviceCtx
 
-	return ctx
+	return ctx, nil
 }
 
 func AllocHWDeviceContextWithDevice(c *Codec, hwType HWDeviceType, device string) *CodecContext {
@@ -78,6 +84,34 @@ func AllocHWDeviceContextWithDevice(c *Codec, hwType HWDeviceType, device string
 	return ctx
 }
 
+// Returns a list of supported hw codecs, user can check for support like checking if h264_cuvid is in slice
+func GetHardwareCodecs() []HwCodecInfo {
+	var hardwareCodecs []HwCodecInfo
+	var codec *C.AVCodec
+	var iter unsafe.Pointer
+
+	for {
+		codec = C.av_codec_iterate(&iter)
+		if codec == nil {
+			break
+		}
+
+		if codec.capabilities&C.AV_CODEC_CAP_HARDWARE != 0 {
+			mediaType := "audio"
+			if codec._type == C.AVMEDIA_TYPE_VIDEO {
+				mediaType = "video"
+			}
+
+			codecInfo := HwCodecInfo{
+				Name:      C.GoString(codec.name),
+				MediaType: mediaType,
+			}
+			hardwareCodecs = append(hardwareCodecs, codecInfo)
+		}
+	}
+	return hardwareCodecs
+}
+
 func newCodecContextFromC(c *C.struct_AVCodecContext) *CodecContext {
 	if c == nil {
 		return nil
@@ -86,6 +120,9 @@ func newCodecContextFromC(c *C.struct_AVCodecContext) *CodecContext {
 }
 
 func (cc *CodecContext) Free() {
+	if cc.c.hw_device_ctx != nil {
+		C.av_buffer_unref(&cc.c.hw_device_ctx)
+	}
 	C.avcodec_free_context(&cc.c)
 }
 

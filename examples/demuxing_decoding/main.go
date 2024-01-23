@@ -11,7 +11,8 @@ import (
 )
 
 var (
-	input = flag.String("i", "", "the input path")
+	input   = flag.String("i", "", "the input path")
+	hw_cuda = flag.Bool("hw_cuda", false, "Use Cuda Hardware decoding")
 )
 
 type stream struct {
@@ -79,12 +80,19 @@ func main() {
 			log.Fatal(errors.New("main: codec is nil"))
 		}
 
-		// For software decoding use AllocCodecContext(codec)
-		// and for hardware decoding AllocHWDeviceContext(codec, HWDeviceType)
-		// HW Example CUDA: AllocHWDeviceContext(s.decCodec, astiav.HWDeviceTypeCUDA)
-		if s.decCodecContext = astiav.AllocCodecContext(s.decCodec); s.decCodecContext == nil {
-			log.Fatal(errors.New("main: codec context is nil"))
+		// Create decoding context
+		if *hw_cuda {
+			var err error
+			if s.decCodecContext, err = astiav.AllocHWDeviceContext(s.decCodec, astiav.HWDeviceTypeCUDA); err != nil {
+				log.Fatal(err)
+			}
+		} else {
+			if s.decCodecContext = astiav.AllocCodecContext(s.decCodec); s.decCodecContext == nil {
+				log.Fatal(errors.New("main: codec context is nil"))
+			}
+
 		}
+
 		defer s.decCodecContext.Free()
 
 		// Update codec context
