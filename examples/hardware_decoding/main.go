@@ -16,10 +16,11 @@ var (
 )
 
 type stream struct {
-	decCodec        *astiav.Codec
-	decCodecContext *astiav.CodecContext
-	hwDeviceContext *astiav.HardwareDeviceContext
-	inputStream     *astiav.Stream
+	decCodec              *astiav.Codec
+	decCodecContext       *astiav.CodecContext
+	hardwareDeviceContext *astiav.HardwareDeviceContext
+	hardwarePixelFormat   astiav.PixelFormat
+	inputStream           *astiav.Stream
 }
 
 func main() {
@@ -75,7 +76,6 @@ func main() {
 	}
 
 	// Loop through streams
-	hardwarePixelFormat := astiav.PixelFormatNone
 	streams := make(map[int]*stream) // Indexed by input stream index
 	for _, is := range inputFormatContext.Streams() {
 		var err error
@@ -99,20 +99,21 @@ func main() {
 		}
 		defer s.decCodecContext.Free()
 
-		codec_hardware_configs, err := s.decCodec.HardwareConfigs(hardwareDeviceType)
-		if err != nil {
-			log.Fatal(fmt.Errorf("main: no codec hardware config found: %w", err))
-		}
+		// Get codec hardware configs
+		hardwareConfigs := s.decCodec.HardwareConfigs(hardwareDeviceType)
 
-		for _, p := range codec_hardware_configs {
+		// Loop through codec hardware configs
+		for _, p := range hardwareConfigs {
+			// Valid hardware config
 			if p.MethodFlags().Has(astiav.CodecHardwareConfigMethodHwDeviceCtx) && p.HardwareDeviceType() == hardwareDeviceType {
-				hardwarePixelFormat = p.PixelFormat()
+				s.hardwarePixelFormat = p.PixelFormat()
 				break
 			}
 		}
 
-		if hardwarePixelFormat == astiav.PixelFormatNone {
-			log.Fatal(fmt.Errorf("main: Decoder %s does not support device type", hardwareDeviceType.String()))
+		// No valid hardware pixel format
+		if s.hardwarePixelFormat == astiav.PixelFormatNone {
+			log.Fatal(errors.New("main: hardware device type not supported by decoder"))
 		}
 
 		// Update codec context
@@ -121,11 +122,11 @@ func main() {
 		}
 
 		// Create hardware device context
-		hdc, err := astiav.CreateHardwareDeviceContext(hardwareDeviceType, "", nil)
+		s.hardwareDeviceContext, err = astiav.CreateHardwareDeviceContext(hardwareDeviceType, "", nil)
 		if err != nil {
 			log.Fatal(fmt.Errorf("main: creating hardware device context failed: %w", err))
 		}
-		s.decCodecContext.SetHardwareDeviceContext(hdc)
+		s.decCodecContext.SetHardwareDeviceContext(s.hardwareDeviceContext)
 
 		// Open codec context
 		if err := s.decCodecContext.Open(s.decCodec, nil); err != nil {
@@ -167,12 +168,12 @@ func main() {
 				log.Fatal(fmt.Errorf("main: receiving frame failed: %w", err))
 			}
 
-			// Get frame
+			// Get final frame
 			var finalFrame *astiav.Frame
-			if hardwareFrame.PixelFormat() == hardwarePixelFormat {
+			if hardwareFrame.PixelFormat() == s.hardwarePixelFormat {
 				// Transfer hardware data
 				if err := hardwareFrame.TransferHardwareData(softwareFrame); err != nil {
-					log.Fatal(fmt.Errorf("main: Unable to transfer frame from gpu: %w", err))
+					log.Fatal(fmt.Errorf("main: transferring hardware data failed: %w", err))
 				}
 
 				// Update pts
@@ -186,10 +187,7 @@ func main() {
 			}
 
 			// Do something with decoded frame
-			log.Printf("new frame: stream %d - pts: %d - data transferred from hardware: %v", pkt.StreamIndex(), finalFrame.Pts(), finalFrame.PixelFormat() == hardwarePixelFormat)
+			log.Printf("new frame: stream %d - pts: %d", pkt.StreamIndex(), finalFrame.Pts())
 		}
 	}
-
-	// Success
-	log.Println("success")
 }

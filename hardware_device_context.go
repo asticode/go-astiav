@@ -8,7 +8,7 @@ import (
 	"unsafe"
 )
 
-// https://github.com/FFmpeg/FFmpeg/blob/n5.0/libavutil/hwcontext.h#L141
+// https://github.com/FFmpeg/FFmpeg/blob/n5.0/libavutil/hwcontext.h#L61
 type HardwareDeviceContext struct {
 	c *C.AVBufferRef
 }
@@ -20,7 +20,7 @@ func CreateHardwareDeviceContext(t HardwareDeviceType, device string, options *D
 		deviceC = C.CString(device)
 		defer C.free(unsafe.Pointer(deviceC))
 	}
-	var optionsC *C.struct_AVDictionary
+	optionsC := (*C.struct_AVDictionary)(nil)
 	if options != nil {
 		optionsC = options.c
 	}
