@@ -85,6 +85,26 @@ func (fs CodecContextFlags2) Del(f CodecContextFlag2) CodecContextFlags2 {
 
 func (fs CodecContextFlags2) Has(f CodecContextFlag2) bool { return astikit.BitFlags(fs).Has(uint64(f)) }
 
+type CodecHardwareConfigMethodFlags astikit.BitFlags
+
+func NewCodecHardwareConfigMethodFlags(fs ...CodecHardwareConfigMethodFlag) CodecHardwareConfigMethodFlags {
+	o := CodecHardwareConfigMethodFlags(0)
+	for _, f := range fs {
+		o = o.Add(f)
+	}
+	return o
+}
+
+func (fs CodecHardwareConfigMethodFlags) Add(f CodecHardwareConfigMethodFlag) CodecHardwareConfigMethodFlags {
+	return CodecHardwareConfigMethodFlags(astikit.BitFlags(fs).Add(uint64(f)))
+}
+
+func (fs CodecHardwareConfigMethodFlags) Del(f CodecHardwareConfigMethodFlag) CodecHardwareConfigMethodFlags {
+	return CodecHardwareConfigMethodFlags(astikit.BitFlags(fs).Del(uint64(f)))
+}
+
+func (fs CodecHardwareConfigMethodFlags) Has(f CodecHardwareConfigMethodFlag) bool { return astikit.BitFlags(fs).Has(uint64(f)) }
+
 type DictionaryFlags astikit.BitFlags
 
 func NewDictionaryFlags(fs ...DictionaryFlag) DictionaryFlags {

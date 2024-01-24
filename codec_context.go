@@ -261,3 +261,7 @@ func (cc *CodecContext) SendFrame(f *Frame) error {
 	}
 	return newError(C.avcodec_send_frame(cc.c, fc))
 }
+
+func (cc *CodecContext) SetHardwareDeviceContext(hdc *HardwareDeviceContext) {
+	cc.c.hw_device_ctx = hdc.c
+}
