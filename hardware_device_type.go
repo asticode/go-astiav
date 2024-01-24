@@ -11,17 +11,17 @@ import (
 type HardwareDeviceType C.enum_AVHWDeviceType
 
 const (
-	HardwareDeviceTypeNone         = HardwareDeviceType(C.AV_HWDEVICE_TYPE_NONE)
-	HardwareDeviceTypeVDPAU        = HardwareDeviceType(C.AV_HWDEVICE_TYPE_VDPAU)
 	HardwareDeviceTypeCUDA         = HardwareDeviceType(C.AV_HWDEVICE_TYPE_CUDA)
-	HardwareDeviceTypeVAAPI        = HardwareDeviceType(C.AV_HWDEVICE_TYPE_VAAPI)
-	HardwareDeviceTypeDXVA2        = HardwareDeviceType(C.AV_HWDEVICE_TYPE_DXVA2)
-	HardwareDeviceTypeQSV          = HardwareDeviceType(C.AV_HWDEVICE_TYPE_QSV)
-	HardwareDeviceTypeVideoToolbox = HardwareDeviceType(C.AV_HWDEVICE_TYPE_VIDEOTOOLBOX)
 	HardwareDeviceTypeD3D11VA      = HardwareDeviceType(C.AV_HWDEVICE_TYPE_D3D11VA)
 	HardwareDeviceTypeDRM          = HardwareDeviceType(C.AV_HWDEVICE_TYPE_DRM)
-	HardwareDeviceTypeOpenCL       = HardwareDeviceType(C.AV_HWDEVICE_TYPE_OPENCL)
+	HardwareDeviceTypeDXVA2        = HardwareDeviceType(C.AV_HWDEVICE_TYPE_DXVA2)
 	HardwareDeviceTypeMediaCodec   = HardwareDeviceType(C.AV_HWDEVICE_TYPE_MEDIACODEC)
+	HardwareDeviceTypeNone         = HardwareDeviceType(C.AV_HWDEVICE_TYPE_NONE)
+	HardwareDeviceTypeOpenCL       = HardwareDeviceType(C.AV_HWDEVICE_TYPE_OPENCL)
+	HardwareDeviceTypeQSV          = HardwareDeviceType(C.AV_HWDEVICE_TYPE_QSV)
+	HardwareDeviceTypeVAAPI        = HardwareDeviceType(C.AV_HWDEVICE_TYPE_VAAPI)
+	HardwareDeviceTypeVDPAU        = HardwareDeviceType(C.AV_HWDEVICE_TYPE_VDPAU)
+	HardwareDeviceTypeVideoToolbox = HardwareDeviceType(C.AV_HWDEVICE_TYPE_VIDEOTOOLBOX)
 	HardwareDeviceTypeVulkan       = HardwareDeviceType(C.AV_HWDEVICE_TYPE_VULKAN)
 )
 

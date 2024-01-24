@@ -191,11 +191,7 @@ func (f *Frame) SetWidth(w int) {
 }
 
 func (f *Frame) TransferHardwareData(dst *Frame) error {
-	ret := C.av_hwframe_transfer_data(dst.c, f.c, 0)
-	if ret < 0 {
-		return newError(ret)
-	}
-	return nil
+	return newError(C.av_hwframe_transfer_data(dst.c, f.c, 0))
 }
 
 func (f *Frame) Free() {

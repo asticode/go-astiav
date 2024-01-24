@@ -5,6 +5,7 @@ package astiav
 //#include <libavutil/channel_layout.h>
 import "C"
 import (
+	"fmt"
 	"unsafe"
 )
 
@@ -99,4 +100,28 @@ func FindEncoderByName(n string) *Codec {
 	cn := C.CString(n)
 	defer C.free(unsafe.Pointer(cn))
 	return newCodecFromC(C.avcodec_find_encoder_by_name(cn))
+}
+
+func (c *Codec) HardwareConfigs(dt HardwareDeviceType) ([]CodecHardwareConfig, error) {
+	var configs []CodecHardwareConfig
+	var i int
+
+	for {
+		config := C.avcodec_get_hw_config(c.c, C.int(i))
+		if config == nil {
+			break
+		}
+
+		if HardwareDeviceType(config.device_type) == dt {
+			configs = append(configs, CodecHardwareConfig{c: config})
+		}
+
+		i++
+	}
+
+	if len(configs) == 0 {
+		return nil, fmt.Errorf("Decoder does not support device type %s", dt)
+	}
+
+	return configs, nil
 }
