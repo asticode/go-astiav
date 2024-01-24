@@ -78,8 +78,6 @@ func main() {
 	// Loop through streams
 	streams := make(map[int]*stream) // Indexed by input stream index
 	for _, is := range inputFormatContext.Streams() {
-		var err error
-
 		// Only process video
 		if is.CodecParameters().MediaType() != astiav.MediaTypeVideo {
 			continue
@@ -105,7 +103,7 @@ func main() {
 		// Loop through codec hardware configs
 		for _, p := range hardwareConfigs {
 			// Valid hardware config
-			if p.MethodFlags().Has(astiav.CodecHardwareConfigMethodHwDeviceCtx) && p.HardwareDeviceType() == hardwareDeviceType {
+			if p.MethodFlags().Has(astiav.CodecHardwareConfigMethodFlagHwDeviceCtx) && p.HardwareDeviceType() == hardwareDeviceType {
 				s.hardwarePixelFormat = p.PixelFormat()
 				break
 			}
@@ -122,6 +120,7 @@ func main() {
 		}
 
 		// Create hardware device context
+		var err error
 		s.hardwareDeviceContext, err = astiav.CreateHardwareDeviceContext(hardwareDeviceType, "", nil)
 		if err != nil {
 			log.Fatal(fmt.Errorf("main: creating hardware device context failed: %w", err))
