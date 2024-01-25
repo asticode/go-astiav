@@ -14,14 +14,17 @@ import (
 var globalHelper = newHelper()
 
 func TestMain(m *testing.M) {
-	// Run
-	m.Run()
+	// Make sure to exit with the proper code
+	var code int
+	defer func(code *int) {
+		os.Exit(*code)
+	}(&code)
 
 	// Make sure to close global helper
-	globalHelper.close()
+	defer globalHelper.close()
 
-	// Exit
-	os.Exit(0)
+	// Run
+	code = m.Run()
 }
 
 type helper struct {

@@ -43,6 +43,15 @@ func TestCodecContextFlags2(t *testing.T) {
 	require.False(t, fs.Has(astiav.CodecContextFlag2(2)))
 }
 
+func TestCodecHardwareConfigMethodFlags(t *testing.T) {
+	fs := astiav.NewCodecHardwareConfigMethodFlags(astiav.CodecHardwareConfigMethodFlag(1))
+	require.True(t, fs.Has(astiav.CodecHardwareConfigMethodFlag(1)))
+	fs = fs.Add(astiav.CodecHardwareConfigMethodFlag(2))
+	require.True(t, fs.Has(astiav.CodecHardwareConfigMethodFlag(2)))
+	fs = fs.Del(astiav.CodecHardwareConfigMethodFlag(2))
+	require.False(t, fs.Has(astiav.CodecHardwareConfigMethodFlag(2)))
+}
+
 func TestDictionaryFlags(t *testing.T) {
 	fs := astiav.NewDictionaryFlags(astiav.DictionaryFlag(1))
 	require.True(t, fs.Has(astiav.DictionaryFlag(1)))

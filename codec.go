@@ -100,3 +100,16 @@ func FindEncoderByName(n string) *Codec {
 	defer C.free(unsafe.Pointer(cn))
 	return newCodecFromC(C.avcodec_find_encoder_by_name(cn))
 }
+
+func (c *Codec) HardwareConfigs(dt HardwareDeviceType) (configs []CodecHardwareConfig) {
+	var i int
+	for {
+		config := C.avcodec_get_hw_config(c.c, C.int(i))
+		if config == nil {
+			break
+		}
+		configs = append(configs, CodecHardwareConfig{c: config})
+		i++
+	}
+	return
+}

@@ -5,8 +5,11 @@ package astiav
 //#include <libavutil/frame.h>
 //#include <libavutil/imgutils.h>
 //#include <libavutil/samplefmt.h>
+//#include <libavutil/hwcontext.h>
 import "C"
-import "unsafe"
+import (
+	"unsafe"
+)
 
 const NumDataPointers = uint(C.AV_NUM_DATA_POINTERS)
 
@@ -185,6 +188,10 @@ func (f *Frame) Width() int {
 
 func (f *Frame) SetWidth(w int) {
 	f.c.width = C.int(w)
+}
+
+func (f *Frame) TransferHardwareData(dst *Frame) error {
+	return newError(C.av_hwframe_transfer_data(dst.c, f.c, 0))
 }
 
 func (f *Frame) Free() {
