@@ -11,64 +11,74 @@ import (
 )
 
 func main() {
+
 	var (
-		dstFilename string
-		dstWidth    int
-		dstHeight   int
+		output    = flag.String("o", "", "the png output path")
+		dstWidth  = flag.Int("w", 50, "destination width")
+		dstHeight = flag.Int("h", 50, "destination height")
 	)
 
-	flag.StringVar(&dstFilename, "output", "", "Output file name")
-	flag.IntVar(&dstWidth, "w", 0, "Destination width")
-	flag.IntVar(&dstHeight, "h", 0, "Destination height")
+	// Parse flags
 	flag.Parse()
 
-	if dstFilename == "" || dstWidth <= 0 || dstHeight <= 0 {
-		fmt.Fprintf(os.Stderr, "Usage: %s -output output_file -w W -h H\n", os.Args[0])
-		flag.PrintDefaults()
-		os.Exit(1)
+	// Usage
+	if *output == "" || *dstWidth <= 0 || *dstHeight <= 0 {
+		log.Println("Usage: <binary path> -o <output path> -w <output width> -h <output height>")
+		return
 	}
 
-	dstFile, err := os.Create(dstFilename)
+	// Create destination file
+	dstFile, err := os.Create(*output)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Could not open destination file %s\n", dstFilename)
-		os.Exit(1)
+		log.Fatal(fmt.Errorf("main: creating %s failed: %w", *output, err))
 	}
 	defer dstFile.Close()
 
-	srcW, srcH := 320, 240
-	srcPixFmt, dstPixFmt := astiav.PixelFormatYuv420P, astiav.PixelFormatRgba
+	// Create source frame
 	srcFrame := astiav.AllocFrame()
-	srcFrame.SetHeight(srcH)
-	srcFrame.SetWidth(srcW)
-	srcFrame.SetPixelFormat(srcPixFmt)
-	srcFrame.AllocBuffer(1)
-	srcFrame.ImageFillBlack()
 	defer srcFrame.Free()
+	srcFrame.SetWidth(320)
+	srcFrame.SetHeight(240)
+	srcFrame.SetPixelFormat(astiav.PixelFormatYuv420P)
+	if err = srcFrame.AllocBuffer(1); err != nil {
+		log.Fatal(fmt.Errorf("main: allocating source frame buffer failed: %w", err))
+	}
+	if err = srcFrame.ImageFillBlack(); err != nil {
+		log.Fatal(fmt.Errorf("main: filling source frame with black image failed: %w", err))
+	}
 
+	// Create destination frame
 	dstFrame := astiav.AllocFrame()
 	defer dstFrame.Free()
 
-	swsCtx := astiav.SwsGetContext(srcW, srcH, srcPixFmt, dstWidth, dstHeight, dstPixFmt, astiav.SWS_POINT, dstFrame)
+	// Create software scale context flags
+	swscf := astiav.NewSoftwareScaleContextFlags(astiav.SoftwareScaleContextBilinear)
+
+	// Create software scale context
+	swsCtx := astiav.NewSoftwareScaleContext(srcFrame.Width(), srcFrame.Height(), srcFrame.PixelFormat(), *dstWidth, *dstHeight, astiav.PixelFormatRgba, swscf)
 	if swsCtx == nil {
-		fmt.Fprintln(os.Stderr, "Unable to create scale context")
-		os.Exit(1)
+		log.Fatal("main: creating software scale context failed")
 	}
 	defer swsCtx.Free()
 
-	err = swsCtx.Scale(srcFrame, dstFrame)
+	// Prepare destination frame (Width, Height and Buffer for correct scaling would be set)
+	swsCtx.PrepareDestinationFrameForScaling(dstFrame)
+
+	// Scale frame
+	if output_slice_height := swsCtx.ScaleFrame(srcFrame, dstFrame); output_slice_height != *dstHeight {
+		log.Fatal(fmt.Errorf("main: scale error, expected output slice height %d, but got %d", *dstHeight, output_slice_height))
+	}
+
+	// Get image
+	img, err := dstFrame.Data().Image()
 	if err != nil {
-                log.Fatalf("Unable to scale: %s", err.Error())
-        }
+		log.Fatal(fmt.Errorf("main: getting destination image failed: %w", err))
+	}
 
-        img, err := dstFrame.Data().Image()
-        if err != nil {
-                log.Fatalf("Unable to get image: %s", err.Error())
-        }
+	// Encode to png
+	if err = png.Encode(dstFile, img); err != nil {
+		log.Fatal(fmt.Errorf("main: encoding to png failed: %w", err))
+	}
 
-        err = png.Encode(dstFile, img)
-        if err != nil {
-                log.Fatalf("Unable to encode image to png: %s", err.Error())
-        }
-
-	log.Printf("Successfully scale to %dx%d and write image to: %s", dstWidth, dstHeight, dstFilename)
+	log.Println("done")
 }

@@ -141,3 +141,12 @@ func TestStreamEventFlags(t *testing.T) {
 	fs = fs.Del(astiav.StreamEventFlag(2))
 	require.False(t, fs.Has(astiav.StreamEventFlag(2)))
 }
+
+func TestSoftwareScaleContextFlags(t *testing.T) {
+	fs := astiav.NewSoftwareScaleContextFlags(astiav.SoftwareScaleContextFlag(1))
+	require.True(t, fs.Has(astiav.SoftwareScaleContextFlag(1)))
+	fs = fs.Add(astiav.SoftwareScaleContextFlag(2))
+	require.True(t, fs.Has(astiav.SoftwareScaleContextFlag(2)))
+	fs = fs.Del(astiav.SoftwareScaleContextFlag(2))
+	require.False(t, fs.Has(astiav.SoftwareScaleContextFlag(2)))
+}

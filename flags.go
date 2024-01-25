@@ -304,3 +304,23 @@ func (fs StreamEventFlags) Del(f StreamEventFlag) StreamEventFlags {
 }
 
 func (fs StreamEventFlags) Has(f StreamEventFlag) bool { return astikit.BitFlags(fs).Has(uint64(f)) }
+
+type SoftwareScaleContextFlags astikit.BitFlags
+
+func NewSoftwareScaleContextFlags(fs ...SoftwareScaleContextFlag) SoftwareScaleContextFlags {
+	o := SoftwareScaleContextFlags(0)
+	for _, f := range fs {
+		o = o.Add(f)
+	}
+	return o
+}
+
+func (fs SoftwareScaleContextFlags) Add(f SoftwareScaleContextFlag) SoftwareScaleContextFlags {
+	return SoftwareScaleContextFlags(astikit.BitFlags(fs).Add(uint64(f)))
+}
+
+func (fs SoftwareScaleContextFlags) Del(f SoftwareScaleContextFlag) SoftwareScaleContextFlags {
+	return SoftwareScaleContextFlags(astikit.BitFlags(fs).Del(uint64(f)))
+}
+
+func (fs SoftwareScaleContextFlags) Has(f SoftwareScaleContextFlag) bool { return astikit.BitFlags(fs).Has(uint64(f)) }
