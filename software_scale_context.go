@@ -60,7 +60,8 @@ func (ssc *SoftwareScaleContext) ScaleFrame(src, dst *Frame) (height int) {
 }
 
 func (ssc *SoftwareScaleContext) updateContext() error {
-	ssc.c = C.sws_getContext(
+	ssc.c = C.sws_getCachedContext(
+		ssc.c,
 		ssc.srcW,
 		ssc.srcH,
 		ssc.srcFormat,
