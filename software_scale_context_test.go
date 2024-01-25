@@ -33,9 +33,14 @@ func TestSoftwareScaleContext(t *testing.T) {
 	f1.SetPixelFormat(srcPixelFormat)
 	require.NoError(t, f1.AllocBuffer(1))
 
-	swscf := astiav.NewSoftwareScaleContextFlags(astiav.SoftwareScaleContextBilinear)
-	swsc := astiav.NewSoftwareScaleContext(srcW, srcH, srcPixelFormat, dstW, dstH, dstPixelFormat, swscf)
+	swscf_1 := astiav.NewSoftwareScaleContextFlags(astiav.SoftwareScaleContextBilinear)
+	swsc := astiav.NewSoftwareScaleContext(srcW, srcH, srcPixelFormat, dstW, dstH, dstPixelFormat, swscf_1)
 	require.NotNil(t, swsc)
+	require.Equal(t, swsc.Flags(), swscf_1)
+
+	swscf_2 := astiav.NewSoftwareScaleContextFlags(astiav.SoftwareScaleContextPoint)
+	swsc.SetFlags(swscf_2)
+	require.Equal(t, swsc.Flags(), swscf_2)
 
 	require.NoError(t, swsc.PrepareDestinationFrameForScaling(f2))
 	require.Equal(t, dstH, swsc.ScaleFrame(f1, f2))
@@ -56,12 +61,18 @@ func TestSoftwareScaleContext(t *testing.T) {
 	dstPixelFormat = astiav.PixelFormatYuv420P
 
 	require.NoError(t, swsc.SetSourceWidth(f2.Width()))
+	require.Equal(t, swsc.SourceWidth(), f2.Width())
 	require.NoError(t, swsc.SetSourceHeight(f2.Height()))
+	require.Equal(t, swsc.SourceHeight(), f2.Height())
 	require.NoError(t, swsc.SetSourcePixelFormat(f2.PixelFormat()))
+	require.Equal(t, swsc.SourcePixelFormat(), f2.PixelFormat())
 
 	require.NoError(t, swsc.SetDestinationWidth(dstW))
+	require.Equal(t, swsc.DestinationWidth(), dstW)
 	require.NoError(t, swsc.SetDestinationHeight(dstH))
+	require.Equal(t, swsc.DestinationHeight(), dstH)
 	require.NoError(t, swsc.SetDestinationPixelFormat(dstPixelFormat))
+	require.Equal(t, swsc.DestinationPixelFormat(), dstPixelFormat)
 
 	require.NoError(t, swsc.PrepareDestinationFrameForScaling(f3))
 	require.Equal(t, f3.Height(), dstH)

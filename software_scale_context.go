@@ -83,13 +83,36 @@ func (ssc *SoftwareScaleContext) PrepareDestinationFrameForScaling(dstFrame *Fra
 	return dstFrame.AllocBuffer(1)
 }
 
-func (ssc *SoftwareScaleContext) SetDestinationHeight(i int) error {
-	ssc.dstH = C.int(i)
-	return ssc.updateContext()
+func (ssc *SoftwareScaleContext) DestinationHeight() int {
+	return int(ssc.dstH)
 }
 
-func (ssc *SoftwareScaleContext) SetDestinationWidth(i int) error {
-	ssc.dstW = C.int(i)
+func (ssc *SoftwareScaleContext) DestinationPixelFormat() PixelFormat {
+	return PixelFormat(ssc.dstFormat)
+}
+
+func (ssc *SoftwareScaleContext) DestinationWidth() int {
+	return int(ssc.dstW)
+}
+
+func (ssc *SoftwareScaleContext) SourceHeight() int {
+	return int(ssc.srcH)
+}
+
+func (ssc *SoftwareScaleContext) SourcePixelFormat() PixelFormat {
+	return PixelFormat(ssc.srcFormat)
+}
+
+func (ssc *SoftwareScaleContext) SourceWidth() int {
+	return int(ssc.srcW)
+}
+
+func (ssc *SoftwareScaleContext) Flags() SoftwareScaleContextFlags {
+	return ssc.flags
+}
+
+func (ssc *SoftwareScaleContext) SetDestinationHeight(i int) error {
+	ssc.dstH = C.int(i)
 	return ssc.updateContext()
 }
 
@@ -98,8 +121,8 @@ func (ssc *SoftwareScaleContext) SetDestinationPixelFormat(p PixelFormat) error 
 	return ssc.updateContext()
 }
 
-func (ssc *SoftwareScaleContext) SetSourceWidth(i int) error {
-	ssc.srcW = C.int(i)
+func (ssc *SoftwareScaleContext) SetDestinationWidth(i int) error {
+	ssc.dstW = C.int(i)
 	return ssc.updateContext()
 }
 
@@ -111,6 +134,15 @@ func (ssc *SoftwareScaleContext) SetSourceHeight(i int) error {
 func (ssc *SoftwareScaleContext) SetSourcePixelFormat(p PixelFormat) error {
 	ssc.srcFormat = C.enum_AVPixelFormat(p)
 	return ssc.updateContext()
+}
+
+func (ssc *SoftwareScaleContext) SetSourceWidth(i int) error {
+	ssc.srcW = C.int(i)
+	return ssc.updateContext()
+}
+
+func (ssc *SoftwareScaleContext) SetFlags(swscf SoftwareScaleContextFlags) {
+	ssc.flags = swscf
 }
 
 func (sc *SoftwareScaleContext) Free() {
