@@ -62,7 +62,9 @@ func main() {
 	defer swsCtx.Free()
 
 	// Prepare destination frame (Width, Height and Buffer for correct scaling would be set)
-	swsCtx.PrepareDestinationFrameForScaling(dstFrame)
+	if err = swsCtx.PrepareDestinationFrameForScaling(dstFrame); err != nil {
+		log.Fatal(fmt.Errorf("main: prepare destination image failed: %w", err))
+	}
 
 	// Scale frame
 	if output_slice_height := swsCtx.ScaleFrame(srcFrame, dstFrame); output_slice_height != *dstHeight {

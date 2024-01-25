@@ -37,7 +37,7 @@ func TestSoftwareScaleContext(t *testing.T) {
 	swsc := astiav.NewSoftwareScaleContext(srcW, srcH, srcPixelFormat, dstW, dstH, dstPixelFormat, swscf)
 	require.NotNil(t, swsc)
 
-	swsc.PrepareDestinationFrameForScaling(f2)
+	require.NoError(t, swsc.PrepareDestinationFrameForScaling(f2))
 	require.Equal(t, dstH, swsc.ScaleFrame(f1, f2))
 
 	require.Equal(t, dstW, f2.Height())
@@ -63,7 +63,7 @@ func TestSoftwareScaleContext(t *testing.T) {
 	require.NoError(t, swsc.SetDestinationHeight(dstH))
 	require.NoError(t, swsc.SetDestinationPixelFormat(dstPixelFormat))
 
-	swsc.PrepareDestinationFrameForScaling(f3)
+	require.NoError(t, swsc.PrepareDestinationFrameForScaling(f3))
 	require.Equal(t, f3.Height(), dstH)
 	require.Equal(t, f3.Width(), dstW)
 	require.Equal(t, f3.PixelFormat(), dstPixelFormat)

@@ -76,11 +76,11 @@ func (ssc *SoftwareScaleContext) updateContext() error {
 	return nil
 }
 
-func (ssc *SoftwareScaleContext) PrepareDestinationFrameForScaling(dstFrame *Frame) {
+func (ssc *SoftwareScaleContext) PrepareDestinationFrameForScaling(dstFrame *Frame) error {
 	dstFrame.SetPixelFormat(PixelFormat(ssc.dstFormat))
 	dstFrame.SetWidth(int(ssc.dstW))
 	dstFrame.SetHeight(int(ssc.dstH))
-	dstFrame.AllocBuffer(1)
+	return dstFrame.AllocBuffer(1)
 }
 
 func (ssc *SoftwareScaleContext) SetDestinationHeight(i int) error {
