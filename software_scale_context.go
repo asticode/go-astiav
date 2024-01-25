@@ -91,20 +91,12 @@ func (ssc *SoftwareScaleContext) DestinationPixelFormat() PixelFormat {
 	return PixelFormat(ssc.dstFormat)
 }
 
+func (ssc *SoftwareScaleContext) DestinationResolution() (int, int) {
+	return int(ssc.dstW), int(ssc.dstH)
+}
+
 func (ssc *SoftwareScaleContext) DestinationWidth() int {
 	return int(ssc.dstW)
-}
-
-func (ssc *SoftwareScaleContext) SourceHeight() int {
-	return int(ssc.srcH)
-}
-
-func (ssc *SoftwareScaleContext) SourcePixelFormat() PixelFormat {
-	return PixelFormat(ssc.srcFormat)
-}
-
-func (ssc *SoftwareScaleContext) SourceWidth() int {
-	return int(ssc.srcW)
 }
 
 func (ssc *SoftwareScaleContext) Flags() SoftwareScaleContextFlags {
@@ -121,9 +113,19 @@ func (ssc *SoftwareScaleContext) SetDestinationPixelFormat(p PixelFormat) error 
 	return ssc.updateContext()
 }
 
+func (ssc *SoftwareScaleContext) SetDestinationResolution(w int, h int) error {
+	ssc.dstW = C.int(w)
+	ssc.dstH = C.int(h)
+	return ssc.updateContext()
+}
+
 func (ssc *SoftwareScaleContext) SetDestinationWidth(i int) error {
 	ssc.dstW = C.int(i)
 	return ssc.updateContext()
+}
+
+func (ssc *SoftwareScaleContext) SetFlags(swscf SoftwareScaleContextFlags) {
+	ssc.flags = swscf
 }
 
 func (ssc *SoftwareScaleContext) SetSourceHeight(i int) error {
@@ -136,13 +138,31 @@ func (ssc *SoftwareScaleContext) SetSourcePixelFormat(p PixelFormat) error {
 	return ssc.updateContext()
 }
 
+func (ssc *SoftwareScaleContext) SetSourceResolution(w int, h int) error {
+	ssc.srcW = C.int(w)
+	ssc.srcH = C.int(h)
+	return ssc.updateContext()
+}
+
 func (ssc *SoftwareScaleContext) SetSourceWidth(i int) error {
 	ssc.srcW = C.int(i)
 	return ssc.updateContext()
 }
 
-func (ssc *SoftwareScaleContext) SetFlags(swscf SoftwareScaleContextFlags) {
-	ssc.flags = swscf
+func (ssc *SoftwareScaleContext) SourceHeight() int {
+	return int(ssc.srcH)
+}
+
+func (ssc *SoftwareScaleContext) SourcePixelFormat() PixelFormat {
+	return PixelFormat(ssc.srcFormat)
+}
+
+func (ssc *SoftwareScaleContext) SourceResolution() (int, int) {
+	return int(ssc.srcW), int(ssc.srcH)
+}
+
+func (ssc *SoftwareScaleContext) SourceWidth() int {
+	return int(ssc.srcW)
 }
 
 func (sc *SoftwareScaleContext) Free() {

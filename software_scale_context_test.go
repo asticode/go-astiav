@@ -90,5 +90,15 @@ func TestSoftwareScaleContext(t *testing.T) {
 	_, ycbcrOk := i2.(*image.YCbCr)
 	require.True(t, ycbcrOk)
 
+	require.NoError(t, swsc.SetDestinationResolution(640, 480))
+	w, h := swsc.DestinationResolution()
+	require.Equal(t, w, 640)
+	require.Equal(t, h, 480)
+
+	require.NoError(t, swsc.SetSourceResolution(480, 270))
+	w, h = swsc.SourceResolution()
+	require.Equal(t, w, 480)
+	require.Equal(t, h, 270)
+
 	defer swsc.Free()
 }
