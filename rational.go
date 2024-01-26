@@ -37,7 +37,7 @@ func (r *Rational) SetDen(den int) {
 	r.c.den = C.int(den)
 }
 
-func (r Rational) ToDouble() float64 {
+func (r Rational) Float64() float64 {
 	if r.Num() == 0 || r.Den() == 0 {
 		return 0
 	}
