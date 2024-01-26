@@ -205,4 +205,7 @@ func main() {
 			log.Printf("new frame: stream %d - pts: %d - transferred: %v", pkt.StreamIndex(), finalFrame.Pts(), hardwareFrame.PixelFormat() == s.hardwarePixelFormat)
 		}
 	}
+
+	// Success
+	log.Println("success")
 }
