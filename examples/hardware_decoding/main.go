@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	decoderCodecName       = flag.String("c", "", "the decoder codec name (e.g. h264_nvenc)")
+	decoderCodecName       = flag.String("c", "", "the decoder codec name (e.g. h264_cuvid)")
 	hardwareDeviceName     = flag.String("n", "", "the hardware device name (e.g. 0)")
 	hardwareDeviceTypeName = flag.String("t", "", "the hardware device type (e.g. cuda)")
 	input                  = flag.String("i", "", "the input path")
