@@ -2,6 +2,8 @@ package astiav_test
 
 import (
 	"image"
+	"image/png"
+	"os"
 	"testing"
 
 	"github.com/asticode/go-astiav"
@@ -49,8 +51,8 @@ func (f *frameDataFrame) Width() int {
 }
 
 func TestFrameData(t *testing.T) {
-	f := &frameDataFrame{}
-	fd := astiav.NewFrameData(f)
+	fdf := &frameDataFrame{}
+	fd := astiav.NewFrameData(fdf)
 
 	for _, v := range []struct {
 		err bool
@@ -112,7 +114,7 @@ func TestFrameData(t *testing.T) {
 		},
 	} {
 		for _, pf := range v.pfs {
-			f.pixelFormat = pf
+			fdf.pixelFormat = pf
 			i, err := fd.GuessImageFormat()
 			if v.err {
 				require.Error(t, err)
@@ -122,14 +124,14 @@ func TestFrameData(t *testing.T) {
 		}
 	}
 
-	f.imageBytes = []byte{0, 1, 2, 3}
+	fdf.imageBytes = []byte{0, 1, 2, 3}
 	_, err := fd.Bytes(0)
 	require.Error(t, err)
-	f.height = 1
-	f.width = 2
+	fdf.height = 1
+	fdf.width = 2
 	b, err := fd.Bytes(0)
 	require.NoError(t, err)
-	require.Equal(t, f.imageBytes, b)
+	require.Equal(t, fdf.imageBytes, b)
 
 	for _, v := range []struct {
 		e           image.Image
@@ -273,9 +275,9 @@ func TestFrameData(t *testing.T) {
 			planesBytes: [][]byte{{0, 1}, {2, 3}, {4, 5}},
 		},
 	} {
-		f.linesizes = v.linesizes
-		f.pixelFormat = v.pixelFormat
-		f.planesBytes = v.planesBytes
+		fdf.linesizes = v.linesizes
+		fdf.pixelFormat = v.pixelFormat
+		fdf.planesBytes = v.planesBytes
 		err = fd.ToImage(v.i)
 		if v.err {
 			require.Error(t, err)
@@ -283,4 +285,31 @@ func TestFrameData(t *testing.T) {
 			require.Equal(t, v.e, v.i)
 		}
 	}
+
+	const (
+		name = "image-rgba"
+		ext  = "png"
+	)
+	f, err := globalHelper.inputLastFrame(name+"."+ext, astiav.MediaTypeVideo)
+	require.NoError(t, err)
+	fd = f.Data()
+
+	b1, err := fd.Bytes(1)
+	require.NoError(t, err)
+
+	b2, err := os.ReadFile("testdata/" + name + "-bytes")
+	require.NoError(t, err)
+	require.Equal(t, b1, b2)
+
+	f1, err := os.Open("testdata/" + name + "." + ext)
+	require.NoError(t, err)
+	defer f1.Close()
+
+	i1, err := fd.GuessImageFormat()
+	require.NoError(t, err)
+	require.NoError(t, err)
+	require.NoError(t, fd.ToImage(i1))
+	i2, err := png.Decode(f1)
+	require.NoError(t, err)
+	require.Equal(t, i1, i2)
 }
