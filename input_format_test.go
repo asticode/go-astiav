@@ -11,5 +11,7 @@ func TestInputFormat(t *testing.T) {
 	formatName := "rawvideo"
 	inputFormat := astiav.FindInputFormat(formatName)
 	require.NotNil(t, inputFormat)
-	require.True(t, inputFormat.Name() == formatName)
+	require.Equal(t, formatName, inputFormat.Name())
+	require.Equal(t, formatName, inputFormat.String())
+	require.Equal(t, "raw video", inputFormat.LongName())
 }

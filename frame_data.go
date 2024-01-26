@@ -9,7 +9,11 @@ import (
 	"strings"
 )
 
-type FrameDataFrame interface {
+type FrameData struct {
+	f frameDataFramer
+}
+
+type frameDataFramer interface {
 	Height() int
 	ImageBufferSize(align int) (int, error)
 	ImageCopyToBuffer(b []byte, align int) (int, error)
@@ -19,52 +23,7 @@ type FrameDataFrame interface {
 	Width() int
 }
 
-var _ FrameDataFrame = (*frameDataFrame)(nil)
-
-type frameDataFrame struct {
-	f *Frame
-}
-
-func newFrameDataFrame(f *Frame) *frameDataFrame {
-	return &frameDataFrame{f: f}
-}
-
-func (f *frameDataFrame) Height() int {
-	return f.f.Height()
-}
-
-func (f *frameDataFrame) ImageBufferSize(align int) (int, error) {
-	return f.f.ImageBufferSize(align)
-}
-
-func (f *frameDataFrame) ImageCopyToBuffer(b []byte, align int) (int, error) {
-	return f.f.ImageCopyToBuffer(b, align)
-}
-
-func (f *frameDataFrame) Linesize(i int) int {
-	return f.f.Linesize()[i]
-}
-
-func (f *frameDataFrame) PixelFormat() PixelFormat {
-	return f.f.PixelFormat()
-}
-
-func (f *frameDataFrame) PlaneBytes(i int) []byte {
-	return bytesFromC(func(size *cUlong) *C.uint8_t {
-		*size = cUlong(int(f.f.c.linesize[i]) * f.f.Height())
-		return f.f.c.data[i]
-	})
-}
-
-func (f *frameDataFrame) Width() int {
-	return f.f.Width()
-}
-
-type FrameData struct {
-	f FrameDataFrame
-}
-
-func NewFrameData(f FrameDataFrame) *FrameData {
+func newFrameData(f frameDataFramer) *FrameData {
 	return &FrameData{f: f}
 }
 
@@ -212,4 +171,45 @@ func (d *FrameData) ToImage(dst image.Image) error {
 		return errors.New("astiav: image format is not handled")
 	}
 	return nil
+}
+
+var _ frameDataFramer = (*frameDataFrame)(nil)
+
+type frameDataFrame struct {
+	f *Frame
+}
+
+func newFrameDataFrame(f *Frame) *frameDataFrame {
+	return &frameDataFrame{f: f}
+}
+
+func (f *frameDataFrame) Height() int {
+	return f.f.Height()
+}
+
+func (f *frameDataFrame) ImageBufferSize(align int) (int, error) {
+	return f.f.ImageBufferSize(align)
+}
+
+func (f *frameDataFrame) ImageCopyToBuffer(b []byte, align int) (int, error) {
+	return f.f.ImageCopyToBuffer(b, align)
+}
+
+func (f *frameDataFrame) Linesize(i int) int {
+	return f.f.Linesize()[i]
+}
+
+func (f *frameDataFrame) PixelFormat() PixelFormat {
+	return f.f.PixelFormat()
+}
+
+func (f *frameDataFrame) PlaneBytes(i int) []byte {
+	return bytesFromC(func(size *cUlong) *C.uint8_t {
+		*size = cUlong(int(f.f.c.linesize[i]) * f.f.Height())
+		return f.f.c.data[i]
+	})
+}
+
+func (f *frameDataFrame) Width() int {
+	return f.f.Width()
 }
