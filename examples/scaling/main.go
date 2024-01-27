@@ -6,17 +6,23 @@ import (
 	"image/png"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/asticode/go-astiav"
 )
 
-func main() {
+var (
+	output    = flag.String("o", "", "the png output path")
+	dstWidth  = flag.Int("w", 50, "destination width")
+	dstHeight = flag.Int("h", 50, "destination height")
+)
 
-	var (
-		output    = flag.String("o", "", "the png output path")
-		dstWidth  = flag.Int("w", 50, "destination width")
-		dstHeight = flag.Int("h", 50, "destination height")
-	)
+func main() {
+	// Handle ffmpeg logs
+	astiav.SetLogLevel(astiav.LogLevelDebug)
+	astiav.SetLogCallback(func(l astiav.LogLevel, fmt, msg, parent string) {
+		log.Printf("ffmpeg log: %s (level: %d)\n", strings.TrimSpace(msg), l)
+	})
 
 	// Parse flags
 	flag.Parse()
@@ -51,30 +57,35 @@ func main() {
 	dstFrame := astiav.AllocFrame()
 	defer dstFrame.Free()
 
-	// Create software scale context flags
-	swscf := astiav.NewSoftwareScaleContextFlags(astiav.SoftwareScaleContextBilinear)
-
 	// Create software scale context
-	swsCtx := astiav.NewSoftwareScaleContext(srcFrame.Width(), srcFrame.Height(), srcFrame.PixelFormat(), *dstWidth, *dstHeight, astiav.PixelFormatRgba, swscf)
-	if swsCtx == nil {
-		log.Fatal("main: creating software scale context failed")
+	swsCtx, err := astiav.CreateSoftwareScaleContext(
+		srcFrame.Width(),
+		srcFrame.Height(),
+		srcFrame.PixelFormat(),
+		*dstWidth,
+		*dstHeight,
+		astiav.PixelFormatRgba,
+		astiav.NewSoftwareScaleContextFlags(astiav.SoftwareScaleContextFlagBilinear),
+	)
+	if err != nil {
+		log.Fatal(fmt.Errorf("main: creating software scale context failed: %w"), err)
 	}
 	defer swsCtx.Free()
 
-	// Prepare destination frame (Width, Height and Buffer for correct scaling would be set)
-	if err = swsCtx.PrepareDestinationFrameForScaling(dstFrame); err != nil {
-		log.Fatal(fmt.Errorf("main: prepare destination image failed: %w", err))
-	}
-
 	// Scale frame
-	if output_slice_height := swsCtx.ScaleFrame(srcFrame, dstFrame); output_slice_height != *dstHeight {
-		log.Fatal(fmt.Errorf("main: scale error, expected output slice height %d, but got %d", *dstHeight, output_slice_height))
+	if err := swsCtx.ScaleFrame(srcFrame, dstFrame); err != nil {
+		log.Fatal(fmt.Errorf("main: scale frame failed: %w"), err)
 	}
 
-	// Get image
-	img, err := dstFrame.Data().Image()
+	// Guess destination image format
+	img, err := dstFrame.Data().GuessImageFormat()
 	if err != nil {
-		log.Fatal(fmt.Errorf("main: getting destination image failed: %w", err))
+		log.Fatal(fmt.Errorf("main: guessing destination image format failed: %w", err))
+	}
+
+	// Copy frame data to destination image
+	if err = dstFrame.Data().ToImage(img); err != nil {
+		log.Fatal(fmt.Errorf("main: copying frame data to destination image failed: %w", err))
 	}
 
 	// Encode to png
@@ -82,5 +93,6 @@ func main() {
 		log.Fatal(fmt.Errorf("main: encoding to png failed: %w", err))
 	}
 
-	log.Println("done")
+	// Success
+	log.Println("success")
 }

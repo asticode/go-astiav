@@ -4,7 +4,7 @@ package astiav
 //#include <libswscale/swscale.h>
 import "C"
 import (
-	"fmt"
+	"errors"
 )
 
 // https://github.com/FFmpeg/FFmpeg/blob/n5.0/libswscale/swscale_internal.h#L300
@@ -20,7 +20,17 @@ type SoftwareScaleContext struct {
 	srcW      C.int
 }
 
-func NewSoftwareScaleContext(srcW, srcH int, srcFormat PixelFormat, dstW, dstH int, dstFormat PixelFormat, flags SoftwareScaleContextFlags) *SoftwareScaleContext {
+type softwareScaleContextUpdate struct {
+	dstFormat *PixelFormat
+	dstH      *int
+	dstW      *int
+	flags     *SoftwareScaleContextFlags
+	srcFormat *PixelFormat
+	srcH      *int
+	srcW      *int
+}
+
+func CreateSoftwareScaleContext(srcW, srcH int, srcFormat PixelFormat, dstW, dstH int, dstFormat PixelFormat, flags SoftwareScaleContextFlags) (*SoftwareScaleContext, error) {
 	ssc := SoftwareScaleContext{
 		dstFormat: C.enum_AVPixelFormat(dstFormat),
 		dstH:      C.int(dstH),
@@ -42,130 +52,166 @@ func NewSoftwareScaleContext(srcW, srcH int, srcFormat PixelFormat, dstW, dstH i
 		nil, nil, nil,
 	)
 	if ssc.c == nil {
-		return nil
+		return nil, errors.New("astiav: empty new context")
 	}
-	return &ssc
+	return &ssc, nil
 }
 
-func (ssc *SoftwareScaleContext) ScaleFrame(src, dst *Frame) (height int) {
-	height = int(
-		C.sws_scale(
-			ssc.c,
-			&src.c.data[0],
-			&src.c.linesize[0],
-			0,
-			C.int(src.Height()),
-			&dst.c.data[0], &dst.c.linesize[0]))
-	return
+func (ssc *SoftwareScaleContext) ScaleFrame(src, dst *Frame) error {
+	return newError(C.sws_scale_frame(ssc.c, dst.c, src.c))
 }
 
-func (ssc *SoftwareScaleContext) updateContext() error {
-	ssc.c = C.sws_getCachedContext(
+func (ssc *SoftwareScaleContext) update(u softwareScaleContextUpdate) error {
+	dstW := ssc.dstW
+	if u.dstW != nil {
+		dstW = C.int(*u.dstW)
+	}
+
+	dstH := ssc.dstH
+	if u.dstH != nil {
+		dstH = C.int(*u.dstH)
+	}
+
+	dstFormat := ssc.dstFormat
+	if u.dstFormat != nil {
+		dstFormat = C.enum_AVPixelFormat(*u.dstFormat)
+	}
+
+	srcW := ssc.srcW
+	if u.srcW != nil {
+		srcW = C.int(*u.srcW)
+	}
+
+	srcH := ssc.srcH
+	if u.srcH != nil {
+		srcH = C.int(*u.srcH)
+	}
+
+	srcFormat := ssc.srcFormat
+	if u.srcFormat != nil {
+		srcFormat = C.enum_AVPixelFormat(*u.srcFormat)
+	}
+
+	flags := ssc.flags
+	if u.flags != nil {
+		flags = SoftwareScaleContextFlags(*u.flags)
+	}
+
+	c := C.sws_getCachedContext(
 		ssc.c,
-		ssc.srcW,
-		ssc.srcH,
-		ssc.srcFormat,
-		ssc.dstW,
-		ssc.dstH,
-		ssc.dstFormat,
-		C.int(ssc.flags),
+		srcW,
+		srcH,
+		srcFormat,
+		dstW,
+		dstH,
+		dstFormat,
+		C.int(flags),
 		nil, nil, nil,
 	)
-	if ssc.c == nil {
-		return fmt.Errorf("failed to update sws context")
+	if c == nil {
+		return errors.New("astiav: empty new context")
 	}
+
+	ssc.c = c
+	if u.dstW != nil {
+		ssc.dstW = dstW
+	}
+	if u.dstH != nil {
+		ssc.dstH = dstH
+	}
+	if u.dstFormat != nil {
+		ssc.dstFormat = dstFormat
+	}
+	if u.srcW != nil {
+		ssc.srcW = srcW
+	}
+	if u.srcH != nil {
+		ssc.srcH = srcH
+	}
+	if u.srcFormat != nil {
+		ssc.srcFormat = srcFormat
+	}
+	if u.flags != nil {
+		ssc.flags = flags
+	}
+
 	return nil
-}
-
-func (ssc *SoftwareScaleContext) PrepareDestinationFrameForScaling(dstFrame *Frame) error {
-	dstFrame.SetPixelFormat(PixelFormat(ssc.dstFormat))
-	dstFrame.SetWidth(int(ssc.dstW))
-	dstFrame.SetHeight(int(ssc.dstH))
-	return dstFrame.AllocBuffer(1)
-}
-
-func (ssc *SoftwareScaleContext) DestinationHeight() int {
-	return int(ssc.dstH)
-}
-
-func (ssc *SoftwareScaleContext) DestinationPixelFormat() PixelFormat {
-	return PixelFormat(ssc.dstFormat)
-}
-
-func (ssc *SoftwareScaleContext) DestinationResolution() (int, int) {
-	return int(ssc.dstW), int(ssc.dstH)
-}
-
-func (ssc *SoftwareScaleContext) DestinationWidth() int {
-	return int(ssc.dstW)
 }
 
 func (ssc *SoftwareScaleContext) Flags() SoftwareScaleContextFlags {
 	return ssc.flags
 }
 
-func (ssc *SoftwareScaleContext) SetDestinationHeight(i int) error {
-	ssc.dstH = C.int(i)
-	return ssc.updateContext()
+func (ssc *SoftwareScaleContext) SetFlags(swscf SoftwareScaleContextFlags) error {
+	return ssc.update(softwareScaleContextUpdate{flags: &swscf})
 }
 
-func (ssc *SoftwareScaleContext) SetDestinationPixelFormat(p PixelFormat) error {
-	ssc.dstFormat = C.enum_AVPixelFormat(p)
-	return ssc.updateContext()
-}
-
-func (ssc *SoftwareScaleContext) SetDestinationResolution(w int, h int) error {
-	ssc.dstW = C.int(w)
-	ssc.dstH = C.int(h)
-	return ssc.updateContext()
+func (ssc *SoftwareScaleContext) DestinationWidth() int {
+	return int(ssc.dstW)
 }
 
 func (ssc *SoftwareScaleContext) SetDestinationWidth(i int) error {
-	ssc.dstW = C.int(i)
-	return ssc.updateContext()
+	return ssc.update(softwareScaleContextUpdate{dstW: &i})
 }
 
-func (ssc *SoftwareScaleContext) SetFlags(swscf SoftwareScaleContextFlags) {
-	ssc.flags = swscf
+func (ssc *SoftwareScaleContext) DestinationHeight() int {
+	return int(ssc.dstH)
 }
 
-func (ssc *SoftwareScaleContext) SetSourceHeight(i int) error {
-	ssc.srcH = C.int(i)
-	return ssc.updateContext()
+func (ssc *SoftwareScaleContext) SetDestinationHeight(i int) error {
+	return ssc.update(softwareScaleContextUpdate{dstH: &i})
 }
 
-func (ssc *SoftwareScaleContext) SetSourcePixelFormat(p PixelFormat) error {
-	ssc.srcFormat = C.enum_AVPixelFormat(p)
-	return ssc.updateContext()
+func (ssc *SoftwareScaleContext) DestinationPixelFormat() PixelFormat {
+	return PixelFormat(ssc.dstFormat)
 }
 
-func (ssc *SoftwareScaleContext) SetSourceResolution(w int, h int) error {
-	ssc.srcW = C.int(w)
-	ssc.srcH = C.int(h)
-	return ssc.updateContext()
+func (ssc *SoftwareScaleContext) SetDestinationPixelFormat(p PixelFormat) error {
+	return ssc.update(softwareScaleContextUpdate{dstFormat: &p})
 }
 
-func (ssc *SoftwareScaleContext) SetSourceWidth(i int) error {
-	ssc.srcW = C.int(i)
-	return ssc.updateContext()
+func (ssc *SoftwareScaleContext) DestinationResolution() (width int, height int) {
+	return int(ssc.dstW), int(ssc.dstH)
 }
 
-func (ssc *SoftwareScaleContext) SourceHeight() int {
-	return int(ssc.srcH)
-}
-
-func (ssc *SoftwareScaleContext) SourcePixelFormat() PixelFormat {
-	return PixelFormat(ssc.srcFormat)
-}
-
-func (ssc *SoftwareScaleContext) SourceResolution() (int, int) {
-	return int(ssc.srcW), int(ssc.srcH)
+func (ssc *SoftwareScaleContext) SetDestinationResolution(w int, h int) error {
+	return ssc.update(softwareScaleContextUpdate{dstW: &w, dstH: &h})
 }
 
 func (ssc *SoftwareScaleContext) SourceWidth() int {
 	return int(ssc.srcW)
 }
 
-func (sc *SoftwareScaleContext) Free() {
-	C.sws_freeContext(sc.c)
+func (ssc *SoftwareScaleContext) SetSourceWidth(i int) error {
+	return ssc.update(softwareScaleContextUpdate{srcW: &i})
+}
+
+func (ssc *SoftwareScaleContext) SourceHeight() int {
+	return int(ssc.srcH)
+}
+
+func (ssc *SoftwareScaleContext) SetSourceHeight(i int) error {
+	return ssc.update(softwareScaleContextUpdate{srcH: &i})
+}
+
+func (ssc *SoftwareScaleContext) SourcePixelFormat() PixelFormat {
+	return PixelFormat(ssc.srcFormat)
+}
+
+func (ssc *SoftwareScaleContext) SetSourcePixelFormat(p PixelFormat) error {
+	return ssc.update(softwareScaleContextUpdate{srcFormat: &p})
+}
+
+func (ssc *SoftwareScaleContext) SourceResolution() (int, int) {
+	return int(ssc.srcW), int(ssc.srcH)
+}
+
+func (ssc *SoftwareScaleContext) SetSourceResolution(w int, h int) error {
+	return ssc.update(softwareScaleContextUpdate{srcW: &w, srcH: &h})
+}
+
+func (ssc *SoftwareScaleContext) Free() {
+	if ssc.c != nil {
+		C.sws_freeContext(ssc.c)
+	}
 }
