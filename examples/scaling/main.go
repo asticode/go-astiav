@@ -68,13 +68,13 @@ func main() {
 		astiav.NewSoftwareScaleContextFlags(astiav.SoftwareScaleContextFlagBilinear),
 	)
 	if err != nil {
-		log.Fatal(fmt.Errorf("main: creating software scale context failed: %w"), err)
+		log.Fatal(fmt.Errorf("main: creating software scale context failed: %w", err))
 	}
 	defer swsCtx.Free()
 
 	// Scale frame
 	if err := swsCtx.ScaleFrame(srcFrame, dstFrame); err != nil {
-		log.Fatal(fmt.Errorf("main: scale frame failed: %w"), err)
+		log.Fatal(fmt.Errorf("main: scale frame failed: %w", err))
 	}
 
 	// Guess destination image format
