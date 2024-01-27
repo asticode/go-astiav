@@ -11,7 +11,9 @@ import (
 )
 
 var (
-	hardwareDeviceTypeName = flag.String("d", "", "the hardware device type like: cuda")
+	decoderCodecName       = flag.String("c", "", "the decoder codec name (e.g. h264_cuvid)")
+	hardwareDeviceName     = flag.String("n", "", "the hardware device name (e.g. 0)")
+	hardwareDeviceTypeName = flag.String("t", "", "the hardware device type (e.g. cuda)")
 	input                  = flag.String("i", "", "the input path")
 )
 
@@ -35,7 +37,7 @@ func main() {
 
 	// Usage
 	if *input == "" || *hardwareDeviceTypeName == "" {
-		log.Println("Usage: <binary path> -d <device type> -i <input path>")
+		log.Println("Usage: <binary path> -t <hardware device type> -i <input path> [-n <hardware device name> -c <decoder codec>]")
 		return
 	}
 
@@ -87,7 +89,14 @@ func main() {
 		s := &stream{inputStream: is}
 
 		// Find decoder
-		if s.decCodec = astiav.FindDecoder(is.CodecParameters().CodecID()); s.decCodec == nil {
+		if *decoderCodecName != "" {
+			s.decCodec = astiav.FindDecoderByName(*decoderCodecName)
+		} else {
+			s.decCodec = astiav.FindDecoder(is.CodecParameters().CodecID())
+		}
+
+		// No codec
+		if s.decCodec == nil {
 			log.Fatal(errors.New("main: codec is nil"))
 		}
 
@@ -97,11 +106,8 @@ func main() {
 		}
 		defer s.decCodecContext.Free()
 
-		// Get codec hardware configs
-		hardwareConfigs := s.decCodec.HardwareConfigs(hardwareDeviceType)
-
 		// Loop through codec hardware configs
-		for _, p := range hardwareConfigs {
+		for _, p := range s.decCodec.HardwareConfigs(hardwareDeviceType) {
 			// Valid hardware config
 			if p.MethodFlags().Has(astiav.CodecHardwareConfigMethodFlagHwDeviceCtx) && p.HardwareDeviceType() == hardwareDeviceType {
 				s.hardwarePixelFormat = p.PixelFormat()
@@ -121,11 +127,21 @@ func main() {
 
 		// Create hardware device context
 		var err error
-		s.hardwareDeviceContext, err = astiav.CreateHardwareDeviceContext(hardwareDeviceType, "", nil)
-		if err != nil {
+		if s.hardwareDeviceContext, err = astiav.CreateHardwareDeviceContext(hardwareDeviceType, *hardwareDeviceName, nil); err != nil {
 			log.Fatal(fmt.Errorf("main: creating hardware device context failed: %w", err))
 		}
+
+		// Update decoder context
 		s.decCodecContext.SetHardwareDeviceContext(s.hardwareDeviceContext)
+		s.decCodecContext.SetPixelFormatCallback(func(pfs []astiav.PixelFormat) astiav.PixelFormat {
+			for _, pf := range pfs {
+				if pf == s.hardwarePixelFormat {
+					return pf
+				}
+			}
+			log.Fatal(errors.New("main: using hardware pixel format failed"))
+			return astiav.PixelFormatNone
+		})
 
 		// Open codec context
 		if err := s.decCodecContext.Open(s.decCodec, nil); err != nil {
@@ -186,7 +202,10 @@ func main() {
 			}
 
 			// Do something with decoded frame
-			log.Printf("new frame: stream %d - pts: %d", pkt.StreamIndex(), finalFrame.Pts())
+			log.Printf("new frame: stream %d - pts: %d - transferred: %v", pkt.StreamIndex(), finalFrame.Pts(), hardwareFrame.PixelFormat() == s.hardwarePixelFormat)
 		}
 	}
+
+	// Success
+	log.Println("success")
 }

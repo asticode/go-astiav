@@ -3,7 +3,34 @@ package astiav
 //#cgo pkg-config: libavcodec libavutil
 //#include <libavcodec/avcodec.h>
 //#include <libavutil/frame.h>
+/*
+extern enum AVPixelFormat goAstiavCodecContextGetFormat(AVCodecContext *ctx, enum AVPixelFormat *pix_fmts, int pix_fmts_size);
+
+static inline enum AVPixelFormat astiavCodecContextGetFormat(AVCodecContext *ctx, const enum AVPixelFormat *pix_fmts)
+{
+	int pix_fmts_size = 0;
+	while (*pix_fmts != AV_PIX_FMT_NONE) {
+		pix_fmts_size++;
+		pix_fmts++;
+	}
+	pix_fmts -= pix_fmts_size;
+	return goAstiavCodecContextGetFormat(ctx, (enum AVPixelFormat*)(pix_fmts), pix_fmts_size);
+}
+static inline void astiavSetCodecContextGetFormat(AVCodecContext *ctx)
+{
+	ctx->get_format = astiavCodecContextGetFormat;
+}
+static inline void astiavResetCodecContextGetFormat(AVCodecContext *ctx)
+{
+	ctx->get_format = NULL;
+}
+
+*/
 import "C"
+import (
+	"sync"
+	"unsafe"
+)
 
 // https://github.com/FFmpeg/FFmpeg/blob/n5.0/libavcodec/avcodec.h#L383
 type CodecContext struct {
@@ -263,5 +290,50 @@ func (cc *CodecContext) SendFrame(f *Frame) error {
 }
 
 func (cc *CodecContext) SetHardwareDeviceContext(hdc *HardwareDeviceContext) {
-	cc.c.hw_device_ctx = hdc.c
+	cc.c.hw_device_ctx = C.av_buffer_ref(hdc.c)
+}
+
+type CodecContextPixelFormatCallback func(pfs []PixelFormat) PixelFormat
+
+var (
+	codecContextPixelFormatCallbacks      = make(map[*C.struct_AVCodecContext]CodecContextPixelFormatCallback)
+	codecContextPixelFormatCallbacksMutex = &sync.Mutex{}
+)
+
+func (cc *CodecContext) SetPixelFormatCallback(c CodecContextPixelFormatCallback) {
+	// Lock
+	codecContextPixelFormatCallbacksMutex.Lock()
+	defer codecContextPixelFormatCallbacksMutex.Unlock()
+
+	// Update callback
+	if c == nil {
+		C.astiavResetCodecContextGetFormat(cc.c)
+		delete(codecContextPixelFormatCallbacks, cc.c)
+	} else {
+		C.astiavSetCodecContextGetFormat(cc.c)
+		codecContextPixelFormatCallbacks[cc.c] = c
+	}
+}
+
+//export goAstiavCodecContextGetFormat
+func goAstiavCodecContextGetFormat(cc *C.struct_AVCodecContext, pfsCPtr *C.enum_AVPixelFormat, pfsCSize C.int) C.enum_AVPixelFormat {
+	// Lock
+	codecContextPixelFormatCallbacksMutex.Lock()
+	defer codecContextPixelFormatCallbacksMutex.Unlock()
+
+	// Get callback
+	c, ok := codecContextPixelFormatCallbacks[cc]
+	if !ok {
+		return C.enum_AVPixelFormat(PixelFormatNone)
+	}
+
+	// Get pixel formats
+	var pfs []PixelFormat
+	for _, v := range unsafe.Slice(pfsCPtr, pfsCSize) {
+		pfs = append(pfs, PixelFormat(v))
+	}
+
+	// Callback
+	return C.enum_AVPixelFormat(c(pfs))
+
 }

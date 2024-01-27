@@ -59,7 +59,7 @@ func (f *Frame) SetColorRange(r ColorRange) {
 }
 
 func (f *Frame) Data() *FrameData {
-	return newFrameData(f)
+	return newFrameData(newFrameDataFrame(f))
 }
 
 func (f *Frame) Height() int {
