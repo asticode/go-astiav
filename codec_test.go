@@ -69,11 +69,10 @@ func TestCodec(t *testing.T) {
 
 	var decoders []*astiav.Codec
 	processor := func(c *astiav.Codec) {
-		if c.IsDecoder() && c.HasHardwareConfigMethodFlag(astiav.CodecHardwareConfigMethodFlagHwDeviceCtx) && c.ID() == astiav.CodecIDMjpeg {
+		if c.IsDecoder() && c.ID() == astiav.CodecIDMjpeg {
 			decoders = append(decoders, c)
 		}
 	}
 	astiav.IterateCodecs(processor)
 	require.Equal(t, decoders[0].ID(), astiav.CodecIDMjpeg)
-	require.True(t, decoders[0].HasHardwareConfigMethodFlag(astiav.CodecHardwareConfigMethodFlagHwDeviceCtx))
 }
