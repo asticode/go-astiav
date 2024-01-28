@@ -13,6 +13,8 @@ type Codec struct {
 	c *C.struct_AVCodec
 }
 
+type CodecProcessor func(*Codec)
+
 func newCodecFromC(c *C.struct_AVCodec) *Codec {
 	if c == nil {
 		return nil
@@ -26,6 +28,10 @@ func (c *Codec) Name() string {
 
 func (c *Codec) String() string {
 	return c.Name()
+}
+
+func (c *Codec) ID() CodecID {
+	return CodecID(c.c.id)
 }
 
 func (c *Codec) ChannelLayouts() (o []ChannelLayout) {
@@ -112,4 +118,34 @@ func (c *Codec) HardwareConfigs(dt HardwareDeviceType) (configs []CodecHardwareC
 		i++
 	}
 	return
+}
+
+func (c *Codec) HasHardwareConfigMethodFlag(chcmf CodecHardwareConfigMethodFlag) bool {
+	var i C.int
+	for {
+		config := C.avcodec_get_hw_config(c.c, i)
+		if config == nil {
+			break
+		}
+
+		if (CodecHardwareConfig{c: config}.MethodFlags().Has(chcmf)) {
+			return true
+		}
+
+		i++
+	}
+	return false
+}
+
+func IterateCodecs(processor CodecProcessor) {
+	var opq *C.void = nil
+	for {
+		c := C.av_codec_iterate((*unsafe.Pointer)(unsafe.Pointer(&opq)))
+		if c == nil {
+			break
+		}
+
+		codec := newCodecFromC(c)
+		processor(codec)
+	}
 }
