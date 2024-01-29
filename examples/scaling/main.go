@@ -74,7 +74,7 @@ func main() {
 
 	// Scale frame
 	if err := swsCtx.ScaleFrame(srcFrame, dstFrame); err != nil {
-		log.Fatal(fmt.Errorf("main: scale frame failed: %w", err))
+		log.Fatal(fmt.Errorf("main: scaling frame failed: %w", err))
 	}
 
 	// Guess destination image format

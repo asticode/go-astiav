@@ -14,7 +14,7 @@ type SoftwareScaleContext struct {
 	dstFormat C.enum_AVPixelFormat
 	dstH      C.int
 	dstW      C.int
-	flags     SoftwareScaleContextFlags
+	flags     C.int
 	srcFormat C.enum_AVPixelFormat
 	srcH      C.int
 	srcW      C.int
@@ -35,7 +35,7 @@ func CreateSoftwareScaleContext(srcW, srcH int, srcFormat PixelFormat, dstW, dst
 		dstFormat: C.enum_AVPixelFormat(dstFormat),
 		dstH:      C.int(dstH),
 		dstW:      C.int(dstW),
-		flags:     flags,
+		flags:     C.int(flags),
 		srcFormat: C.enum_AVPixelFormat(srcFormat),
 		srcH:      C.int(srcH),
 		srcW:      C.int(srcW),
@@ -94,7 +94,7 @@ func (ssc *SoftwareScaleContext) update(u softwareScaleContextUpdate) error {
 
 	flags := ssc.flags
 	if u.flags != nil {
-		flags = SoftwareScaleContextFlags(*u.flags)
+		flags = C.int(*u.flags)
 	}
 
 	c := C.sws_getCachedContext(
@@ -105,7 +105,7 @@ func (ssc *SoftwareScaleContext) update(u softwareScaleContextUpdate) error {
 		dstW,
 		dstH,
 		dstFormat,
-		C.int(flags),
+		flags,
 		nil, nil, nil,
 	)
 	if c == nil {
@@ -113,33 +113,19 @@ func (ssc *SoftwareScaleContext) update(u softwareScaleContextUpdate) error {
 	}
 
 	ssc.c = c
-	if u.dstW != nil {
-		ssc.dstW = dstW
-	}
-	if u.dstH != nil {
-		ssc.dstH = dstH
-	}
-	if u.dstFormat != nil {
-		ssc.dstFormat = dstFormat
-	}
-	if u.srcW != nil {
-		ssc.srcW = srcW
-	}
-	if u.srcH != nil {
-		ssc.srcH = srcH
-	}
-	if u.srcFormat != nil {
-		ssc.srcFormat = srcFormat
-	}
-	if u.flags != nil {
-		ssc.flags = flags
-	}
+	ssc.dstW = dstW
+	ssc.dstH = dstH
+	ssc.dstFormat = dstFormat
+	ssc.srcW = srcW
+	ssc.srcH = srcH
+	ssc.srcFormat = srcFormat
+	ssc.flags = flags
 
 	return nil
 }
 
 func (ssc *SoftwareScaleContext) Flags() SoftwareScaleContextFlags {
-	return ssc.flags
+	return SoftwareScaleContextFlags(ssc.flags)
 }
 
 func (ssc *SoftwareScaleContext) SetFlags(swscf SoftwareScaleContextFlags) error {

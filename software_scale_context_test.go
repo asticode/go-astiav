@@ -55,22 +55,27 @@ func TestSoftwareScaleContext(t *testing.T) {
 	require.Equal(t, swsc.SourceWidth(), f2.Width())
 	require.NoError(t, swsc.SetSourceHeight(f2.Height()))
 	require.Equal(t, swsc.SourceHeight(), f2.Height())
-	require.NoError(t, swsc.SetSourceResolution(1280, 720))
+
+	newSourceW := 1280
+	newSourceH := 720
+	require.NoError(t, swsc.SetSourceResolution(newSourceW, newSourceH))
 	w, h := swsc.SourceResolution()
-	require.Equal(t, w, 1280)
-	require.Equal(t, h, 720)
+	require.Equal(t, w, newSourceW)
+	require.Equal(t, h, newSourceH)
 	require.NoError(t, swsc.SetSourceResolution(f2.Width(), f2.Height()))
 	require.NoError(t, swsc.SetSourcePixelFormat(f2.PixelFormat()))
 	require.Equal(t, swsc.SourcePixelFormat(), f2.PixelFormat())
 
+	newDestW := 800
+	newDestH := 600
 	require.NoError(t, swsc.SetDestinationWidth(dstW))
 	require.Equal(t, swsc.DestinationWidth(), dstW)
 	require.NoError(t, swsc.SetDestinationHeight(dstH))
 	require.Equal(t, swsc.DestinationHeight(), dstH)
-	require.NoError(t, swsc.SetDestinationResolution(800, 600))
+	require.NoError(t, swsc.SetDestinationResolution(newDestW, newDestH))
 	w, h = swsc.DestinationResolution()
-	require.Equal(t, w, 800)
-	require.Equal(t, h, 600)
+	require.Equal(t, w, newDestW)
+	require.Equal(t, h, newDestH)
 	require.NoError(t, swsc.SetDestinationResolution(dstW, dstH))
 	require.NoError(t, swsc.SetDestinationPixelFormat(dstPixelFormat))
 	require.Equal(t, swsc.DestinationPixelFormat(), dstPixelFormat)
