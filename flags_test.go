@@ -70,15 +70,6 @@ func TestFilterCommandFlags(t *testing.T) {
 	require.False(t, fs.Has(astiav.FilterCommandFlag(2)))
 }
 
-func TestFormatContextCtxFlags(t *testing.T) {
-	fs := astiav.NewFormatContextCtxFlags(astiav.FormatContextCtxFlag(1))
-	require.True(t, fs.Has(astiav.FormatContextCtxFlag(1)))
-	fs = fs.Add(astiav.FormatContextCtxFlag(2))
-	require.True(t, fs.Has(astiav.FormatContextCtxFlag(2)))
-	fs = fs.Del(astiav.FormatContextCtxFlag(2))
-	require.False(t, fs.Has(astiav.FormatContextCtxFlag(2)))
-}
-
 func TestFormatContextFlags(t *testing.T) {
 	fs := astiav.NewFormatContextFlags(astiav.FormatContextFlag(1))
 	require.True(t, fs.Has(astiav.FormatContextFlag(1)))
@@ -86,6 +77,15 @@ func TestFormatContextFlags(t *testing.T) {
 	require.True(t, fs.Has(astiav.FormatContextFlag(2)))
 	fs = fs.Del(astiav.FormatContextFlag(2))
 	require.False(t, fs.Has(astiav.FormatContextFlag(2)))
+}
+
+func TestFormatContextCtxFlags(t *testing.T) {
+	fs := astiav.NewFormatContextCtxFlags(astiav.FormatContextCtxFlag(1))
+	require.True(t, fs.Has(astiav.FormatContextCtxFlag(1)))
+	fs = fs.Add(astiav.FormatContextCtxFlag(2))
+	require.True(t, fs.Has(astiav.FormatContextCtxFlag(2)))
+	fs = fs.Del(astiav.FormatContextCtxFlag(2))
+	require.False(t, fs.Has(astiav.FormatContextCtxFlag(2)))
 }
 
 func TestFormatEventFlags(t *testing.T) {
@@ -131,6 +131,15 @@ func TestSeekFlags(t *testing.T) {
 	require.True(t, fs.Has(astiav.SeekFlag(2)))
 	fs = fs.Del(astiav.SeekFlag(2))
 	require.False(t, fs.Has(astiav.SeekFlag(2)))
+}
+
+func TestSoftwareScaleContextFlags(t *testing.T) {
+	fs := astiav.NewSoftwareScaleContextFlags(astiav.SoftwareScaleContextFlag(1))
+	require.True(t, fs.Has(astiav.SoftwareScaleContextFlag(1)))
+	fs = fs.Add(astiav.SoftwareScaleContextFlag(2))
+	require.True(t, fs.Has(astiav.SoftwareScaleContextFlag(2)))
+	fs = fs.Del(astiav.SoftwareScaleContextFlag(2))
+	require.False(t, fs.Has(astiav.SoftwareScaleContextFlag(2)))
 }
 
 func TestStreamEventFlags(t *testing.T) {

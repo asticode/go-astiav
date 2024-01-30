@@ -21,13 +21,14 @@ var list = []listItem{
 	{Name: "CodecHardwareConfigMethod"},
 	{Name: "Dictionary"},
 	{Name: "FilterCommand"},
-	{Name: "FormatContextCtx"},
 	{Name: "FormatContext"},
+	{Name: "FormatContextCtx"},
 	{Name: "FormatEvent"},
 	{Name: "IOContext"},
 	{Name: "IOFormat"},
 	{Name: "Packet"},
 	{Name: "Seek"},
+	{Name: "SoftwareScaleContext"},
 	{Name: "StreamEvent"},
 }
 

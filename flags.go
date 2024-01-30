@@ -145,26 +145,6 @@ func (fs FilterCommandFlags) Del(f FilterCommandFlag) FilterCommandFlags {
 
 func (fs FilterCommandFlags) Has(f FilterCommandFlag) bool { return astikit.BitFlags(fs).Has(uint64(f)) }
 
-type FormatContextCtxFlags astikit.BitFlags
-
-func NewFormatContextCtxFlags(fs ...FormatContextCtxFlag) FormatContextCtxFlags {
-	o := FormatContextCtxFlags(0)
-	for _, f := range fs {
-		o = o.Add(f)
-	}
-	return o
-}
-
-func (fs FormatContextCtxFlags) Add(f FormatContextCtxFlag) FormatContextCtxFlags {
-	return FormatContextCtxFlags(astikit.BitFlags(fs).Add(uint64(f)))
-}
-
-func (fs FormatContextCtxFlags) Del(f FormatContextCtxFlag) FormatContextCtxFlags {
-	return FormatContextCtxFlags(astikit.BitFlags(fs).Del(uint64(f)))
-}
-
-func (fs FormatContextCtxFlags) Has(f FormatContextCtxFlag) bool { return astikit.BitFlags(fs).Has(uint64(f)) }
-
 type FormatContextFlags astikit.BitFlags
 
 func NewFormatContextFlags(fs ...FormatContextFlag) FormatContextFlags {
@@ -184,6 +164,26 @@ func (fs FormatContextFlags) Del(f FormatContextFlag) FormatContextFlags {
 }
 
 func (fs FormatContextFlags) Has(f FormatContextFlag) bool { return astikit.BitFlags(fs).Has(uint64(f)) }
+
+type FormatContextCtxFlags astikit.BitFlags
+
+func NewFormatContextCtxFlags(fs ...FormatContextCtxFlag) FormatContextCtxFlags {
+	o := FormatContextCtxFlags(0)
+	for _, f := range fs {
+		o = o.Add(f)
+	}
+	return o
+}
+
+func (fs FormatContextCtxFlags) Add(f FormatContextCtxFlag) FormatContextCtxFlags {
+	return FormatContextCtxFlags(astikit.BitFlags(fs).Add(uint64(f)))
+}
+
+func (fs FormatContextCtxFlags) Del(f FormatContextCtxFlag) FormatContextCtxFlags {
+	return FormatContextCtxFlags(astikit.BitFlags(fs).Del(uint64(f)))
+}
+
+func (fs FormatContextCtxFlags) Has(f FormatContextCtxFlag) bool { return astikit.BitFlags(fs).Has(uint64(f)) }
 
 type FormatEventFlags astikit.BitFlags
 
@@ -284,6 +284,26 @@ func (fs SeekFlags) Del(f SeekFlag) SeekFlags {
 }
 
 func (fs SeekFlags) Has(f SeekFlag) bool { return astikit.BitFlags(fs).Has(uint64(f)) }
+
+type SoftwareScaleContextFlags astikit.BitFlags
+
+func NewSoftwareScaleContextFlags(fs ...SoftwareScaleContextFlag) SoftwareScaleContextFlags {
+	o := SoftwareScaleContextFlags(0)
+	for _, f := range fs {
+		o = o.Add(f)
+	}
+	return o
+}
+
+func (fs SoftwareScaleContextFlags) Add(f SoftwareScaleContextFlag) SoftwareScaleContextFlags {
+	return SoftwareScaleContextFlags(astikit.BitFlags(fs).Add(uint64(f)))
+}
+
+func (fs SoftwareScaleContextFlags) Del(f SoftwareScaleContextFlag) SoftwareScaleContextFlags {
+	return SoftwareScaleContextFlags(astikit.BitFlags(fs).Del(uint64(f)))
+}
+
+func (fs SoftwareScaleContextFlags) Has(f SoftwareScaleContextFlag) bool { return astikit.BitFlags(fs).Has(uint64(f)) }
 
 type StreamEventFlags astikit.BitFlags
 
