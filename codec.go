@@ -107,7 +107,7 @@ func FindEncoderByName(n string) *Codec {
 	return newCodecFromC(C.avcodec_find_encoder_by_name(cn))
 }
 
-func (c *Codec) HardwareConfigs(dt HardwareDeviceType) (configs []CodecHardwareConfig) {
+func (c *Codec) HardwareConfigs() (configs []CodecHardwareConfig) {
 	var i int
 	for {
 		config := C.avcodec_get_hw_config(c.c, C.int(i))
@@ -120,25 +120,9 @@ func (c *Codec) HardwareConfigs(dt HardwareDeviceType) (configs []CodecHardwareC
 	return
 }
 
-func (c *Codec) HasHardwareConfigMethodFlag(chcmf CodecHardwareConfigMethodFlag) bool {
-	var i C.int
-	for {
-		config := C.avcodec_get_hw_config(c.c, i)
-		if config == nil {
-			break
-		}
-
-		if (CodecHardwareConfig{c: config}.MethodFlags().Has(chcmf)) {
-			return true
-		}
-
-		i++
-	}
-	return false
-}
-
-func IterateCodecs(processor CodecProcessor) {
+func Codecs() []*Codec {
 	var opq *C.void = nil
+	var codecs []*Codec
 	for {
 		c := C.av_codec_iterate((*unsafe.Pointer)(unsafe.Pointer(&opq)))
 		if c == nil {
@@ -146,6 +130,7 @@ func IterateCodecs(processor CodecProcessor) {
 		}
 
 		codec := newCodecFromC(c)
-		processor(codec)
+		codecs = append(codecs, codec)
 	}
+	return codecs
 }
