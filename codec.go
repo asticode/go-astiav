@@ -118,17 +118,14 @@ func (c *Codec) HardwareConfigs() (configs []CodecHardwareConfig) {
 	return
 }
 
-func Codecs() []*Codec {
+func Codecs() (cs []*Codec) {
 	var opq *C.void = nil
-	var codecs []*Codec
 	for {
 		c := C.av_codec_iterate((*unsafe.Pointer)(unsafe.Pointer(&opq)))
 		if c == nil {
 			break
 		}
-
-		codec := newCodecFromC(c)
-		codecs = append(codecs, codec)
+		cs = append(cs, newCodecFromC(c))
 	}
-	return codecs
+	return
 }
