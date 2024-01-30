@@ -10,6 +10,7 @@ import (
 func TestCodec(t *testing.T) {
 	c := astiav.FindDecoder(astiav.CodecIDMp3)
 	require.NotNil(t, c)
+	require.Equal(t, c.ID(), astiav.CodecIDMp3)
 	require.Nil(t, c.ChannelLayouts())
 	require.True(t, c.IsDecoder())
 	require.False(t, c.IsEncoder())
@@ -66,4 +67,12 @@ func TestCodec(t *testing.T) {
 
 	c = astiav.FindDecoderByName("invalid")
 	require.Nil(t, c)
+
+	var found bool
+	for _, c := range astiav.Codecs() {
+		if c.ID() == astiav.CodecIDMjpeg {
+			found = true
+		}
+	}
+	require.True(t, found)
 }

@@ -107,7 +107,7 @@ func main() {
 		defer s.decCodecContext.Free()
 
 		// Loop through codec hardware configs
-		for _, p := range s.decCodec.HardwareConfigs(hardwareDeviceType) {
+		for _, p := range s.decCodec.HardwareConfigs() {
 			// Valid hardware config
 			if p.MethodFlags().Has(astiav.CodecHardwareConfigMethodFlagHwDeviceCtx) && p.HardwareDeviceType() == hardwareDeviceType {
 				s.hardwarePixelFormat = p.PixelFormat()
