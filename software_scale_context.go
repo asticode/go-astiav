@@ -48,7 +48,7 @@ func CreateSoftwareScaleContext(srcW, srcH int, srcFormat PixelFormat, dstW, dst
 		ssc.dstW,
 		ssc.dstH,
 		ssc.dstFormat,
-		C.int(ssc.flags),
+		ssc.flags,
 		nil, nil, nil,
 	)
 	if ssc.c == nil {

@@ -1,6 +1,7 @@
 package astiav_test
 
 import (
+	"os"
 	"testing"
 
 	"github.com/asticode/go-astiav"
@@ -20,11 +21,11 @@ func TestSoftwareScaleContext(t *testing.T) {
 	require.NotNil(t, f3)
 	defer f3.Free()
 
-	srcW := 320
-	srcH := 280
+	srcW := 4
+	srcH := 2
 	srcPixelFormat := astiav.PixelFormatYuv420P
-	dstW := 640
-	dstH := 480
+	dstW := 8
+	dstH := 4
 	dstPixelFormat := astiav.PixelFormatRgba
 	swscf1 := astiav.SoftwareScaleContextFlags(astiav.SoftwareScaleContextFlagBilinear)
 
@@ -33,56 +34,78 @@ func TestSoftwareScaleContext(t *testing.T) {
 	f1.SetPixelFormat(srcPixelFormat)
 	require.NoError(t, f1.AllocBuffer(1))
 
-	swsc, err := astiav.CreateSoftwareScaleContext(srcW, srcH, srcPixelFormat, dstW, dstH, dstPixelFormat, swscf1)
+	swsc1, err := astiav.CreateSoftwareScaleContext(srcW, srcH, srcPixelFormat, dstW, dstH, dstPixelFormat, swscf1)
 	require.NoError(t, err)
-	defer swsc.Free()
+	defer swsc1.Free()
+	require.Equal(t, dstH, swsc1.DestinationHeight())
+	require.Equal(t, dstPixelFormat, swsc1.DestinationPixelFormat())
+	w, h := swsc1.DestinationResolution()
+	require.Equal(t, w, dstW)
+	require.Equal(t, h, dstH)
+	require.Equal(t, dstW, swsc1.DestinationWidth())
+	require.Equal(t, swscf1, swsc1.Flags())
+	require.Equal(t, srcH, swsc1.SourceHeight())
+	require.Equal(t, srcPixelFormat, swsc1.SourcePixelFormat())
+	w, h = swsc1.SourceResolution()
+	require.Equal(t, w, srcW)
+	require.Equal(t, h, srcH)
+	require.Equal(t, srcW, swsc1.SourceWidth())
 
-	require.NoError(t, swsc.ScaleFrame(f1, f2))
+	require.NoError(t, swsc1.ScaleFrame(f1, f2))
 	require.Equal(t, dstH, f2.Height())
 	require.Equal(t, dstW, f2.Width())
 	require.Equal(t, dstPixelFormat, f2.PixelFormat())
 
-	dstW = 1024
-	dstH = 576
+	dstW = 4
+	dstH = 3
 	dstPixelFormat = astiav.PixelFormatYuv420P
 	swscf2 := astiav.SoftwareScaleContextFlags(astiav.SoftwareScaleContextFlagPoint)
+	srcW = 2
+	srcH = 1
+	srcPixelFormat = astiav.PixelFormatRgba
 
-	require.Equal(t, swsc.Flags(), swscf1)
-	swsc.SetFlags(swscf2)
-	require.Equal(t, swsc.Flags(), swscf2)
+	require.NoError(t, swsc1.SetDestinationHeight(dstH))
+	require.Equal(t, dstH, swsc1.DestinationHeight())
+	require.NoError(t, swsc1.SetDestinationPixelFormat(dstPixelFormat))
+	require.Equal(t, dstPixelFormat, swsc1.DestinationPixelFormat())
+	require.NoError(t, swsc1.SetDestinationWidth(dstW))
+	require.Equal(t, dstW, swsc1.DestinationWidth())
+	dstW = 5
+	dstH = 4
+	require.NoError(t, swsc1.SetDestinationResolution(dstW, dstH))
+	w, h = swsc1.DestinationResolution()
+	require.Equal(t, w, dstW)
+	require.Equal(t, h, dstH)
+	require.NoError(t, swsc1.SetFlags(swscf2))
+	require.Equal(t, swsc1.Flags(), swscf2)
+	require.NoError(t, swsc1.SetSourceHeight(srcH))
+	require.Equal(t, srcH, swsc1.SourceHeight())
+	require.NoError(t, swsc1.SetSourcePixelFormat(srcPixelFormat))
+	require.Equal(t, srcPixelFormat, swsc1.SourcePixelFormat())
+	require.NoError(t, swsc1.SetSourceWidth(srcW))
+	require.Equal(t, srcW, swsc1.SourceWidth())
+	srcW = 3
+	srcH = 2
+	require.NoError(t, swsc1.SetSourceResolution(srcW, srcH))
+	w, h = swsc1.SourceResolution()
+	require.Equal(t, w, srcW)
+	require.Equal(t, h, srcH)
 
-	require.NoError(t, swsc.SetSourceWidth(f2.Width()))
-	require.Equal(t, swsc.SourceWidth(), f2.Width())
-	require.NoError(t, swsc.SetSourceHeight(f2.Height()))
-	require.Equal(t, swsc.SourceHeight(), f2.Height())
+	f4, err := globalHelper.inputLastFrame("image-rgba.png", astiav.MediaTypeVideo)
+	require.NoError(t, err)
 
-	newSourceW := 1280
-	newSourceH := 720
-	require.NoError(t, swsc.SetSourceResolution(newSourceW, newSourceH))
-	w, h := swsc.SourceResolution()
-	require.Equal(t, w, newSourceW)
-	require.Equal(t, h, newSourceH)
-	require.NoError(t, swsc.SetSourceResolution(f2.Width(), f2.Height()))
-	require.NoError(t, swsc.SetSourcePixelFormat(f2.PixelFormat()))
-	require.Equal(t, swsc.SourcePixelFormat(), f2.PixelFormat())
+	f5 := astiav.AllocFrame()
+	require.NotNil(t, f5)
+	defer f5.Free()
 
-	newDestW := 800
-	newDestH := 600
-	require.NoError(t, swsc.SetDestinationWidth(dstW))
-	require.Equal(t, swsc.DestinationWidth(), dstW)
-	require.NoError(t, swsc.SetDestinationHeight(dstH))
-	require.Equal(t, swsc.DestinationHeight(), dstH)
-	require.NoError(t, swsc.SetDestinationResolution(newDestW, newDestH))
-	w, h = swsc.DestinationResolution()
-	require.Equal(t, w, newDestW)
-	require.Equal(t, h, newDestH)
-	require.NoError(t, swsc.SetDestinationResolution(dstW, dstH))
-	require.NoError(t, swsc.SetDestinationPixelFormat(dstPixelFormat))
-	require.Equal(t, swsc.DestinationPixelFormat(), dstPixelFormat)
+	swsc2, err := astiav.CreateSoftwareScaleContext(f4.Width(), f4.Height(), f4.PixelFormat(), 512, 512, f4.PixelFormat(), astiav.NewSoftwareScaleContextFlags(astiav.SoftwareScaleContextFlagBilinear))
+	require.NoError(t, err)
+	require.NoError(t, swsc2.ScaleFrame(f4, f5))
 
-	require.NoError(t, swsc.ScaleFrame(f2, f3))
-	require.Equal(t, dstW, f3.Width())
-	require.Equal(t, dstH, f3.Height())
-	require.Equal(t, dstPixelFormat, f3.PixelFormat())
+	b1, err := f5.Data().Bytes(1)
+	require.NoError(t, err)
 
+	b2, err := os.ReadFile("testdata/image-rgba-upscaled-bytes")
+	require.NoError(t, err)
+	require.Equal(t, b2, b1)
 }
