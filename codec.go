@@ -13,8 +13,6 @@ type Codec struct {
 	c *C.struct_AVCodec
 }
 
-type CodecProcessor func(*Codec)
-
 func newCodecFromC(c *C.struct_AVCodec) *Codec {
 	if c == nil {
 		return nil
