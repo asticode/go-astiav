@@ -9,6 +9,10 @@ type CodecHardwareConfig struct {
 	c *C.AVCodecHWConfig
 }
 
+func newCodecHardwareConfigFromC(c *C.AVCodecHWConfig) CodecHardwareConfig {
+	return CodecHardwareConfig{c: c}
+}
+
 func (chc CodecHardwareConfig) HardwareDeviceType() HardwareDeviceType {
 	return HardwareDeviceType(chc.c.device_type)
 }

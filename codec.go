@@ -112,7 +112,7 @@ func (c *Codec) HardwareConfigs() (configs []CodecHardwareConfig) {
 		if config == nil {
 			break
 		}
-		configs = append(configs, CodecHardwareConfig{c: config})
+		configs = append(configs, newCodecHardwareConfigFromC(config))
 		i++
 	}
 	return
