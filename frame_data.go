@@ -14,13 +14,13 @@ type FrameData struct {
 }
 
 type frameDataFramer interface {
-	Height() int
-	ImageBufferSize(align int) (int, error)
-	ImageCopyToBuffer(b []byte, align int) (int, error)
-	Linesize(i int) int
-	PixelFormat() PixelFormat
-	PlaneBytes(i int) []byte
-	Width() int
+	height() int
+	imageBufferSize(align int) (int, error)
+	imageCopyToBuffer(b []byte, align int) (int, error)
+	linesize(i int) int
+	pixelFormat() PixelFormat
+	planeBytes(i int) []byte
+	width() int
 }
 
 func newFrameData(f frameDataFramer) *FrameData {
@@ -30,9 +30,9 @@ func newFrameData(f frameDataFramer) *FrameData {
 func (d *FrameData) Bytes(align int) ([]byte, error) {
 	switch {
 	// Video
-	case d.f.Height() > 0 && d.f.Width() > 0:
+	case d.f.height() > 0 && d.f.width() > 0:
 		// Get buffer size
-		s, err := d.f.ImageBufferSize(align)
+		s, err := d.f.imageBufferSize(align)
 		if err != nil {
 			return nil, fmt.Errorf("astiav: getting image buffer size failed: %w", err)
 		}
@@ -46,7 +46,7 @@ func (d *FrameData) Bytes(align int) ([]byte, error) {
 		b := make([]byte, s)
 
 		// Copy image to buffer
-		if _, err = d.f.ImageCopyToBuffer(b, align); err != nil {
+		if _, err = d.f.imageCopyToBuffer(b, align); err != nil {
 			return nil, fmt.Errorf("astiav: copying image to buffer failed: %w", err)
 		}
 		return b, nil
@@ -57,7 +57,7 @@ func (d *FrameData) Bytes(align int) ([]byte, error) {
 // Always returns non-premultiplied formats when dealing with alpha channels, however this might not
 // always be accurate. In this case, use your own format in .ToImage()
 func (d *FrameData) GuessImageFormat() (image.Image, error) {
-	switch d.f.PixelFormat() {
+	switch d.f.pixelFormat() {
 	case PixelFormatGray8:
 		return &image.Gray{}, nil
 	case PixelFormatGray16Be:
@@ -80,11 +80,11 @@ func (d *FrameData) GuessImageFormat() (image.Image, error) {
 		PixelFormatYuv444P, PixelFormatYuvj444P:
 		return &image.YCbCr{}, nil
 	}
-	return nil, fmt.Errorf("astiav: pixel format %s not handled by Go", d.f.PixelFormat())
+	return nil, fmt.Errorf("astiav: pixel format %s not handled by Go", d.f.pixelFormat())
 }
 
 func (d *FrameData) imageYCbCrSubsampleRatio() image.YCbCrSubsampleRatio {
-	name := d.f.PixelFormat().Name()
+	name := d.f.pixelFormat().Name()
 	for s, r := range map[string]image.YCbCrSubsampleRatio{
 		"410": image.YCbCrSubsampleRatio410,
 		"411": image.YCbCrSubsampleRatio411,
@@ -101,7 +101,7 @@ func (d *FrameData) imageYCbCrSubsampleRatio() image.YCbCrSubsampleRatio {
 }
 
 func (d *FrameData) copyPlaneBytes(i int, s *[]uint8) {
-	b := d.f.PlaneBytes(i)
+	b := d.f.planeBytes(i)
 	if len(b) > cap(*s) {
 		*s = make([]uint8, len(b))
 	}
@@ -110,10 +110,10 @@ func (d *FrameData) copyPlaneBytes(i int, s *[]uint8) {
 
 func (d *FrameData) toImagePix(pix *[]uint8, stride *int, rect *image.Rectangle) {
 	d.copyPlaneBytes(0, pix)
-	if v := d.f.Linesize(0); *stride != v {
+	if v := d.f.linesize(0); *stride != v {
 		*stride = v
 	}
-	if w, h := d.f.Width(), d.f.Height(); rect.Dy() != w || rect.Dx() != h {
+	if w, h := d.f.width(), d.f.height(); rect.Dy() != w || rect.Dx() != h {
 		*rect = image.Rect(0, 0, w, h)
 	}
 }
@@ -122,16 +122,16 @@ func (d *FrameData) toImageYCbCr(y, cb, cr *[]uint8, yStride, cStride *int, subs
 	d.copyPlaneBytes(0, y)
 	d.copyPlaneBytes(1, cb)
 	d.copyPlaneBytes(2, cr)
-	if v := d.f.Linesize(0); *yStride != v {
+	if v := d.f.linesize(0); *yStride != v {
 		*yStride = v
 	}
-	if v := d.f.Linesize(1); *cStride != v {
+	if v := d.f.linesize(1); *cStride != v {
 		*cStride = v
 	}
 	if v := d.imageYCbCrSubsampleRatio(); *subsampleRatio != v {
 		*subsampleRatio = v
 	}
-	if w, h := d.f.Width(), d.f.Height(); rect.Dy() != w || rect.Dx() != h {
+	if w, h := d.f.width(), d.f.height(); rect.Dy() != w || rect.Dx() != h {
 		*rect = image.Rect(0, 0, w, h)
 	}
 }
@@ -139,7 +139,7 @@ func (d *FrameData) toImageYCbCr(y, cb, cr *[]uint8, yStride, cStride *int, subs
 func (d *FrameData) toImageYCbCrA(y, cb, cr, a *[]uint8, yStride, cStride, aStride *int, subsampleRatio *image.YCbCrSubsampleRatio, rect *image.Rectangle) {
 	d.toImageYCbCr(y, cb, cr, yStride, cStride, subsampleRatio, rect)
 	d.copyPlaneBytes(3, a)
-	if v := d.f.Linesize(3); *aStride != v {
+	if v := d.f.linesize(3); *aStride != v {
 		*aStride = v
 	}
 }
@@ -183,33 +183,33 @@ func newFrameDataFrame(f *Frame) *frameDataFrame {
 	return &frameDataFrame{f: f}
 }
 
-func (f *frameDataFrame) Height() int {
+func (f *frameDataFrame) height() int {
 	return f.f.Height()
 }
 
-func (f *frameDataFrame) ImageBufferSize(align int) (int, error) {
+func (f *frameDataFrame) imageBufferSize(align int) (int, error) {
 	return f.f.ImageBufferSize(align)
 }
 
-func (f *frameDataFrame) ImageCopyToBuffer(b []byte, align int) (int, error) {
+func (f *frameDataFrame) imageCopyToBuffer(b []byte, align int) (int, error) {
 	return f.f.ImageCopyToBuffer(b, align)
 }
 
-func (f *frameDataFrame) Linesize(i int) int {
+func (f *frameDataFrame) linesize(i int) int {
 	return f.f.Linesize()[i]
 }
 
-func (f *frameDataFrame) PixelFormat() PixelFormat {
+func (f *frameDataFrame) pixelFormat() PixelFormat {
 	return f.f.PixelFormat()
 }
 
-func (f *frameDataFrame) PlaneBytes(i int) []byte {
+func (f *frameDataFrame) planeBytes(i int) []byte {
 	return bytesFromC(func(size *cUlong) *C.uint8_t {
 		*size = cUlong(int(f.f.c.linesize[i]) * f.f.Height())
 		return f.f.c.data[i]
 	})
 }
 
-func (f *frameDataFrame) Width() int {
+func (f *frameDataFrame) width() int {
 	return f.f.Width()
 }

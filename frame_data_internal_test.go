@@ -8,43 +8,43 @@ import (
 )
 
 type mockedFrameDataFrame struct {
-	height      int
+	h           int
 	imageBytes  []byte
 	linesizes   []int
-	pixelFormat PixelFormat
+	pf          PixelFormat
 	planesBytes [][]byte
-	width       int
+	w           int
 }
 
 var _ frameDataFramer = (*mockedFrameDataFrame)(nil)
 
-func (f *mockedFrameDataFrame) Height() int {
-	return f.height
+func (f *mockedFrameDataFrame) height() int {
+	return f.h
 }
 
-func (f *mockedFrameDataFrame) ImageBufferSize(align int) (int, error) {
+func (f *mockedFrameDataFrame) imageBufferSize(align int) (int, error) {
 	return len(f.imageBytes), nil
 }
 
-func (f *mockedFrameDataFrame) ImageCopyToBuffer(b []byte, align int) (int, error) {
+func (f *mockedFrameDataFrame) imageCopyToBuffer(b []byte, align int) (int, error) {
 	copy(b, f.imageBytes)
 	return len(f.imageBytes), nil
 }
 
-func (f *mockedFrameDataFrame) Linesize(i int) int {
+func (f *mockedFrameDataFrame) linesize(i int) int {
 	return f.linesizes[i]
 }
 
-func (f *mockedFrameDataFrame) PixelFormat() PixelFormat {
-	return f.pixelFormat
+func (f *mockedFrameDataFrame) pixelFormat() PixelFormat {
+	return f.pf
 }
 
-func (f *mockedFrameDataFrame) PlaneBytes(i int) []byte {
+func (f *mockedFrameDataFrame) planeBytes(i int) []byte {
 	return f.planesBytes[i]
 }
 
-func (f *mockedFrameDataFrame) Width() int {
-	return f.width
+func (f *mockedFrameDataFrame) width() int {
+	return f.w
 }
 
 func TestFrameDataInternal(t *testing.T) {
@@ -111,7 +111,7 @@ func TestFrameDataInternal(t *testing.T) {
 		},
 	} {
 		for _, pf := range v.pfs {
-			fdf.pixelFormat = pf
+			fdf.pf = pf
 			i, err := fd.GuessImageFormat()
 			if v.err {
 				require.Error(t, err)
@@ -124,8 +124,8 @@ func TestFrameDataInternal(t *testing.T) {
 	fdf.imageBytes = []byte{0, 1, 2, 3}
 	_, err := fd.Bytes(0)
 	require.Error(t, err)
-	fdf.height = 1
-	fdf.width = 2
+	fdf.h = 1
+	fdf.w = 2
 	b, err := fd.Bytes(0)
 	require.NoError(t, err)
 	require.Equal(t, fdf.imageBytes, b)
@@ -273,7 +273,7 @@ func TestFrameDataInternal(t *testing.T) {
 		},
 	} {
 		fdf.linesizes = v.linesizes
-		fdf.pixelFormat = v.pixelFormat
+		fdf.pf = v.pixelFormat
 		fdf.planesBytes = v.planesBytes
 		err = fd.ToImage(v.i)
 		if v.err {
