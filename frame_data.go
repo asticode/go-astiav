@@ -100,16 +100,8 @@ func (d *FrameData) imageYCbCrSubsampleRatio() image.YCbCrSubsampleRatio {
 	return image.YCbCrSubsampleRatio444
 }
 
-func (d *FrameData) copyPlaneBytes(i int, s *[]uint8) {
-	b := d.f.planeBytes(i)
-	if len(b) > cap(*s) {
-		*s = make([]uint8, len(b))
-	}
-	copy(*s, b)
-}
-
 func (d *FrameData) toImagePix(pix *[]uint8, stride *int, rect *image.Rectangle) {
-	d.copyPlaneBytes(0, pix)
+	*pix = d.f.planeBytes(0)
 	if v := d.f.linesize(0); *stride != v {
 		*stride = v
 	}
@@ -119,9 +111,9 @@ func (d *FrameData) toImagePix(pix *[]uint8, stride *int, rect *image.Rectangle)
 }
 
 func (d *FrameData) toImageYCbCr(y, cb, cr *[]uint8, yStride, cStride *int, subsampleRatio *image.YCbCrSubsampleRatio, rect *image.Rectangle) {
-	d.copyPlaneBytes(0, y)
-	d.copyPlaneBytes(1, cb)
-	d.copyPlaneBytes(2, cr)
+	*y = d.f.planeBytes(0)
+	*cb = d.f.planeBytes(1)
+	*cr = d.f.planeBytes(2)
 	if v := d.f.linesize(0); *yStride != v {
 		*yStride = v
 	}
@@ -138,7 +130,7 @@ func (d *FrameData) toImageYCbCr(y, cb, cr *[]uint8, yStride, cStride *int, subs
 
 func (d *FrameData) toImageYCbCrA(y, cb, cr, a *[]uint8, yStride, cStride, aStride *int, subsampleRatio *image.YCbCrSubsampleRatio, rect *image.Rectangle) {
 	d.toImageYCbCr(y, cb, cr, yStride, cStride, subsampleRatio, rect)
-	d.copyPlaneBytes(3, a)
+	*a = d.f.planeBytes(3)
 	if v := d.f.linesize(3); *aStride != v {
 		*aStride = v
 	}
