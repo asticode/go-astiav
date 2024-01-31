@@ -35,6 +35,8 @@ import (
 // https://github.com/FFmpeg/FFmpeg/blob/n5.0/libavcodec/avcodec.h#L383
 type CodecContext struct {
 	c *C.struct_AVCodecContext
+	// We need to store this to unref it properly
+	hdc *HardwareDeviceContext
 }
 
 func AllocCodecContext(c *Codec) *CodecContext {
@@ -53,8 +55,9 @@ func newCodecContextFromC(c *C.struct_AVCodecContext) *CodecContext {
 }
 
 func (cc *CodecContext) Free() {
-	if cc.c.hw_device_ctx != nil {
-		C.av_buffer_unref(&cc.c.hw_device_ctx)
+	if cc.hdc != nil {
+		C.av_buffer_unref(&cc.hdc.c)
+		cc.hdc = nil
 	}
 	C.avcodec_free_context(&cc.c)
 }
@@ -293,10 +296,13 @@ func (cc *CodecContext) SendFrame(f *Frame) error {
 }
 
 func (cc *CodecContext) SetHardwareDeviceContext(hdc *HardwareDeviceContext) {
-	if cc.c.hw_device_ctx != nil {
-		C.av_buffer_unref(&cc.c.hw_device_ctx)
+	if cc.hdc != nil {
+		C.av_buffer_unref(&cc.hdc.c)
 	}
-	cc.c.hw_device_ctx = C.av_buffer_ref(hdc.c)
+	cc.hdc = hdc
+	if cc.hdc != nil {
+		cc.c.hw_device_ctx = C.av_buffer_ref(cc.hdc.c)
+	}
 }
 
 type CodecContextPixelFormatCallback func(pfs []PixelFormat) PixelFormat
