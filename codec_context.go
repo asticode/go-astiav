@@ -53,6 +53,9 @@ func newCodecContextFromC(c *C.struct_AVCodecContext) *CodecContext {
 }
 
 func (cc *CodecContext) Free() {
+	if cc.c.hw_device_ctx != nil {
+		C.av_buffer_unref(&cc.c.hw_device_ctx)
+	}
 	C.avcodec_free_context(&cc.c)
 }
 
@@ -290,6 +293,9 @@ func (cc *CodecContext) SendFrame(f *Frame) error {
 }
 
 func (cc *CodecContext) SetHardwareDeviceContext(hdc *HardwareDeviceContext) {
+	if cc.c.hw_device_ctx != nil {
+		C.av_buffer_unref(&cc.c.hw_device_ctx)
+	}
 	cc.c.hw_device_ctx = C.av_buffer_ref(hdc.c)
 }
 
