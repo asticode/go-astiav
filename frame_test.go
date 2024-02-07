@@ -13,6 +13,7 @@ func TestFrame(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, [8]int{384, 192, 192, 0, 0, 0, 0, 0}, f1.Linesize())
 	require.Equal(t, int64(60928), f1.PktDts())
+	require.NotNil(t, f1.UnsafePointer())
 
 	f2 := astiav.AllocFrame()
 	require.NotNil(t, f2)
