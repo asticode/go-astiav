@@ -10,6 +10,7 @@ install-ffmpeg:
 	mkdir -p $(srcPath)	
 	# cd $(srcPath) prepend to the next command is necessary for windows build since otherwise git doesn't clone in the proper dir
 	git clone --depth 1 --branch $(version) https://github.com/FFmpeg/FFmpeg $(srcPath)
-	cd $(srcPath) && ./configure --prefix=.. $(configure)
+	cd $(srcPath) && ./configure --prefix=.. $(configure) \
+		--disable-htmlpages  --disable-doc --disable-txtpages --disable-podpages  --disable-manpages		
 	cd $(srcPath) && make
 	cd $(srcPath) && make install
