@@ -13,10 +13,6 @@ var (
 	TimeBaseQ = newRationalFromC(C.AV_TIME_BASE_Q)
 )
 
-func Q2D(a Rational)  float64{
-	return float64(C.av_q2d(a.c))
-}
-
-func GetTimeRelative()  int64{
+func RelativeTime()  int64{
 	return int64(C.av_gettime_relative())
 }
