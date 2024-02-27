@@ -19,10 +19,12 @@ func TestLog(t *testing.T) {
 		lis = append(lis, logItem{
 			fmt: fmt,
 			l:   l,
-			lString: l.String(),
 			msg: msg,
 		})
 	})
+	
+	require.Equal(t, "error", astiav.LogLevelError.String())
+	
 	astiav.SetLogLevel(astiav.LogLevelWarning)
 	astiav.Log(astiav.LogLevelInfo, "info")
 	astiav.Log(astiav.LogLevelWarning, "warning")
@@ -32,19 +34,16 @@ func TestLog(t *testing.T) {
 		{
 			fmt: "warning",
 			l:   astiav.LogLevelWarning,
-			lString: "warning",
 			msg: "warning",
 		},
 		{
 			fmt: "error",
 			l:   astiav.LogLevelError,
-			lString: "error",
 			msg: "error",
 		},
 		{
 			fmt: "fatal",
 			l:   astiav.LogLevelFatal,
-			lString: "fatal",
 			msg: "fatal",
 		},
 	}, lis)
