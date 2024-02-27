@@ -51,7 +51,7 @@ const (
 	LogLevelDebug   = LogLevel(C.AV_LOG_DEBUG)
 )
 
-func (l LogLevel) String() {
+func (l LogLevel) String() string {
 	return C.GoString(C.get_level_str(C.int(l)))
 }
 
