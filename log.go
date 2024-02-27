@@ -37,6 +37,11 @@ import "unsafe"
 
 type LogLevel int
 
+// https://github.com/FFmpeg/FFmpeg/blob/release/5.1/libavutil/log.c#L268
+func (l LogLevel) String() {
+	return C.GoString(C.get_level_str(C.int(l)))
+}
+
 // https://github.com/FFmpeg/FFmpeg/blob/n5.0/libavutil/log.h#L162
 const (
 	LogLevelQuiet   = LogLevel(C.AV_LOG_QUIET)
