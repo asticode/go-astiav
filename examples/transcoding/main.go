@@ -396,7 +396,7 @@ func initFilters() (err error) {
 			err = fmt.Errorf("main: creating buffersrc context failed: %w", err)
 			return
 		}
-		if s.buffersinkContext, err = s.filterGraph.NewFilterContext(buffersink, "in", nil); err != nil {
+		if s.buffersinkContext, err = s.filterGraph.NewFilterContext(buffersink, "out", nil); err != nil {
 			err = fmt.Errorf("main: creating buffersink context failed: %w", err)
 			return
 		}
