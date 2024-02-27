@@ -7,6 +7,8 @@ package astiav
 /*
 extern void goAstiavLogCallback(int level, char* fmt, char* msg, char* parent);
 
+char *get_level_str(int level);
+
 static inline void astiavLogCallback(void *avcl, int level, const char *fmt, va_list vl)
 {
 	if (level > av_log_get_level()) return;
