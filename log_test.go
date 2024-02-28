@@ -1,51 +1,73 @@
-package astiav_test
+package astiav
 
 import (
 	"testing"
 
-	"github.com/asticode/go-astiav"
 	"github.com/stretchr/testify/require"
 )
 
 type logItem struct {
+	c   Classer
 	fmt string
-	l   astiav.LogLevel
+	l   LogLevel
 	msg string
 }
 
 func TestLog(t *testing.T) {
 	var lis []logItem
-	astiav.SetLogCallback(func(l astiav.LogLevel, fmt, msg, parent string) {
+
+	SetLogLevel(LogLevelWarning)
+	require.Equal(t, LogLevelWarning, GetLogLevel())
+
+	SetLogCallback(func(c Classer, l LogLevel, fmt, msg string) {
 		lis = append(lis, logItem{
+			c:   c,
 			fmt: fmt,
 			l:   l,
 			msg: msg,
 		})
 	})
-	astiav.SetLogLevel(astiav.LogLevelWarning)
-	astiav.Log(astiav.LogLevelInfo, "info")
-	astiav.Log(astiav.LogLevelWarning, "warning")
-	astiav.Log(astiav.LogLevelError, "error")
-	astiav.Log(astiav.LogLevelFatal, "fatal")
+	f := AllocFilterGraph()
+	defer f.Free()
+	Log(f, LogLevelInfo, "info")
+	Log(f, LogLevelWarning, "warning %s", "arg")
+	Log(f, LogLevelError, "error")
+	Log(f, LogLevelFatal, "fatal")
 	require.Equal(t, []logItem{
 		{
-			fmt: "warning",
-			l:   astiav.LogLevelWarning,
-			msg: "warning",
+			c:   f,
+			fmt: "warning %s",
+			l:   LogLevelWarning,
+			msg: "warning arg",
 		},
 		{
+			c:   f,
 			fmt: "error",
-			l:   astiav.LogLevelError,
+			l:   LogLevelError,
 			msg: "error",
 		},
 		{
+			c:   f,
 			fmt: "fatal",
-			l:   astiav.LogLevelFatal,
+			l:   LogLevelFatal,
 			msg: "fatal",
 		},
 	}, lis)
-	astiav.ResetLogCallback()
+
+	ResetLogCallback()
 	lis = []logItem{}
-	astiav.Log(astiav.LogLevelError, "test error log\n")
+	Log(nil, LogLevelError, "test error log\n")
 	require.Equal(t, []logItem{}, lis)
+
+	lcs := []Classer{}
+	SetLogCallback(func(c Classer, l LogLevel, fmt, msg string) {
+		if c != nil {
+			lcs = append(lcs, c)
+		}
+	})
+	classers.del(f)
+	lcs = []Classer{}
+	Log(f, LogLevelWarning, "")
+	require.Len(t, lcs, 1)
+	require.IsType(t, &UnknownClasser{}, lcs[0])
 }

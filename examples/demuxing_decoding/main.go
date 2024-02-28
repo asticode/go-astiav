@@ -23,8 +23,14 @@ type stream struct {
 func main() {
 	// Handle ffmpeg logs
 	astiav.SetLogLevel(astiav.LogLevelDebug)
-	astiav.SetLogCallback(func(l astiav.LogLevel, fmt, msg, parent string) {
-		log.Printf("ffmpeg log: %s (level: %d)\n", strings.TrimSpace(msg), l)
+	astiav.SetLogCallback(func(c astiav.Classer, l astiav.LogLevel, fmt, msg string) {
+		var cs string
+		if c != nil {
+			if cl := c.Class(); cl != nil {
+				cs = " - class: " + cl.String()
+			}
+		}
+		log.Printf("ffmpeg log: %s%s - level: %d\n", strings.TrimSpace(msg), cs, l)
 	})
 
 	// Parse flags

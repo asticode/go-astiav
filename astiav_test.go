@@ -1,4 +1,4 @@
-package astiav_test
+package astiav
 
 import (
 	"errors"
@@ -7,7 +7,6 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/asticode/go-astiav"
 	"github.com/asticode/go-astikit"
 )
 
@@ -46,12 +45,12 @@ func (h *helper) close() {
 }
 
 type helperInput struct {
-	firstPkt      *astiav.Packet
-	formatContext *astiav.FormatContext
-	lastFrame     *astiav.Frame
+	firstPkt      *Packet
+	formatContext *FormatContext
+	lastFrame     *Frame
 }
 
-func (h *helper) inputFormatContext(name string) (fc *astiav.FormatContext, err error) {
+func (h *helper) inputFormatContext(name string) (fc *FormatContext, err error) {
 	h.m.Lock()
 	i, ok := h.inputs[name]
 	if ok && i.formatContext != nil {
@@ -60,7 +59,7 @@ func (h *helper) inputFormatContext(name string) (fc *astiav.FormatContext, err 
 	}
 	h.m.Unlock()
 
-	if fc = astiav.AllocFormatContext(); fc == nil {
+	if fc = AllocFormatContext(); fc == nil {
 		err = errors.New("astiav_test: allocated format context is nil")
 		return
 	}
@@ -86,7 +85,7 @@ func (h *helper) inputFormatContext(name string) (fc *astiav.FormatContext, err 
 	return
 }
 
-func (h *helper) inputFirstPacket(name string) (pkt *astiav.Packet, err error) {
+func (h *helper) inputFirstPacket(name string) (pkt *Packet, err error) {
 	h.m.Lock()
 	i, ok := h.inputs[name]
 	if ok && i.firstPkt != nil {
@@ -95,13 +94,13 @@ func (h *helper) inputFirstPacket(name string) (pkt *astiav.Packet, err error) {
 	}
 	h.m.Unlock()
 
-	var fc *astiav.FormatContext
+	var fc *FormatContext
 	if fc, err = h.inputFormatContext(name); err != nil {
 		err = fmt.Errorf("astiav_test: getting input format context failed")
 		return
 	}
 
-	pkt = astiav.AllocPacket()
+	pkt = AllocPacket()
 	if pkt == nil {
 		err = errors.New("astiav_test: pkt is nil")
 		return
@@ -119,7 +118,7 @@ func (h *helper) inputFirstPacket(name string) (pkt *astiav.Packet, err error) {
 	return
 }
 
-func (h *helper) inputLastFrame(name string, mediaType astiav.MediaType) (f *astiav.Frame, err error) {
+func (h *helper) inputLastFrame(name string, mediaType MediaType) (f *Frame, err error) {
 	h.m.Lock()
 	i, ok := h.inputs[name]
 	if ok && i.lastFrame != nil {
@@ -128,14 +127,14 @@ func (h *helper) inputLastFrame(name string, mediaType astiav.MediaType) (f *ast
 	}
 	h.m.Unlock()
 
-	var fc *astiav.FormatContext
+	var fc *FormatContext
 	if fc, err = h.inputFormatContext(name); err != nil {
 		err = fmt.Errorf("astiav_test: getting input format context failed: %w", err)
 		return
 	}
 
-	var cc *astiav.CodecContext
-	var cs *astiav.Stream
+	var cc *CodecContext
+	var cs *Stream
 	for _, s := range fc.Streams() {
 		if s.CodecParameters().MediaType() != mediaType {
 			continue
@@ -143,13 +142,13 @@ func (h *helper) inputLastFrame(name string, mediaType astiav.MediaType) (f *ast
 
 		cs = s
 
-		c := astiav.FindDecoder(s.CodecParameters().CodecID())
+		c := FindDecoder(s.CodecParameters().CodecID())
 		if c == nil {
 			err = errors.New("astiav_test: no codec")
 			return
 		}
 
-		cc = astiav.AllocCodecContext(c)
+		cc = AllocCodecContext(c)
 		if cc == nil {
 			err = errors.New("astiav_test: no codec context")
 			return
@@ -173,25 +172,25 @@ func (h *helper) inputLastFrame(name string, mediaType astiav.MediaType) (f *ast
 		return
 	}
 
-	var pkt1 *astiav.Packet
+	var pkt1 *Packet
 	if pkt1, err = h.inputFirstPacket(name); err != nil {
 		err = fmt.Errorf("astiav_test: getting input first packet failed: %w", err)
 		return
 	}
 
-	pkt2 := astiav.AllocPacket()
+	pkt2 := AllocPacket()
 	h.closer.Add(pkt2.Free)
 
-	f = astiav.AllocFrame()
+	f = AllocFrame()
 	h.closer.Add(f.Free)
 
-	lastFrame := astiav.AllocFrame()
+	lastFrame := AllocFrame()
 	h.closer.Add(lastFrame.Free)
 
-	pkts := []*astiav.Packet{pkt1}
+	pkts := []*Packet{pkt1}
 	for {
 		if err = fc.ReadFrame(pkt2); err != nil {
-			if errors.Is(err, astiav.ErrEof) || errors.Is(err, astiav.ErrEagain) {
+			if errors.Is(err, ErrEof) || errors.Is(err, ErrEagain) {
 				if len(pkts) == 0 {
 					if err = f.Ref(lastFrame); err != nil {
 						err = fmt.Errorf("astiav_test: last refing frame failed: %w", err)
@@ -220,7 +219,7 @@ func (h *helper) inputLastFrame(name string, mediaType astiav.MediaType) (f *ast
 
 			for {
 				if err = cc.ReceiveFrame(f); err != nil {
-					if errors.Is(err, astiav.ErrEof) || errors.Is(err, astiav.ErrEagain) {
+					if errors.Is(err, ErrEof) || errors.Is(err, ErrEagain) {
 						err = nil
 						break
 					}
@@ -235,7 +234,7 @@ func (h *helper) inputLastFrame(name string, mediaType astiav.MediaType) (f *ast
 			}
 		}
 
-		pkts = []*astiav.Packet{}
+		pkts = []*Packet{}
 	}
 
 	h.m.Lock()

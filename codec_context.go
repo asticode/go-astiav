@@ -39,6 +39,17 @@ type CodecContext struct {
 	hdc *HardwareDeviceContext
 }
 
+func newCodecContextFromC(c *C.struct_AVCodecContext) *CodecContext {
+	if c == nil {
+		return nil
+	}
+	cc := &CodecContext{c: c}
+	classers.set(cc)
+	return cc
+}
+
+var _ Classer = (*CodecContext)(nil)
+
 func AllocCodecContext(c *Codec) *CodecContext {
 	var cc *C.struct_AVCodec
 	if c != nil {
@@ -47,18 +58,12 @@ func AllocCodecContext(c *Codec) *CodecContext {
 	return newCodecContextFromC(C.avcodec_alloc_context3(cc))
 }
 
-func newCodecContextFromC(c *C.struct_AVCodecContext) *CodecContext {
-	if c == nil {
-		return nil
-	}
-	return &CodecContext{c: c}
-}
-
 func (cc *CodecContext) Free() {
 	if cc.hdc != nil {
 		C.av_buffer_unref(&cc.hdc.c)
 		cc.hdc = nil
 	}
+	classers.del(cc)
 	C.avcodec_free_context(&cc.c)
 }
 
@@ -97,6 +102,10 @@ func (cc *CodecContext) SetChannelLayout(l ChannelLayout) {
 
 func (cc *CodecContext) ChromaLocation() ChromaLocation {
 	return ChromaLocation(cc.c.chroma_sample_location)
+}
+
+func (cc *CodecContext) Class() *Class {
+	return newClassFromC(unsafe.Pointer(cc.c))
 }
 
 func (cc *CodecContext) CodecID() CodecID {

@@ -122,8 +122,7 @@ func (l ChannelLayout) copy(dst *C.struct_AVChannelLayout) error {
 }
 
 func (l ChannelLayout) clone() (ChannelLayout, error) {
-	// TODO Should it be freed?
-	cl := C.struct_AVChannelLayout{}
+	var cl C.struct_AVChannelLayout
 	err := l.copy(&cl)
 	dst := newChannelLayoutFromC(&cl)
 	return dst, err

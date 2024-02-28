@@ -1,15 +1,14 @@
-package astiav_test
+package astiav
 
 import (
 	"testing"
 
-	"github.com/asticode/go-astiav"
 	"github.com/stretchr/testify/require"
 )
 
 func TestInputFormat(t *testing.T) {
 	formatName := "rawvideo"
-	inputFormat := astiav.FindInputFormat(formatName)
+	inputFormat := FindInputFormat(formatName)
 	require.NotNil(t, inputFormat)
 	require.Equal(t, formatName, inputFormat.Name())
 	require.Equal(t, formatName, inputFormat.String())

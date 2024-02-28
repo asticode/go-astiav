@@ -1,48 +1,53 @@
 // TODO Fix https://github.com/asticode/go-astiav/actions/runs/5853322732/job/15867145888
 //go:build !windows
 
-package astiav_test
+package astiav
 
 import (
 	"fmt"
 	"strconv"
 	"testing"
 
-	"github.com/asticode/go-astiav"
 	"github.com/stretchr/testify/require"
 )
 
 func TestFilterGraph(t *testing.T) {
-	fg := astiav.AllocFilterGraph()
+	fg := AllocFilterGraph()
 	defer fg.Free()
+	cl := fg.Class()
+	require.NotNil(t, cl)
+	require.Equal(t, "AVFilterGraph", cl.Name())
 
-	bufferSink := astiav.FindFilterByName("buffersink")
+	bufferSink := FindFilterByName("buffersink")
 	require.NotNil(t, bufferSink)
 
 	fcOut, err := fg.NewFilterContext(bufferSink, "filter_out", nil)
 	require.NoError(t, err)
 	defer fcOut.Free()
+	cl = fcOut.Class()
+	require.NotNil(t, cl)
+	require.Equal(t, "AVFilter", cl.Name())
 
-	inputs := astiav.AllocFilterInOut()
+	inputs := AllocFilterInOut()
 	defer inputs.Free()
 	inputs.SetName("out")
 	inputs.SetFilterContext(fcOut)
 	inputs.SetPadIdx(0)
 	inputs.SetNext(nil)
 
-	var outputs *astiav.FilterInOut
+	var outputs *FilterInOut
 	defer func() {
 		if outputs != nil {
 			outputs.Free()
 		}
 	}()
-	var fcIns []*astiav.FilterContext
+	var fcIns []*FilterContext
 	for i := 0; i < 2; i++ {
-		bufferSrc := astiav.FindFilterByName("buffer")
+		bufferSrc := FindFilterByName("buffer")
 		require.NotNil(t, bufferSrc)
 
-		fcIn, err := fg.NewFilterContext(bufferSrc, fmt.Sprintf("filter_in_%d", i+1), astiav.FilterArgs{
-			"pix_fmt":      strconv.Itoa(int(astiav.PixelFormatYuv420P)),
+		fcIn, err := fg.NewFilterContext(bufferSrc, fmt.Sprintf("filter_in_%d", i+1), FilterArgs{
+			"pix_fmt":      strconv.Itoa(int(PixelFormatYuv420P)),
 			"pixel_aspect": "1/1",
 			"time_base":    "1/1000",
 			"video_size":   "1x1",
@@ -51,7 +56,7 @@ func TestFilterGraph(t *testing.T) {
 		fcIns = append(fcIns, fcIn)
 		defer fcIn.Free()
 
-		o := astiav.AllocFilterInOut()
+		o := AllocFilterInOut()
 		o.SetName(fmt.Sprintf("input_%d", i+1))
 		o.SetFilterContext(fcIn)
 		o.SetPadIdx(0)
@@ -68,19 +73,19 @@ func TestFilterGraph(t *testing.T) {
 
 	require.Equal(t, 1, fcOut.NbInputs())
 	require.Equal(t, 1, len(fcOut.Inputs()))
-	require.Equal(t, astiav.NewRational(1, 1000), fcOut.Inputs()[0].TimeBase())
+	require.Equal(t, NewRational(1, 1000), fcOut.Inputs()[0].TimeBase())
 	require.Equal(t, 0, fcOut.NbOutputs())
 	for _, fc := range fcIns {
 		require.Equal(t, 0, fc.NbInputs())
 		require.Equal(t, 1, fc.NbOutputs())
 		require.Equal(t, 1, len(fc.Outputs()))
-		require.Equal(t, astiav.NewRational(1, 1000), fc.Outputs()[0].TimeBase())
+		require.Equal(t, NewRational(1, 1000), fc.Outputs()[0].TimeBase())
 	}
 
-	resp, err := fg.SendCommand("scale", "invalid", "a", astiav.NewFilterCommandFlags())
+	resp, err := fg.SendCommand("scale", "invalid", "a", NewFilterCommandFlags())
 	require.Error(t, err)
 	require.Empty(t, resp)
-	resp, err = fg.SendCommand("scale", "width", "4", astiav.NewFilterCommandFlags().Add(astiav.FilterCommandFlagOne))
+	resp, err = fg.SendCommand("scale", "width", "4", NewFilterCommandFlags().Add(FilterCommandFlagOne))
 	require.NoError(t, err)
 	require.Empty(t, resp)
 

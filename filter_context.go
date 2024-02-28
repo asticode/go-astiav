@@ -6,18 +6,28 @@ package astiav
 //#include <libavfilter/buffersrc.h>
 //#include <libavutil/frame.h>
 import "C"
-import "unsafe"
+import (
+	"unsafe"
+)
 
 // https://github.com/FFmpeg/FFmpeg/blob/n5.0/libavfilter/avfilter.h#L67
 type FilterContext struct {
 	c *C.struct_AVFilterContext
 }
 
-func newFilterContext() *FilterContext {
-	return &FilterContext{}
+func newFilterContext(c *C.struct_AVFilterContext) *FilterContext {
+	if c == nil {
+		return nil
+	}
+	fc := &FilterContext{c: c}
+	classers.set(fc)
+	return fc
 }
 
+var _ Classer = (*FilterContext)(nil)
+
 func (fc *FilterContext) Free() {
+	classers.del(fc)
 	C.avfilter_free(fc.c)
 }
 
@@ -35,6 +45,10 @@ func (fc *FilterContext) BuffersinkGetFrame(f *Frame, fs BuffersinkFlags) error 
 		cf = f.c
 	}
 	return newError(C.av_buffersink_get_frame_flags(fc.c, cf, C.int(fs)))
+}
+
+func (fc *FilterContext) Class() *Class {
+	return newClassFromC(unsafe.Pointer(fc.c))
 }
 
 func (fc *FilterContext) NbInputs() int {

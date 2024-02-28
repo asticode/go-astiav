@@ -14,3 +14,7 @@ install-ffmpeg:
 	cd $(srcPath) && ./configure --prefix=.. $(configure)
 	cd $(srcPath) && make
 	cd $(srcPath) && make install
+
+coverage:
+	go test -coverprofile=coverage.out
+	go tool cover -html=coverage.out

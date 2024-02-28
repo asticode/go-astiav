@@ -29,22 +29,22 @@ type FormatContext struct {
 	c *C.struct_AVFormatContext
 }
 
-func newFormatContext() *FormatContext {
-	return &FormatContext{}
-}
-
 func newFormatContextFromC(c *C.struct_AVFormatContext) *FormatContext {
 	if c == nil {
 		return nil
 	}
-	return &FormatContext{c: c}
+	fc := &FormatContext{c: c}
+	classers.set(fc)
+	return fc
 }
+
+var _ Classer = (*FormatContext)(nil)
 
 func AllocFormatContext() *FormatContext {
 	return newFormatContextFromC(C.avformat_alloc_context())
 }
 
-func AllocOutputFormatContext(o *OutputFormat, formatName, filename string) (*FormatContext, error) {
+func AllocOutputFormatContext(of *OutputFormat, formatName, filename string) (*FormatContext, error) {
 	fonc := (*C.char)(nil)
 	if len(formatName) > 0 {
 		fonc = C.CString(formatName)
@@ -55,17 +55,28 @@ func AllocOutputFormatContext(o *OutputFormat, formatName, filename string) (*Fo
 		finc = C.CString(filename)
 		defer C.free(unsafe.Pointer(finc))
 	}
-	fc := newFormatContext()
-	var oc *C.struct_AVOutputFormat
-	if o != nil {
-		oc = o.c
+	var ofc *C.struct_AVOutputFormat
+	if of != nil {
+		ofc = of.c
 	}
-	err := newError(C.avformat_alloc_output_context2(&fc.c, oc, fonc, finc))
-	return fc, err
+	var fcc *C.struct_AVFormatContext
+	if err := newError(C.avformat_alloc_output_context2(&fcc, ofc, fonc, finc)); err != nil {
+		return nil, err
+	}
+	return newFormatContextFromC(fcc), nil
+}
+
+func (fc *FormatContext) Free() {
+	classers.del(fc)
+	C.avformat_free_context(fc.c)
 }
 
 func (fc *FormatContext) BitRate() int64 {
 	return int64(fc.c.bit_rate)
+}
+
+func (fc *FormatContext) Class() *Class {
+	return newClassFromC(unsafe.Pointer(fc.c))
 }
 
 func (fc *FormatContext) CtxFlags() FormatContextCtxFlags {
@@ -115,6 +126,13 @@ func (fc *FormatContext) OutputFormat() *OutputFormat {
 }
 
 func (fc *FormatContext) Pb() *IOContext {
+	// If the io context has been created using the format context's OpenInput() method, we need to
+	// make sure to return the same go struct as the one stored in classers
+	if c, ok := classers.get(unsafe.Pointer(fc.c.pb)); ok {
+		if v, ok := c.(*IOContext); ok {
+			return v
+		}
+	}
 	return newIOContextFromC(fc.c.pb)
 }
 
@@ -153,15 +171,23 @@ func (fc *FormatContext) OpenInput(url string, fmt *InputFormat, d *Dictionary) 
 	if fmt != nil {
 		fmtc = fmt.c
 	}
-	return newError(C.avformat_open_input(&fc.c, urlc, fmtc, dc))
+	if err := newError(C.avformat_open_input(&fc.c, urlc, fmtc, dc)); err != nil {
+		return err
+	}
+	if pb := fc.Pb(); pb != nil {
+		classers.set(pb)
+	}
+	return nil
 }
 
 func (fc *FormatContext) CloseInput() {
-	C.avformat_close_input(&fc.c)
-}
-
-func (fc *FormatContext) Free() {
-	C.avformat_free_context(fc.c)
+	if pb := fc.Pb(); pb != nil {
+		classers.del(pb)
+	}
+	classers.del(fc)
+	if fc.c != nil {
+		C.avformat_close_input(&fc.c)
+	}
 }
 
 func (fc *FormatContext) NewStream(c *Codec) *Stream {

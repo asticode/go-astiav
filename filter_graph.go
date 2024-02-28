@@ -17,19 +17,30 @@ func newFilterGraphFromC(c *C.struct_AVFilterGraph) *FilterGraph {
 	if c == nil {
 		return nil
 	}
-	return &FilterGraph{c: c}
+	g := &FilterGraph{c: c}
+	classers.set(g)
+	return g
 }
+
+var _ Classer = (*FilterGraph)(nil)
 
 func AllocFilterGraph() *FilterGraph {
 	return newFilterGraphFromC(C.avfilter_graph_alloc())
 }
 
 func (g *FilterGraph) Free() {
-	C.avfilter_graph_free(&g.c)
+	classers.del(g)
+	if g.c != nil {
+		C.avfilter_graph_free(&g.c)
+	}
 }
 
 func (g *FilterGraph) String() string {
 	return C.GoString(C.avfilter_graph_dump(g.c, nil))
+}
+
+func (g *FilterGraph) Class() *Class {
+	return newClassFromC(unsafe.Pointer(g.c))
 }
 
 type FilterArgs map[string]string
@@ -50,9 +61,11 @@ func (g *FilterGraph) NewFilterContext(f *Filter, name string, args FilterArgs) 
 	}
 	cn := C.CString(name)
 	defer C.free(unsafe.Pointer(cn))
-	fc := newFilterContext()
-	err := newError(C.avfilter_graph_create_filter(&fc.c, f.c, cn, ca, nil, g.c))
-	return fc, err
+	var c *C.struct_AVFilterContext
+	if err := newError(C.avfilter_graph_create_filter(&c, f.c, cn, ca, nil, g.c)); err != nil {
+		return nil, err
+	}
+	return newFilterContext(c), nil
 }
 
 func (g *FilterGraph) Parse(content string, inputs, outputs *FilterInOut) error {

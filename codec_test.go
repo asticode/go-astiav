@@ -1,34 +1,33 @@
-package astiav_test
+package astiav
 
 import (
 	"testing"
 
-	"github.com/asticode/go-astiav"
 	"github.com/stretchr/testify/require"
 )
 
 func TestCodec(t *testing.T) {
-	c := astiav.FindDecoder(astiav.CodecIDMp3)
+	c := FindDecoder(CodecIDMp3)
 	require.NotNil(t, c)
-	require.Equal(t, c.ID(), astiav.CodecIDMp3)
+	require.Equal(t, c.ID(), CodecIDMp3)
 	require.Nil(t, c.ChannelLayouts())
 	require.True(t, c.IsDecoder())
 	require.False(t, c.IsEncoder())
 	require.Nil(t, c.PixelFormats())
-	require.Equal(t, []astiav.SampleFormat{astiav.SampleFormatFltp, astiav.SampleFormatFlt}, c.SampleFormats())
+	require.Equal(t, []SampleFormat{SampleFormatFltp, SampleFormatFlt}, c.SampleFormats())
 	require.Equal(t, "mp3float", c.Name())
 	require.Equal(t, "mp3float", c.String())
 
-	c = astiav.FindDecoderByName("aac")
+	c = FindDecoderByName("aac")
 	require.NotNil(t, c)
-	els := []astiav.ChannelLayout{
-		astiav.ChannelLayoutMono,
-		astiav.ChannelLayoutStereo,
-		astiav.ChannelLayoutSurround,
-		astiav.ChannelLayout4Point0,
-		astiav.ChannelLayout5Point0Back,
-		astiav.ChannelLayout5Point1Back,
-		astiav.ChannelLayout7Point1WideBack,
+	els := []ChannelLayout{
+		ChannelLayoutMono,
+		ChannelLayoutStereo,
+		ChannelLayoutSurround,
+		ChannelLayout4Point0,
+		ChannelLayout5Point0Back,
+		ChannelLayout5Point1Back,
+		ChannelLayout7Point1WideBack,
 	}
 	gls := c.ChannelLayouts()
 	require.Len(t, gls, len(els))
@@ -37,40 +36,40 @@ func TestCodec(t *testing.T) {
 	}
 	require.True(t, c.IsDecoder())
 	require.False(t, c.IsEncoder())
-	require.Equal(t, []astiav.SampleFormat{astiav.SampleFormatFltp}, c.SampleFormats())
+	require.Equal(t, []SampleFormat{SampleFormatFltp}, c.SampleFormats())
 	require.Equal(t, "aac", c.Name())
 	require.Equal(t, "aac", c.String())
 
-	c = astiav.FindEncoder(astiav.CodecIDMjpeg)
+	c = FindEncoder(CodecIDMjpeg)
 	require.NotNil(t, c)
 	require.False(t, c.IsDecoder())
 	require.True(t, c.IsEncoder())
-	require.Contains(t, c.PixelFormats(), astiav.PixelFormatYuvj420P)
+	require.Contains(t, c.PixelFormats(), PixelFormatYuvj420P)
 	require.Nil(t, c.SampleFormats())
 	require.Contains(t, c.Name(), "mjpeg")
 	require.Contains(t, c.String(), "mjpeg")
 
-	c = astiav.FindEncoderByName("mjpeg")
+	c = FindEncoderByName("mjpeg")
 	require.NotNil(t, c)
 	require.False(t, c.IsDecoder())
 	require.True(t, c.IsEncoder())
-	require.Equal(t, []astiav.PixelFormat{
-		astiav.PixelFormatYuvj420P,
-		astiav.PixelFormatYuvj422P,
-		astiav.PixelFormatYuvj444P,
-		astiav.PixelFormatYuv420P,
-		astiav.PixelFormatYuv422P,
-		astiav.PixelFormatYuv444P,
+	require.Equal(t, []PixelFormat{
+		PixelFormatYuvj420P,
+		PixelFormatYuvj422P,
+		PixelFormatYuvj444P,
+		PixelFormatYuv420P,
+		PixelFormatYuv422P,
+		PixelFormatYuv444P,
 	}, c.PixelFormats())
 	require.Equal(t, "mjpeg", c.Name())
 	require.Equal(t, "mjpeg", c.String())
 
-	c = astiav.FindDecoderByName("invalid")
+	c = FindDecoderByName("invalid")
 	require.Nil(t, c)
 
 	var found bool
-	for _, c := range astiav.Codecs() {
-		if c.ID() == astiav.CodecIDMjpeg {
+	for _, c := range Codecs() {
+		if c.ID() == CodecIDMjpeg {
 			found = true
 		}
 	}

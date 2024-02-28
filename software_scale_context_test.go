@@ -1,40 +1,39 @@
-package astiav_test
+package astiav
 
 import (
 	"os"
 	"testing"
 
-	"github.com/asticode/go-astiav"
 	"github.com/stretchr/testify/require"
 )
 
 func TestSoftwareScaleContext(t *testing.T) {
-	f1 := astiav.AllocFrame()
+	f1 := AllocFrame()
 	require.NotNil(t, f1)
 	defer f1.Free()
 
-	f2 := astiav.AllocFrame()
+	f2 := AllocFrame()
 	require.NotNil(t, f2)
 	defer f2.Free()
 
-	f3 := astiav.AllocFrame()
+	f3 := AllocFrame()
 	require.NotNil(t, f3)
 	defer f3.Free()
 
 	srcW := 4
 	srcH := 2
-	srcPixelFormat := astiav.PixelFormatYuv420P
+	srcPixelFormat := PixelFormatYuv420P
 	dstW := 8
 	dstH := 4
-	dstPixelFormat := astiav.PixelFormatRgba
-	swscf1 := astiav.SoftwareScaleContextFlags(astiav.SoftwareScaleContextFlagBilinear)
+	dstPixelFormat := PixelFormatRgba
+	swscf1 := SoftwareScaleContextFlags(SoftwareScaleContextFlagBilinear)
 
 	f1.SetHeight(srcH)
 	f1.SetWidth(srcW)
 	f1.SetPixelFormat(srcPixelFormat)
 	require.NoError(t, f1.AllocBuffer(1))
 
-	swsc1, err := astiav.CreateSoftwareScaleContext(srcW, srcH, srcPixelFormat, dstW, dstH, dstPixelFormat, swscf1)
+	swsc1, err := CreateSoftwareScaleContext(srcW, srcH, srcPixelFormat, dstW, dstH, dstPixelFormat, swscf1)
 	require.NoError(t, err)
 	defer swsc1.Free()
 	require.Equal(t, dstH, swsc1.DestinationHeight())
@@ -50,6 +49,9 @@ func TestSoftwareScaleContext(t *testing.T) {
 	require.Equal(t, w, srcW)
 	require.Equal(t, h, srcH)
 	require.Equal(t, srcW, swsc1.SourceWidth())
+	cl := swsc1.Class()
+	require.NotNil(t, cl)
+	require.Equal(t, "SWScaler", cl.Name())
 
 	require.NoError(t, swsc1.ScaleFrame(f1, f2))
 	require.Equal(t, dstH, f2.Height())
@@ -58,11 +60,11 @@ func TestSoftwareScaleContext(t *testing.T) {
 
 	dstW = 4
 	dstH = 3
-	dstPixelFormat = astiav.PixelFormatYuv420P
-	swscf2 := astiav.SoftwareScaleContextFlags(astiav.SoftwareScaleContextFlagPoint)
+	dstPixelFormat = PixelFormatYuv420P
+	swscf2 := SoftwareScaleContextFlags(SoftwareScaleContextFlagPoint)
 	srcW = 2
 	srcH = 1
-	srcPixelFormat = astiav.PixelFormatRgba
+	srcPixelFormat = PixelFormatRgba
 
 	require.NoError(t, swsc1.SetDestinationHeight(dstH))
 	require.Equal(t, dstH, swsc1.DestinationHeight())
@@ -91,14 +93,14 @@ func TestSoftwareScaleContext(t *testing.T) {
 	require.Equal(t, w, srcW)
 	require.Equal(t, h, srcH)
 
-	f4, err := globalHelper.inputLastFrame("image-rgba.png", astiav.MediaTypeVideo)
+	f4, err := globalHelper.inputLastFrame("image-rgba.png", MediaTypeVideo)
 	require.NoError(t, err)
 
-	f5 := astiav.AllocFrame()
+	f5 := AllocFrame()
 	require.NotNil(t, f5)
 	defer f5.Free()
 
-	swsc2, err := astiav.CreateSoftwareScaleContext(f4.Width(), f4.Height(), f4.PixelFormat(), 512, 512, f4.PixelFormat(), astiav.NewSoftwareScaleContextFlags(astiav.SoftwareScaleContextFlagBilinear))
+	swsc2, err := CreateSoftwareScaleContext(f4.Width(), f4.Height(), f4.PixelFormat(), 512, 512, f4.PixelFormat(), NewSoftwareScaleContextFlags(SoftwareScaleContextFlagBilinear))
 	require.NoError(t, err)
 	require.NoError(t, swsc2.ScaleFrame(f4, f5))
 

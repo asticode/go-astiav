@@ -5,6 +5,7 @@ package astiav
 import "C"
 import (
 	"errors"
+	"unsafe"
 )
 
 // https://github.com/FFmpeg/FFmpeg/blob/n5.0/libswscale/swscale_internal.h#L300
@@ -31,7 +32,7 @@ type softwareScaleContextUpdate struct {
 }
 
 func CreateSoftwareScaleContext(srcW, srcH int, srcFormat PixelFormat, dstW, dstH int, dstFormat PixelFormat, flags SoftwareScaleContextFlags) (*SoftwareScaleContext, error) {
-	ssc := SoftwareScaleContext{
+	ssc := &SoftwareScaleContext{
 		dstFormat: C.enum_AVPixelFormat(dstFormat),
 		dstH:      C.int(dstH),
 		dstW:      C.int(dstW),
@@ -54,7 +55,20 @@ func CreateSoftwareScaleContext(srcW, srcH int, srcFormat PixelFormat, dstW, dst
 	if ssc.c == nil {
 		return nil, errors.New("astiav: empty new context")
 	}
-	return &ssc, nil
+
+	classers.set(ssc)
+	return ssc, nil
+}
+
+func (ssc *SoftwareScaleContext) Free() {
+	classers.del(ssc)
+	C.sws_freeContext(ssc.c)
+}
+
+var _ Classer = (*SoftwareScaleContext)(nil)
+
+func (ssc *SoftwareScaleContext) Class() *Class {
+	return newClassFromC(unsafe.Pointer(ssc.c))
 }
 
 func (ssc *SoftwareScaleContext) ScaleFrame(src, dst *Frame) error {
@@ -194,10 +208,4 @@ func (ssc *SoftwareScaleContext) SourceResolution() (int, int) {
 
 func (ssc *SoftwareScaleContext) SetSourceResolution(w int, h int) error {
 	return ssc.update(softwareScaleContextUpdate{srcW: &w, srcH: &h})
-}
-
-func (ssc *SoftwareScaleContext) Free() {
-	if ssc.c != nil {
-		C.sws_freeContext(ssc.c)
-	}
 }

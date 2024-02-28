@@ -1,11 +1,9 @@
-package astiav_test
+package astiav
 
 import (
 	"testing"
-
-	"github.com/asticode/go-astiav"
 )
 
 func TestDevice(t *testing.T) {
-	astiav.RegisterAllDevices()
+	RegisterAllDevices()
 }
