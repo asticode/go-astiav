@@ -84,7 +84,7 @@ func (fc *FormatContext) Flags() FormatContextFlags {
 	return FormatContextFlags(fc.c.flags)
 }
 
-func (fc *FormatContext) SetInterruptCallback() IOInterrupter {
+func (fc *FormatContext) SetInterruptCallback() *IOInterrupter {
 	i := newIOInterrupter()
 	fc.c.interrupt_callback = i.c
 	return i
