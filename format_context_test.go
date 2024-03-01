@@ -56,7 +56,12 @@ func TestFormatContext(t *testing.T) {
 	require.NotNil(t, s3)
 	require.Equal(t, 1, s3.Index())
 
-	// TODO Test SetInterruptCallback
+	fc4 := AllocFormatContext()
+	require.NotNil(t, fc4)
+	defer fc4.Free()
+	fc4.SetInterruptCallback().Interrupt()
+	require.ErrorIs(t, fc4.OpenInput("testdata/video.mp4", nil, nil), ErrExit)
+
 	// TODO Test ReadFrame
 	// TODO Test SeekFrame
 	// TODO Test Flush

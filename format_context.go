@@ -3,17 +3,6 @@ package astiav
 //#cgo pkg-config: libavcodec libavformat
 //#include <libavcodec/avcodec.h>
 //#include <libavformat/avformat.h>
-/*
-int astiavInterruptCallback(void *ret)
-{
-    return *((int*)ret);
-}
-AVIOInterruptCB astiavNewInterruptCallback(int *ret)
-{
-	AVIOInterruptCB c = { astiavInterruptCallback, ret };
-	return c;
-}
-*/
 import "C"
 import (
 	"math"
@@ -95,10 +84,10 @@ func (fc *FormatContext) Flags() FormatContextFlags {
 	return FormatContextFlags(fc.c.flags)
 }
 
-func (fc *FormatContext) SetInterruptCallback() *int {
-	ret := 0
-	fc.c.interrupt_callback = C.astiavNewInterruptCallback((*C.int)(unsafe.Pointer(&ret)))
-	return &ret
+func (fc *FormatContext) SetInterruptCallback() IOInterrupter {
+	i := newIOInterrupter()
+	fc.c.interrupt_callback = i.c
+	return i
 }
 
 func (fc *FormatContext) InputFormat() *InputFormat {
