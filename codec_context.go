@@ -314,6 +314,14 @@ func (cc *CodecContext) SetHardwareDeviceContext(hdc *HardwareDeviceContext) {
 	}
 }
 
+func (cc *CodecContext) ExtraHardwareFrames() int {
+	return int(cc.c.extra_hw_frames)
+}
+
+func (cc *CodecContext) SetExtraHardwareFrames(n int) {
+	cc.c.extra_hw_frames = C.int(n)
+}
+
 type CodecContextPixelFormatCallback func(pfs []PixelFormat) PixelFormat
 
 var (

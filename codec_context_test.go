@@ -97,6 +97,7 @@ func TestCodecContext(t *testing.T) {
 	cc4.SetThreadType(ThreadTypeSlice)
 	cc4.SetTimeBase(NewRational(15, 1))
 	cc4.SetWidth(16)
+	cc4.SetExtraHardwareFrames(4)
 	require.Equal(t, int64(1), cc4.BitRate())
 	require.True(t, cc4.ChannelLayout().Equal(ChannelLayout21))
 	require.Equal(t, 3, cc4.Channels())
@@ -115,6 +116,7 @@ func TestCodecContext(t *testing.T) {
 	require.Equal(t, ThreadTypeSlice, cc4.ThreadType())
 	require.Equal(t, NewRational(15, 1), cc4.TimeBase())
 	require.Equal(t, 16, cc4.Width())
+	require.Equal(t, 4, cc4.ExtraHardwareFrames())
 
 	// TODO Test ReceivePacket
 	// TODO Test SendPacket
