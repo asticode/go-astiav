@@ -34,6 +34,18 @@ func TestStream(t *testing.T) {
 	require.Equal(t, int64(0), s2.StartTime())
 	require.Equal(t, NewRational(1, 48000), s2.TimeBase())
 
+	s1.SetAvgFrameRate(NewRational(2, 1))
+	require.Equal(t, NewRational(2, 1), s1.AvgFrameRate())
+	s1.SetID(2)
+	require.Equal(t, 2, s1.ID())
+	s1.SetIndex(1)
+	require.Equal(t, 1, s1.Index())
+	s1.SetRFrameRate(NewRational(2, 1))
+	require.Equal(t, NewRational(2, 1), s1.RFrameRate())
+	s1.SetSampleAspectRatio(NewRational(2, 1))
+	require.Equal(t, NewRational(2, 1), s1.SampleAspectRatio())
+	require.NoError(t, s1.AddSideData(PacketSideDataTypeEncryptionInfo, []byte("test")))
+	require.Equal(t, []byte("test"), s1.SideData(PacketSideDataTypeEncryptionInfo))
 	s1.SetTimeBase(NewRational(1, 1))
 	require.Equal(t, NewRational(1, 1), s1.TimeBase())
 }

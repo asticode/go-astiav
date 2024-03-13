@@ -28,6 +28,21 @@ func NewDisplayMatrixFromBytes(b []byte) (m *DisplayMatrix, err error) {
 	return
 }
 
+func NewDisplayMatrixFromRotation(angle float64) *DisplayMatrix {
+	m := &DisplayMatrix{}
+	C.av_display_rotation_set((*C.int32_t)(unsafe.Pointer(&m[0])), C.double(angle))
+	return m
+}
+
+func (m DisplayMatrix) Bytes() []byte {
+	b := make([]byte, 0, 36)
+	for _, v := range m {
+		b = binary.LittleEndian.AppendUint32(b, v)
+	}
+	return b
+}
+
+// Rotation is a clockwise angle
 func (m DisplayMatrix) Rotation() float64 {
-	return float64(C.av_display_rotation_get((*C.int32_t)(unsafe.Pointer(&m[0]))))
+	return -float64(C.av_display_rotation_get((*C.int32_t)(unsafe.Pointer(&m[0]))))
 }

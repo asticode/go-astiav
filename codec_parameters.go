@@ -81,6 +81,10 @@ func (cp *CodecParameters) ColorRange() ColorRange {
 	return ColorRange(cp.c.color_range)
 }
 
+func (cp *CodecParameters) SetColorRange(r ColorRange) {
+	cp.c.color_range = C.enum_AVColorRange(r)
+}
+
 func (cp *CodecParameters) ColorSpace() ColorSpace {
 	return ColorSpace(cp.c.color_space)
 }
@@ -91,6 +95,10 @@ func (cp *CodecParameters) ColorTransferCharacteristic() ColorTransferCharacteri
 
 func (cp *CodecParameters) FrameSize() int {
 	return int(cp.c.frame_size)
+}
+
+func (cp *CodecParameters) SetFrameSize(i int) {
+	cp.c.frame_size = C.int(i)
 }
 
 func (cp *CodecParameters) Height() int {
@@ -107,6 +115,10 @@ func (cp *CodecParameters) Level() Level {
 
 func (cp *CodecParameters) MediaType() MediaType {
 	return MediaType(cp.c.codec_type)
+}
+
+func (cp *CodecParameters) SetMediaType(t MediaType) {
+	cp.c.codec_type = C.enum_AVMediaType(t)
 }
 
 func (cp *CodecParameters) PixelFormat() PixelFormat {
