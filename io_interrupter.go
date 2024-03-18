@@ -15,17 +15,26 @@ AVIOInterruptCB astiavNewInterruptCallback(int *ret)
 */
 import "C"
 
-type IOInterrupter struct {
+type IOInterrupter interface {
+	Interrupt()
+	Resume()
+}
+
+type defaultIOInterrupter struct {
 	c C.struct_AVIOInterruptCB
 	i C.int
 }
 
-func newIOInterrupter() *IOInterrupter {
-	cb := &IOInterrupter{}
-	cb.c = C.astiavNewInterruptCallback(&cb.i)
-	return cb
+func newDefaultIOInterrupter() *defaultIOInterrupter {
+	i := &defaultIOInterrupter{}
+	i.c = C.astiavNewInterruptCallback(&i.i)
+	return i
 }
 
-func (cb *IOInterrupter) Interrupt() {
-	cb.i = 1
+func (i *defaultIOInterrupter) Interrupt() {
+	i.i = 1
+}
+
+func (i *defaultIOInterrupter) Resume() {
+	i.i = 0
 }
