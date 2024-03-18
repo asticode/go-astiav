@@ -214,6 +214,6 @@ func (f *Frame) MoveRef(src *Frame) {
 	C.av_frame_move_ref(f.c, src.c)
 }
 
-func (f *Frame) UnsafeTypedPointer() *C.struct_AVFrame {
-	return f.c
+func (f *Frame) UnsafePointer() unsafe.Pointer {
+	return unsafe.Pointer(f.c)
 }

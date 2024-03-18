@@ -3,6 +3,7 @@ package astiav
 import (
 	"bytes"
 	"testing"
+	"unsafe"
 
 	"github.com/stretchr/testify/require"
 )
@@ -12,7 +13,7 @@ func TestFrame(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, [8]int{384, 192, 192, 0, 0, 0, 0, 0}, f1.Linesize())
 	require.Equal(t, int64(60928), f1.PktDts())
-	require.Equal(t, f1.c, f1.UnsafeTypedPointer())
+	require.Equal(t, unsafe.Pointer(f1.c), f1.UnsafePointer())
 
 	f2 := AllocFrame()
 	require.NotNil(t, f2)
