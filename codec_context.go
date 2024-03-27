@@ -304,6 +304,14 @@ func (cc *CodecContext) SendFrame(f *Frame) error {
 	return newError(C.avcodec_send_frame(cc.c, fc))
 }
 
+func (cc *CodecContext) ToCodecParameters(cp *CodecParameters) error {
+	return cp.FromCodecContext(cc)
+}
+
+func (cc *CodecContext) FromCodecParameters(cp *CodecParameters) error {
+	return cp.ToCodecContext(cc)
+}
+
 func (cc *CodecContext) SetHardwareDeviceContext(hdc *HardwareDeviceContext) {
 	if cc.hdc != nil {
 		C.av_buffer_unref(&cc.hdc.c)

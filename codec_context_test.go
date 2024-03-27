@@ -118,6 +118,20 @@ func TestCodecContext(t *testing.T) {
 	require.Equal(t, 16, cc4.Width())
 	require.Equal(t, 4, cc4.ExtraHardwareFrames())
 
+	cc5 := AllocCodecContext(nil)
+	require.NotNil(t, cc5)
+	defer cc5.Free()
+	err = cc5.FromCodecParameters(s2.CodecParameters())
+	require.NoError(t, err)
+	require.Equal(t, 2, cc5.Channels())
+
+	cp1 := AllocCodecParameters()
+	require.NotNil(t, cp1)
+	defer cp1.Free()
+	err = cc5.ToCodecParameters(cp1)
+	require.NoError(t, err)
+	require.Equal(t, 2, cp1.Channels())
+
 	// TODO Test ReceivePacket
 	// TODO Test SendPacket
 	// TODO Test ReceiveFrame
