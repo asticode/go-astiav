@@ -98,6 +98,5 @@ func TestCodecParameters(t *testing.T) {
 
 	extraBytes := []byte{0, 0, 0, 1}
 	require.NoError(t, cp6.SetExtraData(extraBytes))
-	require.NoError(t, err)
 	require.Equal(t, extraBytes, cp6.ExtraData())
 }
