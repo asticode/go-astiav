@@ -4,7 +4,7 @@ package astiav
 //#include <libavcodec/avcodec.h>
 import "C"
 
-type CodecContextFlag int
+type CodecContextFlag int64
 
 // https://github.com/FFmpeg/FFmpeg/blob/n5.0/libavcodec/avcodec.h#L206
 const (
@@ -28,7 +28,7 @@ const (
 	CodecContextFlagClosedGop     = CodecContextFlag(C.AV_CODEC_FLAG_CLOSED_GOP)
 )
 
-type CodecContextFlag2 int
+type CodecContextFlag2 int64
 
 // https://github.com/FFmpeg/FFmpeg/blob/n5.0/libavcodec/avcodec.h#L287
 const (

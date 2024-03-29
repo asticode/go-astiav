@@ -4,7 +4,7 @@ package astiav
 //#include <libswscale/swscale.h>
 import "C"
 
-type SoftwareScaleContextFlag int
+type SoftwareScaleContextFlag int64
 
 // https://github.com/FFmpeg/FFmpeg/blob/n5.0/libswscale/swscale.h#L59
 const (

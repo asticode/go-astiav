@@ -5,7 +5,7 @@ package astiav
 import "C"
 
 // https://github.com/FFmpeg/FFmpeg/blob/n5.0/libavcodec/codec.h#L420
-type CodecHardwareConfigMethodFlag int
+type CodecHardwareConfigMethodFlag int64
 
 const (
 	CodecHardwareConfigMethodFlagAdHoc       = CodecHardwareConfigMethodFlag(C.AV_CODEC_HW_CONFIG_METHOD_AD_HOC)

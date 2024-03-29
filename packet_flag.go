@@ -4,7 +4,7 @@ package astiav
 //#include <libavcodec/avcodec.h>
 import "C"
 
-type PacketFlag int
+type PacketFlag int64
 
 // https://github.com/FFmpeg/FFmpeg/blob/n5.0/libavcodec/packet.h#L428
 const (

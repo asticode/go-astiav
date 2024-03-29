@@ -4,7 +4,7 @@ package astiav
 //#include <libavformat/avformat.h>
 import "C"
 
-type SeekFlag int
+type SeekFlag int64
 
 // https://github.com/FFmpeg/FFmpeg/blob/n5.0/libavformat/avformat.h#L2277
 const (

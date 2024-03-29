@@ -4,7 +4,7 @@ package astiav
 //#include <libavfilter/avfilter.h>
 import "C"
 
-type FilterCommandFlag int
+type FilterCommandFlag int64
 
 // https://github.com/FFmpeg/FFmpeg/blob/n5.0/libavfilter/avfilter.h#L739
 const (

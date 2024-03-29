@@ -4,7 +4,7 @@ package astiav
 //#include <libavfilter/buffersrc.h>
 import "C"
 
-type BuffersrcFlag int
+type BuffersrcFlag int64
 
 // https://github.com/FFmpeg/FFmpeg/blob/n5.0/libavfilter/buffersrc.h#L36
 const (
