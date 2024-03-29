@@ -61,13 +61,13 @@ func (d *Dictionary) Free() {
 }
 
 func (d *Dictionary) Pack() []byte {
-	return bytesFromC(func(size *cUlong) *C.uint8_t {
+	return bytesFromC(func(size *C.size_t) *C.uint8_t {
 		return C.av_packet_pack_dictionary(d.c, size)
 	})
 }
 
 func (d *Dictionary) Unpack(b []byte) error {
-	return bytesToC(b, func(b *C.uint8_t, size cUlong) error {
+	return bytesToC(b, func(b *C.uint8_t, size C.size_t) error {
 		return newError(C.av_packet_unpack_dictionary(b, size, &d.c))
 	})
 }

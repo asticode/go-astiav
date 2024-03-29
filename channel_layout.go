@@ -93,7 +93,7 @@ func (l ChannelLayout) String() string {
 }
 
 func (l ChannelLayout) Describe(b []byte) (int, error) {
-	ret := C.av_channel_layout_describe(l.c, (*C.char)(unsafe.Pointer(&b[0])), cUlong(len(b)))
+	ret := C.av_channel_layout_describe(l.c, (*C.char)(unsafe.Pointer(&b[0])), C.size_t(len(b)))
 	if ret < 0 {
 		return 0, newError(ret)
 	}

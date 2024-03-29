@@ -196,8 +196,8 @@ func (f *frameDataFrame) pixelFormat() PixelFormat {
 }
 
 func (f *frameDataFrame) planeBytes(i int) []byte {
-	return bytesFromC(func(size *cUlong) *C.uint8_t {
-		*size = cUlong(int(f.f.c.linesize[i]) * f.f.Height())
+	return bytesFromC(func(size *C.size_t) *C.uint8_t {
+		*size = C.size_t(int(f.f.c.linesize[i]) * f.f.Height())
 		return f.f.c.data[i]
 	})
 }
