@@ -145,6 +145,17 @@ func (cp *CodecParameters) SetSampleAspectRatio(r Rational) {
 	cp.c.sample_aspect_ratio = r.c
 }
 
+func (cp *CodecParameters) ExtraData() []byte {
+	return bytesFromC(func(size *C.size_t) *C.uint8_t {
+		if cp.c.extradata == nil {
+			*size = C.size_t(0)
+			return nil
+		}
+		*size = C.size_t(cp.c.extradata_size)
+		return cp.c.extradata
+	})
+}
+
 func (cp *CodecParameters) SetExtraData(extraData []byte) error {
 	if len(extraData) == 0 {
 		return nil
@@ -156,9 +167,8 @@ func (cp *CodecParameters) SetExtraData(extraData []byte) error {
 	}
 
 	extradataSize := len(extraData)
-	cp.c.extradata = (*C.uint8_t)(C.av_mallocz(C.size_t(extradataSize + C.AV_INPUT_BUFFER_PADDING_SIZE)))
-	if cp.c.extradata == nil {
-		return fmt.Errorf("failed to allocate extradata")
+	if cp.c.extradata = (*C.uint8_t)(C.av_mallocz(C.size_t(extradataSize + C.AV_INPUT_BUFFER_PADDING_SIZE))); cp.c.extradata == nil {
+		return fmt.Errorf("astiav: allocation is nil")
 	}
 
 	C.memcpy(unsafe.Pointer(cp.c.extradata), unsafe.Pointer(&extraData[0]), C.size_t(extradataSize))

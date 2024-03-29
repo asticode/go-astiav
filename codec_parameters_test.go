@@ -63,9 +63,6 @@ func TestCodecParameters(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 2, cp5.Channels())
 
-	err = cp5.SetExtraData([]byte{0, 0, 0, 1})
-	require.NoError(t, err)
-
 	cp6 := AllocCodecParameters()
 	require.NotNil(t, cp6)
 	defer cp6.Free()
@@ -98,4 +95,9 @@ func TestCodecParameters(t *testing.T) {
 	require.Equal(t, 4, cp6.SampleRate())
 	cp6.SetWidth(2)
 	require.Equal(t, 2, cp6.Width())
+
+	extraBytes := []byte{0, 0, 0, 1}
+	require.NoError(t, cp6.SetExtraData(extraBytes))
+	require.NoError(t, err)
+	require.Equal(t, extraBytes, cp6.ExtraData())
 }
