@@ -21,7 +21,7 @@ func newFrameSideDataFromC(c *C.struct_AVFrameSideData) *FrameSideData {
 }
 
 func (d *FrameSideData) Data() []byte {
-	return bytesFromC(func(size *cUlong) *C.uint8_t {
+	return bytesFromC(func(size *C.size_t) *C.uint8_t {
 		*size = d.c.size
 		return d.c.data
 	})

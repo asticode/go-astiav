@@ -81,7 +81,7 @@ func (s *Stream) SetSampleAspectRatio(r Rational) {
 }
 
 func (s *Stream) SideData(t PacketSideDataType) []byte {
-	return bytesFromC(func(size *cUlong) *C.uint8_t {
+	return bytesFromC(func(size *C.size_t) *C.uint8_t {
 		return C.av_stream_get_side_data(s.c, (C.enum_AVPacketSideDataType)(t), size)
 	})
 }
@@ -91,12 +91,12 @@ func (s *Stream) AddSideData(t PacketSideDataType, d []byte) error {
 		return nil
 	}
 
-	ptr := C.av_stream_new_side_data(s.c, (C.enum_AVPacketSideDataType)(t), cUlong(len(d)))
+	ptr := C.av_stream_new_side_data(s.c, (C.enum_AVPacketSideDataType)(t), C.size_t(len(d)))
 	if ptr == nil {
 		return errors.New("astiav: nil pointer")
 	}
 
-	C.memcpy(unsafe.Pointer(ptr), unsafe.Pointer(&d[0]), cUlong(len(d)))
+	C.memcpy(unsafe.Pointer(ptr), unsafe.Pointer(&d[0]), C.size_t(len(d)))
 	return nil
 }
 

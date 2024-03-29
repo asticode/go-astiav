@@ -1,6 +1,7 @@
 version = "n5.1.2"
 srcPath = "tmp/$(version)/src"
 postCheckout = ""
+platform = ""
 
 generate-flags:
 	go run internal/cmd/flags/main.go
@@ -18,3 +19,11 @@ install-ffmpeg:
 coverage:
 	go test -coverprofile=coverage.out
 	go tool cover -html=coverage.out
+
+test-platform-build:
+	docker build -t astiav/$(platform) ./testdata/docker/$(platform)
+
+test-platform-run:
+	mkdir -p ./testdata/docker/$(platform)/tmp/gocache
+	mkdir -p ./testdata/docker/$(platform)/tmp/gomodcache
+	docker run -v .:/opt/astiav -v ./testdata/docker/$(platform)/tmp/gocache:/opt/gocache -v ./testdata/docker/$(platform)/tmp/gomodcache:/opt/gomodcache astiav/$(platform)

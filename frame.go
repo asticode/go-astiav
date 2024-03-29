@@ -99,9 +99,9 @@ func (f *Frame) ImageCopyToBuffer(b []byte, align int) (int, error) {
 }
 
 func (f *Frame) ImageFillBlack() error {
-	linesize := [NumDataPointers]cLong{}
+	linesize := [NumDataPointers]C.ptrdiff_t{}
 	for i := 0; i < int(NumDataPointers); i++ {
-		linesize[i] = cLong(f.c.linesize[i])
+		linesize[i] = C.ptrdiff_t(f.c.linesize[i])
 	}
 	return newError(C.av_image_fill_black(&f.c.data[0], &linesize[0], (C.enum_AVPixelFormat)(f.c.format), (C.enum_AVColorRange)(f.c.color_range), f.c.width, f.c.height))
 }
@@ -175,7 +175,7 @@ func (f *Frame) SetSampleRate(r int) {
 }
 
 func (f *Frame) NewSideData(t FrameSideDataType, size uint64) *FrameSideData {
-	return newFrameSideDataFromC(C.av_frame_new_side_data(f.c, (C.enum_AVFrameSideDataType)(t), cUlong(size)))
+	return newFrameSideDataFromC(C.av_frame_new_side_data(f.c, (C.enum_AVFrameSideDataType)(t), C.size_t(size)))
 }
 
 func (f *Frame) SideData(t FrameSideDataType) *FrameSideData {
