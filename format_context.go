@@ -9,10 +9,6 @@ import (
 	"unsafe"
 )
 
-const (
-	maxArraySize = math.MaxInt32 - 1
-)
-
 // https://github.com/FFmpeg/FFmpeg/blob/n5.0/libavformat/avformat.h#L1202
 type FormatContext struct {
 	c *C.struct_AVFormatContext
@@ -134,7 +130,7 @@ func (fc *FormatContext) StartTime() int64 {
 }
 
 func (fc *FormatContext) Streams() (ss []*Stream) {
-	scs := (*[maxArraySize](*C.struct_AVStream))(unsafe.Pointer(fc.c.streams))
+	scs := (*[(math.MaxInt32 - 1) / unsafe.Sizeof((*C.struct_AVStream)(nil))](*C.struct_AVStream))(unsafe.Pointer(fc.c.streams))
 	for i := 0; i < fc.NbStreams(); i++ {
 		ss = append(ss, newStreamFromC(scs[i]))
 	}

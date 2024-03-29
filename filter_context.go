@@ -7,6 +7,7 @@ package astiav
 //#include <libavutil/frame.h>
 import "C"
 import (
+	"math"
 	"unsafe"
 )
 
@@ -60,7 +61,7 @@ func (fc *FilterContext) NbOutputs() int {
 }
 
 func (fc *FilterContext) Inputs() (ls []*FilterLink) {
-	lcs := (*[maxArraySize](*C.struct_AVFilterLink))(unsafe.Pointer(fc.c.inputs))
+	lcs := (*[(math.MaxInt32 - 1) / unsafe.Sizeof((*C.struct_AVFilterLink)(nil))](*C.struct_AVFilterLink))(unsafe.Pointer(fc.c.inputs))
 	for i := 0; i < fc.NbInputs(); i++ {
 		ls = append(ls, newFilterLinkFromC(lcs[i]))
 	}
@@ -68,7 +69,7 @@ func (fc *FilterContext) Inputs() (ls []*FilterLink) {
 }
 
 func (fc *FilterContext) Outputs() (ls []*FilterLink) {
-	lcs := (*[maxArraySize](*C.struct_AVFilterLink))(unsafe.Pointer(fc.c.outputs))
+	lcs := (*[(math.MaxInt32 - 1) / unsafe.Sizeof((*C.struct_AVFilterLink)(nil))](*C.struct_AVFilterLink))(unsafe.Pointer(fc.c.outputs))
 	for i := 0; i < fc.NbOutputs(); i++ {
 		ls = append(ls, newFilterLinkFromC(lcs[i]))
 	}
