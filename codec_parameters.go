@@ -3,6 +3,10 @@ package astiav
 //#cgo pkg-config: libavcodec
 //#include <libavcodec/avcodec.h>
 import "C"
+import (
+	"fmt"
+	"unsafe"
+)
 
 // https://github.com/FFmpeg/FFmpeg/blob/n5.0/libavcodec/codec_par.h#L52
 type CodecParameters struct {
@@ -139,6 +143,37 @@ func (cp *CodecParameters) SampleAspectRatio() Rational {
 
 func (cp *CodecParameters) SetSampleAspectRatio(r Rational) {
 	cp.c.sample_aspect_ratio = r.c
+}
+
+func (cp *CodecParameters) ExtraData() []byte {
+	return bytesFromC(func(size *C.size_t) *C.uint8_t {
+		if cp.c.extradata == nil {
+			*size = C.size_t(0)
+			return nil
+		}
+		*size = C.size_t(cp.c.extradata_size)
+		return cp.c.extradata
+	})
+}
+
+func (cp *CodecParameters) SetExtraData(extraData []byte) error {
+	if len(extraData) == 0 {
+		return nil
+	}
+
+	if cp.c.extradata != nil {
+		C.av_freep(unsafe.Pointer(&cp.c.extradata))
+		cp.c.extradata_size = 0
+	}
+
+	extradataSize := len(extraData)
+	if cp.c.extradata = (*C.uint8_t)(C.av_mallocz(C.size_t(extradataSize + C.AV_INPUT_BUFFER_PADDING_SIZE))); cp.c.extradata == nil {
+		return fmt.Errorf("astiav: allocation is nil")
+	}
+
+	C.memcpy(unsafe.Pointer(cp.c.extradata), unsafe.Pointer(&extraData[0]), C.size_t(extradataSize))
+	cp.c.extradata_size = C.int(extradataSize)
+	return nil
 }
 
 func (cp *CodecParameters) SampleFormat() SampleFormat {
