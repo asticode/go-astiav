@@ -9,7 +9,7 @@ import (
 func TestChannelLayout(t *testing.T) {
 	cl := ChannelLayoutStereo
 	require.Equal(t, 2, cl.NbChannels())
-	require.Equal(t, "stereo", cl.String())
+	require.Equal(t, "stereo\x00", cl.String())
 	require.True(t, cl.Valid())
 	require.True(t, cl.Equal(ChannelLayoutStereo))
 	require.False(t, cl.Equal(ChannelLayoutMono))
