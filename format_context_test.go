@@ -13,9 +13,9 @@ func TestFormatContext(t *testing.T) {
 	require.Len(t, ss, 2)
 	s1 := ss[0]
 
-	require.Equal(t, int64(607583), fc1.BitRate())
+	require.Equal(t, int64(607664), fc1.BitRate())
 	require.Equal(t, NewFormatContextCtxFlags(0), fc1.CtxFlags())
-	require.Equal(t, int64(5014000), fc1.Duration())
+	require.Equal(t, int64(5013333), fc1.Duration())
 	require.True(t, fc1.EventFlags().Has(FormatEventFlagMetadataUpdated))
 	require.True(t, fc1.Flags().Has(FormatContextFlagAutoBsf))
 	require.Equal(t, NewRational(24, 1), fc1.GuessFrameRate(s1, nil))
@@ -33,7 +33,7 @@ func TestFormatContext(t *testing.T) {
 
 	sdp, err := fc1.SDPCreate()
 	require.NoError(t, err)
-	require.Equal(t, "v=0\r\no=- 0 0 IN IP4 127.0.0.1\r\ns=Big Buck Bunny\r\nt=0 0\r\na=tool:libavformat LIBAVFORMAT_VERSION\r\nm=video 0 RTP/AVP 96\r\nb=AS:441\r\na=rtpmap:96 H264/90000\r\na=fmtp:96 packetization-mode=1; sprop-parameter-sets=Z0LADasgKDPz4CIAAAMAAgAAAwBhHihUkA==,aM48gA==; profile-level-id=42C00D\r\na=control:streamid=0\r\nm=audio 0 RTP/AVP 97\r\nb=AS:161\r\na=rtpmap:97 MPEG4-GENERIC/48000/2\r\na=fmtp:97 profile-level-id=1;mode=AAC-hbr;sizelength=13;indexlength=3;indexdeltalength=3; config=1190\r\na=control:streamid=1\r\n", sdp)
+	require.Equal(t, "v=0\r\no=- 0 0 IN IP4 127.0.0.1\r\ns=Big Buck Bunny\r\nt=0 0\r\na=tool:libavformat 60.16.100\r\nm=video 0 RTP/AVP 96\r\nb=AS:441\r\na=rtpmap:96 H264/90000\r\na=fmtp:96 packetization-mode=1; sprop-parameter-sets=Z0LADasgKDPz4CIAAAMAAgAAAwBhHihUkA==,aM48gA==; profile-level-id=42C00D\r\na=control:streamid=0\r\nm=audio 0 RTP/AVP 97\r\nb=AS:161\r\na=rtpmap:97 MPEG4-GENERIC/48000/2\r\na=fmtp:97 profile-level-id=1;mode=AAC-hbr;sizelength=13;indexlength=3;indexdeltalength=3; config=1190\r\na=control:streamid=1\r\n", sdp)
 
 	fc2, err := AllocOutputFormatContext(nil, "", "/tmp/test.mp4")
 	require.NoError(t, err)

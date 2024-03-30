@@ -15,7 +15,7 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
 
     env:
-      FFMPEG_VERSION: n5.1.2
+      FFMPEG_VERSION: n6.1.1
     
     runs-on: ${{ matrix.os }}
     steps:

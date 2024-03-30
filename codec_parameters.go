@@ -160,6 +160,10 @@ func (cp *CodecParameters) SetSampleAspectRatio(r Rational) {
 	cp.c.sample_aspect_ratio = r.c
 }
 
+func (cp *CodecParameters) SideData() *PacketSideData {
+	return newPacketSideDataFromC(&cp.c.coded_side_data, &cp.c.nb_coded_side_data)
+}
+
 func (cp *CodecParameters) SampleFormat() SampleFormat {
 	return SampleFormat(cp.c.format)
 }
