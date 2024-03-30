@@ -64,12 +64,12 @@ jobs:
       run: |
         choco install make
         choco install yasm
-        echo "FFMPEG_POST_CHECKOUT='&& git apply $(cygpath -u ${{ github.WORKSPACE }})/.github/workflows/windows.patch'" >> $env:GITHUB_ENV
+        echo "FFMPEG_PATCH_PATH='$(cygpath -u ${{ github.WORKSPACE }})/.github/workflows/windows.patch'" >> $env:GITHUB_ENV
 
     - if: ${{ steps.load-ffmpeg-cache.outputs.cache-hit != 'true' }}
       name: Install ffmpeg
       run: |
-        make install-ffmpeg srcPath=${{ env.FFMPEG_PATH }}/src version=${{ env.FFMPEG_VERSION }} postCheckout=${{ env.FFMPEG_POST_CHECKOUT }}
+        make install-ffmpeg srcPath=${{ env.FFMPEG_PATH }}/src version=${{ env.FFMPEG_VERSION }} patchPath=${{ env.FFMPEG_PATCH_PATH }}
 
     - if: ${{ steps.load-ffmpeg-cache.outputs.cache-hit != 'true' }}
       name: Save ffmpeg cache
