@@ -21,9 +21,9 @@ coverage:
 	go tool cover -html=coverage.out
 
 test-platform-build:
-	docker build -t astiav/$(platform) ./testdata/docker/$(platform)
+	docker build -t astiav/$(platform) ./internal/test/$(platform)
 
 test-platform-run:
-	mkdir -p ./testdata/docker/$(platform)/tmp/gocache
-	mkdir -p ./testdata/docker/$(platform)/tmp/gomodcache
-	docker run -v .:/opt/astiav -v ./testdata/docker/$(platform)/tmp/gocache:/opt/gocache -v ./testdata/docker/$(platform)/tmp/gomodcache:/opt/gomodcache astiav/$(platform)
+	mkdir -p ./internal/test/$(platform)/tmp/gocache
+	mkdir -p ./internal/test/$(platform)/tmp/gomodcache
+	docker run -v .:/opt/astiav -v ./internal/test/$(platform)/tmp/gocache:/opt/gocache -v ./internal/test/$(platform)/tmp/gomodcache:/opt/gomodcache astiav/$(platform)

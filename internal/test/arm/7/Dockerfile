@@ -5,7 +5,8 @@ RUN apt-get update
 RUN apt-get install -y \
 	build-essential \
 	git \
-	pkg-config
+	pkg-config \
+	libpng-dev
 
 RUN \
 	mkdir -p /opt/ffmpeg/src
@@ -21,7 +22,7 @@ RUN \
 	make && \
 	make install
 
-ADD https://dl.google.com/go/go1.21.0.linux-amd64.tar.gz /tmp/go.tar.gz
+ADD https://dl.google.com/go/go1.22.0.linux-amd64.tar.gz /tmp/go.tar.gz
 RUN tar -C /opt -xzf /tmp/go.tar.gz
 
 ENV GOARCH=arm
