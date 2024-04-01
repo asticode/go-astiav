@@ -28,6 +28,7 @@ static inline void astiavResetCodecContextGetFormat(AVCodecContext *ctx)
 */
 import "C"
 import (
+	"fmt"
 	"sync"
 	"unsafe"
 )
@@ -206,6 +207,37 @@ func (cc *CodecContext) SampleAspectRatio() Rational {
 
 func (cc *CodecContext) SetSampleAspectRatio(r Rational) {
 	cc.c.sample_aspect_ratio = r.c
+}
+
+func (cc *CodecContext) ExtraData() []byte {
+	return bytesFromC(func(size *C.size_t) *C.uint8_t {
+		if cc.c.extradata == nil {
+			*size = C.size_t(0)
+			return nil
+		}
+		*size = C.size_t(cc.c.extradata_size)
+		return cc.c.extradata
+	})
+}
+
+func (cc *CodecContext) SetExtraData(extraData []byte) error {
+	if len(extraData) == 0 {
+		return nil
+	}
+
+	if cc.c.extradata != nil {
+		C.av_freep(unsafe.Pointer(&cc.c.extradata))
+		cc.c.extradata_size = 0
+	}
+
+	extradataSize := len(extraData)
+	if cc.c.extradata = (*C.uint8_t)(C.av_mallocz(C.size_t(extradataSize + C.AV_INPUT_BUFFER_PADDING_SIZE))); cc.c.extradata == nil {
+		return fmt.Errorf("astiav: allocation is nil")
+	}
+
+	C.memcpy(unsafe.Pointer(cc.c.extradata), unsafe.Pointer(&extraData[0]), C.size_t(extradataSize))
+	cc.c.extradata_size = C.int(extradataSize)
+	return nil
 }
 
 func (cc *CodecContext) SampleFormat() SampleFormat {
