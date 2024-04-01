@@ -176,6 +176,10 @@ func (cc *CodecContext) Level() Level {
 	return Level(cc.c.level)
 }
 
+func (cc *CodecContext) SetLevel(l Level) {
+	cc.c.level = C.int(l)
+}
+
 func (cc *CodecContext) MediaType() MediaType {
 	return MediaType(cc.c.codec_type)
 }
@@ -190,6 +194,10 @@ func (cc *CodecContext) SetPixelFormat(pixFmt PixelFormat) {
 
 func (cc *CodecContext) Profile() Profile {
 	return Profile(cc.c.profile)
+}
+
+func (cc *CodecContext) SetProfile(p Profile) {
+	cc.c.profile = C.int(p)
 }
 
 func (cc *CodecContext) Qmin() int {

@@ -117,6 +117,10 @@ func (cp *CodecParameters) Level() Level {
 	return Level(cp.c.level)
 }
 
+func (cp *CodecParameters) SetLevel(l Level) {
+	cp.c.level = C.int(l)
+}
+
 func (cp *CodecParameters) MediaType() MediaType {
 	return MediaType(cp.c.codec_type)
 }
@@ -135,6 +139,10 @@ func (cp *CodecParameters) SetPixelFormat(f PixelFormat) {
 
 func (cp *CodecParameters) Profile() Profile {
 	return Profile(cp.c.profile)
+}
+
+func (cp *CodecParameters) SetProfile(p Profile) {
+	cp.c.profile = C.int(p)
 }
 
 func (cp *CodecParameters) SampleAspectRatio() Rational {
