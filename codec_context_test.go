@@ -136,6 +136,12 @@ func TestCodecContext(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 2, cp1.Channels())
 
+	cc6 := AllocCodecContext(nil)
+	require.NotNil(t, cc6)
+	b := []byte("test")
+	require.NoError(t, cc6.SetExtraData(b))
+	require.Equal(t, b, cc6.ExtraData())
+
 	// TODO Test ReceivePacket
 	// TODO Test SendPacket
 	// TODO Test ReceiveFrame
