@@ -318,7 +318,7 @@ func openOutputFile() (err error) {
 			err = fmt.Errorf("main: opening io context failed: %w", err)
 			return
 		}
-		c.AddWithError(ioContext.Closep)
+		c.AddWithError(ioContext.Close)
 
 		// Update output format context
 		outputFormatContext.SetPb(ioContext)

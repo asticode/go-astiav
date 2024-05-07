@@ -57,7 +57,7 @@ func TestClassers(t *testing.T) {
 	f.Free()
 	fmc1.Free()
 	fmc2.CloseInput()
-	require.NoError(t, ic.Closep())
+	require.NoError(t, ic.Close())
 	ssc.Free()
 	require.Equal(t, cl, len(classers.p))
 }

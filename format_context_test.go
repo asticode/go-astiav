@@ -45,11 +45,13 @@ func TestFormatContext(t *testing.T) {
 	defer fc3.Free()
 	c, err := OpenIOContext("testdata/video.mp4", NewIOContextFlags(IOContextFlagRead))
 	require.NoError(t, err)
-	defer c.Closep() //nolint:errcheck
+	defer c.Close() //nolint:errcheck
 	fc3.SetPb(c)
 	fc3.SetStrictStdCompliance(StrictStdComplianceExperimental)
+	fc3.SetFlags(NewFormatContextFlags(FormatContextFlagAutoBsf))
 	require.NotNil(t, fc3.Pb())
 	require.Equal(t, StrictStdComplianceExperimental, fc3.StrictStdCompliance())
+	require.True(t, fc3.Flags().Has(FormatContextFlagAutoBsf))
 	s2 := fc3.NewStream(nil)
 	require.NotNil(t, s2)
 	s3 := fc3.NewStream(nil)

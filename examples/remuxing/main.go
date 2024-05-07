@@ -107,7 +107,7 @@ func main() {
 		if err != nil {
 			log.Fatal(fmt.Errorf("main: opening io context failed: %w", err))
 		}
-		defer ioContext.Closep() //nolint:errcheck
+		defer ioContext.Close() //nolint:errcheck
 
 		// Update output format context
 		outputFormatContext.SetPb(ioContext)
