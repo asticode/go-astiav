@@ -123,7 +123,7 @@ func (ic *IOContext) Close() error {
 	return nil
 }
 
-func (ic *IOContext) Free() error {
+func (ic *IOContext) Free() {
 	classers.del(ic)
 	if ic.c != nil {
 		if ic.c.buffer != nil {
@@ -135,7 +135,7 @@ func (ic *IOContext) Free() error {
 		}
 		C.avio_context_free(&ic.c)
 	}
-	return nil
+	return
 }
 
 func (ic *IOContext) Read(b []byte) (n int, err error) {
