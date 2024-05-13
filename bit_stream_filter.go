@@ -18,7 +18,6 @@ func newBitStreamFilterFromC(c *C.struct_AVBitStreamFilter) *BitStreamFilter {
 		return nil
 	}
 	cc := &BitStreamFilter{c: c}
-	classers.set(cc)
 	return cc
 }
 
