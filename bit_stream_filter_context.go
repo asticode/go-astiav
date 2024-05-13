@@ -9,73 +9,74 @@ import (
 )
 
 // https://github.com/FFmpeg/FFmpeg/blob/release/5.1/libavcodec/bsf.h#L68
-type BSFContext struct {
+type BitStreamFilterContext struct {
 	c *C.struct_AVBSFContext
 }
 
-func newBSFContextFromC(c *C.struct_AVBSFContext) *BSFContext {
+func newBSFContextFromC(c *C.struct_AVBSFContext) *BitStreamFilterContext {
 	if c == nil {
 		return nil
 	}
-	bsfCtx := &BSFContext{c: c}
-	classers.set(bsfCtx)
-	return bsfCtx
+	bsfc := &BitStreamFilterContext{c: c}
+	classers.set(bsfc)
+	return bsfc
 }
 
-var _ Classer = (*BSFContext)(nil)
+var _ Classer = (*BitStreamFilterContext)(nil)
 
-func AllocBitStreamContext(f *BitStreamFilter) (*BSFContext, error) {
+func AllocBitStreamFilterContext(f *BitStreamFilter) (*BitStreamFilterContext, error) {
 	if f == nil {
 		return nil, errors.New("astiav: bit stream filter must not be nil")
 	}
 
-	var bsfCtx *C.struct_AVBSFContext
-	if err := newError(C.av_bsf_alloc(f.c, &bsfCtx)); err != nil {
+	var bsfc *C.struct_AVBSFContext
+	if err := newError(C.av_bsf_alloc(f.c, &bsfc)); err != nil {
 		return nil, err
 	}
 
-	return newBSFContextFromC(bsfCtx), nil
+	return newBSFContextFromC(bsfc), nil
 }
 
-func (bsfCtx *BSFContext) Class() *Class {
-	return newClassFromC(unsafe.Pointer(bsfCtx.c))
+func (bsfc *BitStreamFilterContext) Class() *Class {
+	return newClassFromC(unsafe.Pointer(bsfc.c))
 }
 
-func (bsfCtx *BSFContext) Init() error {
-	return newError(C.av_bsf_init(bsfCtx.c))
+func (bsfc *BitStreamFilterContext) Initialize() error {
+	return newError(C.av_bsf_init(bsfc.c))
 }
 
-func (bsfCtx *BSFContext) SendPacket(p *Packet) error {
+func (bsfc *BitStreamFilterContext) SendPacket(p *Packet) error {
+	var pc *C.struct_AVPacket
+	if p != nil {
+		pc = p.c
+	}
+	return newError(C.av_bsf_send_packet(bsfc.c, pc))
+}
+
+func (bsfc *BitStreamFilterContext) ReceivePacket(p *Packet) error {
 	if p == nil {
 		return errors.New("astiav: packet must not be nil")
 	}
-	return newError(C.av_bsf_send_packet(bsfCtx.c, p.c))
+	return newError(C.av_bsf_receive_packet(bsfc.c, p.c))
 }
 
-func (bsfCtx *BSFContext) ReceivePacket(p *Packet) error {
-	if p == nil {
-		return errors.New("astiav: packet must not be nil")
-	}
-	return newError(C.av_bsf_receive_packet(bsfCtx.c, p.c))
+func (bsfc *BitStreamFilterContext) Free() {
+	classers.del(bsfc)
+	C.av_bsf_free(&bsfc.c)
 }
 
-func (bsfCtx *BSFContext) Free() {
-	classers.del(bsfCtx)
-	C.av_bsf_free(&bsfCtx.c)
+func (bsfc *BitStreamFilterContext) TimeBaseIn() Rational {
+	return newRationalFromC(bsfc.c.time_base_in)
 }
 
-func (bsfCtx *BSFContext) TimeBaseIn() Rational {
-	return newRationalFromC(bsfCtx.c.time_base_in)
+func (bsfc *BitStreamFilterContext) SetTimeBaseIn(r Rational) {
+	bsfc.c.time_base_in = r.c
 }
 
-func (bsfCtx *BSFContext) SetTimeBaseIn(r Rational) {
-	bsfCtx.c.time_base_in = r.c
+func (bsfc *BitStreamFilterContext) CodecParametersIn() *CodecParameters {
+	return newCodecParametersFromC(bsfc.c.par_in)
 }
 
-func (bsfCtx *BSFContext) CodecParametersIn() *CodecParameters {
-	return newCodecParametersFromC(bsfCtx.c.par_in)
-}
-
-func (bsfCtx *BSFContext) SetCodecParametersIn(cp *CodecParameters) {
-	bsfCtx.c.par_in = cp.c
+func (bsfc *BitStreamFilterContext) SetCodecParametersIn(cp *CodecParameters) {
+	bsfc.c.par_in = cp.c
 }

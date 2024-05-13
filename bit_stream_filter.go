@@ -17,8 +17,7 @@ func newBitStreamFilterFromC(c *C.struct_AVBitStreamFilter) *BitStreamFilter {
 	if c == nil {
 		return nil
 	}
-	cc := &BitStreamFilter{c: c}
-	return cc
+	return &BitStreamFilter{c: c}
 }
 
 func FindBitStreamFilterByName(n string) *BitStreamFilter {
