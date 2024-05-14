@@ -24,7 +24,6 @@ func TestBitStreamFilterContext(t *testing.T) {
 
 	cp1 := AllocCodecParameters()
 	require.NotNil(t, cp1)
-	defer cp1.Free()
 	cp1.SetCodecID(CodecIDH264)
 
 	bsfc.SetCodecParametersIn(cp1)
