@@ -12,16 +12,6 @@ import (
 
 var globalHelper = newHelper()
 
-type testConfig struct {
-	withBitStreamFilter *string
-}
-
-func withBitStreamFilter(fn string) func(c *testConfig) {
-	return func(c *testConfig) {
-		c.withBitStreamFilter = &fn
-	}
-}
-
 func TestMain(m *testing.M) {
 	// Make sure to exit with the proper code
 	var code int
@@ -95,19 +85,22 @@ func (h *helper) inputFormatContext(name string) (fc *FormatContext, err error) 
 	return
 }
 
-func (h *helper) bitStreamFilterContext(fc *FormatContext, pkt *Packet, tc *testConfig) (*BitStreamFilterContext, error) {
+func (h *helper) bitStreamFilterContext(fc *FormatContext, si int, fn string) (*BitStreamFilterContext, error) {
 	var cs *Stream
 	for _, s := range fc.Streams() {
-		if s.Index() != pkt.StreamIndex() {
+		if s.Index() != si {
 			continue
 		}
 		cs = s
 		break
 	}
+	if cs == nil {
+		return nil, fmt.Errorf("astiav_test: could not find a stream to the packet")
+	}
 
-	bsf := FindBitStreamFilterByName(*tc.withBitStreamFilter)
+	bsf := FindBitStreamFilterByName(fn)
 	if bsf == nil {
-		return nil, fmt.Errorf("astiav_test: cannot find the bit stream filter %s", *tc.withBitStreamFilter)
+		return nil, fmt.Errorf("astiav_test: cannot find the bit stream filter %s", fn)
 	}
 
 	var bsfc *BitStreamFilterContext
@@ -129,12 +122,7 @@ func (h *helper) bitStreamFilterContext(fc *FormatContext, pkt *Packet, tc *test
 	return bsfc, nil
 }
 
-func (h *helper) inputFirstPacket(name string, options ...func(*testConfig)) (pkt *Packet, err error) {
-	testConfig := &testConfig{}
-	for _, o := range options {
-		o(testConfig)
-	}
-
+func (h *helper) inputFirstPacket(name string) (pkt *Packet, err error) {
 	h.m.Lock()
 	i, ok := h.inputs[name]
 	if ok && i.firstPkt != nil {
@@ -161,30 +149,49 @@ func (h *helper) inputFirstPacket(name string, options ...func(*testConfig)) (pk
 		return
 	}
 
-	if testConfig.withBitStreamFilter != nil {
-		var bsfc *BitStreamFilterContext
-
-		bsfc, err = h.bitStreamFilterContext(fc, pkt, testConfig)
-		if err != nil {
-			pkt = nil
-			return
-		}
-
-		if err = bsfc.SendPacket(pkt); err != nil {
-			err = fmt.Errorf("astiav_test: error while sending the packet %w", err)
-			pkt = nil
-			return
-		}
-		if err = bsfc.ReceivePacket(pkt); err != nil {
-			pkt = nil
-			err = fmt.Errorf("astiav_test: error while receiving the packet %w", err)
-			return
-		}
-	}
-
 	h.m.Lock()
 	h.inputs[name].firstPkt = pkt
 	h.m.Unlock()
+	return
+}
+
+func (h *helper) inputFirstPacketWithBitStreamFilter(name string, fn string) (pkt *Packet, err error) {
+	var fc *FormatContext
+	if fc, err = h.inputFormatContext(name); err != nil {
+		err = fmt.Errorf("astiav_test: getting input format context failed")
+		return
+	}
+
+	pkt = AllocPacket()
+	if pkt == nil {
+		err = errors.New("astiav_test: pkt is nil")
+		return
+	}
+	h.closer.Add(pkt.Free)
+
+	if err = fc.ReadFrame(pkt); err != nil {
+		err = fmt.Errorf("astiav_test: reading frame failed: %w", err)
+		return
+	}
+
+	var bsfc *BitStreamFilterContext
+
+	bsfc, err = h.bitStreamFilterContext(fc, pkt.StreamIndex(), fn)
+	if err != nil {
+		pkt = nil
+		return
+	}
+
+	if err = bsfc.SendPacket(pkt); err != nil {
+		err = fmt.Errorf("astiav_test: error while sending the packet %w", err)
+		pkt = nil
+		return
+	}
+	if err = bsfc.ReceivePacket(pkt); err != nil {
+		pkt = nil
+		err = fmt.Errorf("astiav_test: error while receiving the packet %w", err)
+		return
+	}
 	return
 }
 
