@@ -85,43 +85,6 @@ func (h *helper) inputFormatContext(name string) (fc *FormatContext, err error) 
 	return
 }
 
-func (h *helper) bitStreamFilterContext(fc *FormatContext, si int, fn string) (*BitStreamFilterContext, error) {
-	var cs *Stream
-	for _, s := range fc.Streams() {
-		if s.Index() != si {
-			continue
-		}
-		cs = s
-		break
-	}
-	if cs == nil {
-		return nil, fmt.Errorf("astiav_test: could not find a stream to the packet")
-	}
-
-	bsf := FindBitStreamFilterByName(fn)
-	if bsf == nil {
-		return nil, fmt.Errorf("astiav_test: cannot find the bit stream filter %s", fn)
-	}
-
-	var bsfc *BitStreamFilterContext
-	bsfc, err := AllocBitStreamFilterContext(bsf)
-	if err != nil {
-		return nil, fmt.Errorf("astiav_test: error while allocating bit stream context %w", err)
-	}
-	h.closer.Add(bsfc.Free)
-
-	bsfc.SetTimeBaseIn(cs.TimeBase())
-	if err := cs.CodecParameters().Copy(bsfc.CodecParametersIn()); err != nil {
-		return nil, fmt.Errorf("astiav_test: error while copying codec parameters for bit stream context%w", err)
-	}
-
-	if err := bsfc.Initialize(); err != nil {
-		return nil, fmt.Errorf("astiav_test: error while initiating bit stream filter context %w", err)
-	}
-
-	return bsfc, nil
-}
-
 func (h *helper) inputFirstPacket(name string) (pkt *Packet, err error) {
 	h.m.Lock()
 	i, ok := h.inputs[name]
@@ -152,64 +115,6 @@ func (h *helper) inputFirstPacket(name string) (pkt *Packet, err error) {
 	h.m.Lock()
 	h.inputs[name].firstPkt = pkt
 	h.m.Unlock()
-	return
-}
-
-func (h *helper) inputFirstVideoPacketWithBitStreamFilter(name string, fn string) (pkt *Packet, err error) {
-	var fc *FormatContext
-	if fc, err = h.inputFormatContext(name); err != nil {
-		err = fmt.Errorf("astiav_test: getting input format context failed")
-		return
-	}
-
-	pkt = AllocPacket()
-	if pkt == nil {
-		err = errors.New("astiav_test: pkt is nil")
-		return
-	}
-	h.closer.Add(pkt.Free)
-	var foundVideo bool
-
-	for {
-		if err = fc.ReadFrame(pkt); err != nil {
-			err = fmt.Errorf("astiav_test: reading frame failed: %w", err)
-			return
-		}
-
-		for _, s := range fc.Streams() {
-			if s.Index() == pkt.StreamIndex() && s.CodecParameters().CodecID() == CodecIDH264 {
-				foundVideo = true
-				break
-			}
-		}
-		if foundVideo {
-			break
-		}
-	}
-
-	if !foundVideo {
-		err = fmt.Errorf("astiav_test: there must be an h264 stream")
-		pkt = nil
-		return
-	}
-
-	var bsfc *BitStreamFilterContext
-	bsfc, err = h.bitStreamFilterContext(fc, pkt.StreamIndex(), fn)
-	if err != nil {
-		pkt = nil
-		return
-	}
-
-	if err = bsfc.SendPacket(pkt); err != nil {
-		err = fmt.Errorf("astiav_test: error while sending the packet %w", err)
-		pkt = nil
-		return
-	}
-	if err = bsfc.ReceivePacket(pkt); err != nil {
-		pkt = nil
-		err = fmt.Errorf("astiav_test: error while receiving the packet %w", err)
-		return
-	}
 	return
 }
 

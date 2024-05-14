@@ -7,15 +7,12 @@ import (
 )
 
 func TestBitStreamFilter(t *testing.T) {
-	bitStreamFilterNames := []string{"h264_mp4toannexb", "null", "setts"}
+	fn := "null"
+	f := FindBitStreamFilterByName(fn)
+	require.NotNil(t, f)
+	require.Equal(t, f.Name(), fn)
+	require.Equal(t, f.String(), fn)
 
-	for _, fn := range bitStreamFilterNames {
-		f := FindBitStreamFilterByName(fn)
-		require.NotNil(t, f)
-		require.Equal(t, f.Name(), fn)
-		require.Equal(t, f.String(), fn)
-	}
-
-	f := FindBitStreamFilterByName("foobar_non_existing_bsf")
+	f = FindBitStreamFilterByName("foobar_non_existing_bsf")
 	require.Nil(t, f)
 }

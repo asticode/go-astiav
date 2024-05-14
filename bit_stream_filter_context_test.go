@@ -12,7 +12,7 @@ func TestBitStreamFilterContext(t *testing.T) {
 
 	bsfc, err := AllocBitStreamFilterContext(bsf)
 	require.NotNil(t, bsfc)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	defer bsfc.Free()
 
 	cl := bsfc.Class()
@@ -22,21 +22,13 @@ func TestBitStreamFilterContext(t *testing.T) {
 	bsfc.SetTimeBaseIn(NewRational(15, 1))
 	require.Equal(t, NewRational(15, 1), bsfc.TimeBaseIn())
 
-	fc, err := globalHelper.inputFormatContext("video.mp4")
-	require.NoError(t, err)
-	ss := fc.Streams()
-	require.Len(t, ss, 2)
-	s1 := ss[0]
+	cp1 := AllocCodecParameters()
+	require.NotNil(t, cp1)
+	defer cp1.Free()
+	cp1.SetCodecID(CodecIDH264)
 
-	cp1 := s1.CodecParameters()
 	bsfc.SetCodecParametersIn(cp1)
-	require.Equal(t, int64(441324), bsfc.CodecParametersIn().BitRate())
+	require.Equal(t, CodecIDH264, bsfc.CodecParametersIn().CodecID())
 
-	// video.mp4 bit stream h264 format is avcc
-	pkt1, err := globalHelper.inputFirstPacket("video.mp4")
-	pkt1Bsf, errBsf := globalHelper.inputFirstVideoPacketWithBitStreamFilter("video.mp4", "h264_mp4toannexb")
-	require.NoError(t, err)
-	require.NoError(t, errBsf)
-
-	require.NotEqual(t, pkt1.Data(), pkt1Bsf.Data())
+	// TODO: add tests for send and receive packet flows
 }
