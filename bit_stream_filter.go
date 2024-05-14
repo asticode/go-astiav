@@ -25,3 +25,11 @@ func FindBitStreamFilterByName(n string) *BitStreamFilter {
 	defer C.free(unsafe.Pointer(cn))
 	return newBitStreamFilterFromC(C.av_bsf_get_by_name(cn))
 }
+
+func (bsf *BitStreamFilter) Name() string {
+	return C.GoString(bsf.c.name)
+}
+
+func (bsf *BitStreamFilter) String() string {
+	return bsf.Name()
+}
