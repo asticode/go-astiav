@@ -34,7 +34,7 @@ func TestBitStreamFilterContext(t *testing.T) {
 
 	// video.mp4 bit stream h264 format is avcc
 	pkt1, err := globalHelper.inputFirstPacket("video.mp4")
-	pkt1Bsf, errBsf := globalHelper.inputFirstPacketWithBitStreamFilter("video.mp4", "h264_mp4toannexb")
+	pkt1Bsf, errBsf := globalHelper.inputFirstVideoPacketWithBitStreamFilter("video.mp4", "h264_mp4toannexb")
 	require.NoError(t, err)
 	require.NoError(t, errBsf)
 

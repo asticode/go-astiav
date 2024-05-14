@@ -155,7 +155,7 @@ func (h *helper) inputFirstPacket(name string) (pkt *Packet, err error) {
 	return
 }
 
-func (h *helper) inputFirstPacketWithBitStreamFilter(name string, fn string) (pkt *Packet, err error) {
+func (h *helper) inputFirstVideoPacketWithBitStreamFilter(name string, fn string) (pkt *Packet, err error) {
 	var fc *FormatContext
 	if fc, err = h.inputFormatContext(name); err != nil {
 		err = fmt.Errorf("astiav_test: getting input format context failed")
@@ -168,14 +168,32 @@ func (h *helper) inputFirstPacketWithBitStreamFilter(name string, fn string) (pk
 		return
 	}
 	h.closer.Add(pkt.Free)
+	var foundVideo bool
 
-	if err = fc.ReadFrame(pkt); err != nil {
-		err = fmt.Errorf("astiav_test: reading frame failed: %w", err)
+	for {
+		if err = fc.ReadFrame(pkt); err != nil {
+			err = fmt.Errorf("astiav_test: reading frame failed: %w", err)
+			return
+		}
+
+		for _, s := range fc.Streams() {
+			if s.Index() == pkt.StreamIndex() && s.CodecParameters().CodecID() == CodecIDH264 {
+				foundVideo = true
+				break
+			}
+		}
+		if foundVideo {
+			break
+		}
+	}
+
+	if !foundVideo {
+		err = fmt.Errorf("astiav_test: there must be an h264 stream")
+		pkt = nil
 		return
 	}
 
 	var bsfc *BitStreamFilterContext
-
 	bsfc, err = h.bitStreamFilterContext(fc, pkt.StreamIndex(), fn)
 	if err != nil {
 		pkt = nil
