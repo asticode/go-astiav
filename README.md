@@ -23,6 +23,7 @@ Examples are located in the [examples](examples) directory and mirror as much as
 
 |name|astiav|ffmpeg|
 |---|---|---|
+|BitStream Filtering|[see](examples/bit_stream_filtering/main.go)|X
 |Demuxing/Decoding|[see](examples/demuxing_decoding/main.go)|[see](https://github.com/FFmpeg/FFmpeg/blob/n5.1.2/doc/examples/demuxing_decoding.c)
 |Filtering|[see](examples/filtering/main.go)|[see](https://github.com/FFmpeg/FFmpeg/blob/n5.1.2/doc/examples/filtering_video.c)
 |Hardware Decoding|[see](examples/hardware_decoding/main.go)|[see](https://github.com/FFmpeg/FFmpeg/blob/n5.1.2/doc/examples/hw_decode.c)

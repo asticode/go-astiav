@@ -76,7 +76,3 @@ func (bsfc *BitStreamFilterContext) SetTimeBaseIn(r Rational) {
 func (bsfc *BitStreamFilterContext) CodecParametersIn() *CodecParameters {
 	return newCodecParametersFromC(bsfc.c.par_in)
 }
-
-func (bsfc *BitStreamFilterContext) SetCodecParametersIn(cp *CodecParameters) {
-	bsfc.c.par_in = cp.c
-}

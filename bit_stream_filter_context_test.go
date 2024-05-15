@@ -24,10 +24,13 @@ func TestBitStreamFilterContext(t *testing.T) {
 
 	cp1 := AllocCodecParameters()
 	require.NotNil(t, cp1)
+	defer cp1.Free()
 	cp1.SetCodecID(CodecIDH264)
-
-	bsfc.SetCodecParametersIn(cp1)
+	require.NoError(t, cp1.Copy(bsfc.CodecParametersIn()))
 	require.Equal(t, CodecIDH264, bsfc.CodecParametersIn().CodecID())
 
-	// TODO: add tests for send and receive packet flows
+	require.NoError(t, bsfc.Initialize())
+
+	// TODO Test SendPacket
+	// TODO Test ReceivePacket
 }
