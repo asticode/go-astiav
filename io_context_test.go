@@ -13,7 +13,7 @@ func TestIOContext(t *testing.T) {
 	rb := []byte("read")
 	wb := []byte("write")
 	var written []byte
-	c, err := AllocIOContext(8, func(b []byte) (int, error) {
+	c, err := AllocIOContext(8, true, func(b []byte) (int, error) {
 		copy(b, rb)
 		return len(rb), nil
 	}, func(offset int64, whence int) (n int64, err error) {

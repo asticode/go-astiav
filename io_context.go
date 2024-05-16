@@ -34,7 +34,7 @@ type IOContextSeekFunc func(offset int64, whence int) (n int64, err error)
 
 type IOContextWriteFunc func(b []byte) (n int, err error)
 
-func AllocIOContext(bufferSize int, readFunc IOContextReadFunc, seekFunc IOContextSeekFunc, writeFunc IOContextWriteFunc) (ic *IOContext, err error) {
+func AllocIOContext(bufferSize int, writable bool, readFunc IOContextReadFunc, seekFunc IOContextSeekFunc, writeFunc IOContextWriteFunc) (ic *IOContext, err error) {
 	// Invalid buffer size
 	if bufferSize <= 0 {
 		err = errors.New("astiav: buffer size <= 0")
@@ -81,8 +81,14 @@ func AllocIOContext(bufferSize int, readFunc IOContextReadFunc, seekFunc IOConte
 		cWriteFunc = (*[0]byte)(C.astiavIOContextWriteFunc)
 	}
 
+	// Get write flag
+	wf := C.int(0)
+	if writable {
+		wf = C.int(1)
+	}
+
 	// Alloc io context
-	cic := C.avio_alloc_context((*C.uchar)(buffer), C.int(bufferSize), 1, handlerID, cReadFunc, cWriteFunc, cSeekFunc)
+	cic := C.avio_alloc_context((*C.uchar)(buffer), C.int(bufferSize), wf, handlerID, cReadFunc, cWriteFunc, cSeekFunc)
 	if cic == nil {
 		err = errors.New("astiav: allocating io context failed: %w")
 		return
