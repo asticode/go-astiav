@@ -65,14 +65,14 @@ func (bsfc *BitStreamFilterContext) Free() {
 	C.av_bsf_free(&bsfc.c)
 }
 
-func (bsfc *BitStreamFilterContext) TimeBaseIn() Rational {
+func (bsfc *BitStreamFilterContext) InputTimeBase() Rational {
 	return newRationalFromC(bsfc.c.time_base_in)
 }
 
-func (bsfc *BitStreamFilterContext) SetTimeBaseIn(r Rational) {
+func (bsfc *BitStreamFilterContext) SetInputTimeBase(r Rational) {
 	bsfc.c.time_base_in = r.c
 }
 
-func (bsfc *BitStreamFilterContext) CodecParametersIn() *CodecParameters {
+func (bsfc *BitStreamFilterContext) InputCodecParameters() *CodecParameters {
 	return newCodecParametersFromC(bsfc.c.par_in)
 }

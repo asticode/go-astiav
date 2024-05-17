@@ -94,12 +94,12 @@ func main() {
 		defer s.bitStreamFilterContext.Free()
 
 		// Copy codec parameters
-		if err := is.CodecParameters().Copy(s.bitStreamFilterContext.CodecParametersIn()); err != nil {
+		if err := is.CodecParameters().Copy(s.bitStreamFilterContext.InputCodecParameters()); err != nil {
 			log.Fatal(fmt.Errorf("main: copying codec parameters failed: %w", err))
 		}
 
 		// Update time base
-		s.bitStreamFilterContext.SetTimeBaseIn(is.TimeBase())
+		s.bitStreamFilterContext.SetInputTimeBase(is.TimeBase())
 
 		// Initialize bit stream filter context
 		if err := s.bitStreamFilterContext.Initialize(); err != nil {
