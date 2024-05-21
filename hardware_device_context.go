@@ -10,7 +10,7 @@ import (
 
 // https://github.com/FFmpeg/FFmpeg/blob/n5.0/libavutil/hwcontext.h#L61
 type HardwareDeviceContext struct {
-	c *C.AVBufferRef
+	c *C.struct_AVBufferRef
 }
 
 func CreateHardwareDeviceContext(t HardwareDeviceType, device string, options *Dictionary) (*HardwareDeviceContext, error) {

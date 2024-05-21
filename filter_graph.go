@@ -43,6 +43,22 @@ func (g *FilterGraph) Class() *Class {
 	return newClassFromC(unsafe.Pointer(g.c))
 }
 
+func (g *FilterGraph) ThreadCount() int {
+	return int(g.c.nb_threads)
+}
+
+func (g *FilterGraph) SetThreadCount(threadCount int) {
+	g.c.nb_threads = C.int(threadCount)
+}
+
+func (g *FilterGraph) ThreadType() ThreadType {
+	return ThreadType(g.c.thread_type)
+}
+
+func (g *FilterGraph) SetThreadType(t ThreadType) {
+	g.c.thread_type = C.int(t)
+}
+
 type FilterArgs map[string]string
 
 func (args FilterArgs) String() string {

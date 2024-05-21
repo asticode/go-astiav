@@ -17,6 +17,10 @@ func TestFilterGraph(t *testing.T) {
 	cl := fg.Class()
 	require.NotNil(t, cl)
 	require.Equal(t, "AVFilterGraph", cl.Name())
+	fg.SetThreadCount(2)
+	require.Equal(t, 2, fg.ThreadCount())
+	fg.SetThreadType(ThreadTypeSlice)
+	require.Equal(t, ThreadTypeSlice, fg.ThreadType())
 
 	bufferSink := FindFilterByName("buffersink")
 	require.NotNil(t, bufferSink)
