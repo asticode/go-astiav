@@ -1,8 +1,8 @@
 package astiav
 
 import (
+	"fmt"
 	"image"
-	"image/png"
 	"os"
 	"testing"
 
@@ -10,39 +10,29 @@ import (
 )
 
 type mockedFrameDataFrame struct {
-	h           int
-	imageBytes  []byte
-	linesizes   []int
-	pf          PixelFormat
-	planesBytes [][]byte
-	w           int
+	h          int
+	imageBytes []byte
+	pf         PixelFormat
+	planes_    []frameDataPlane
+	w          int
 }
 
 var _ frameDataFramer = (*mockedFrameDataFrame)(nil)
 
+func (f *mockedFrameDataFrame) bytes(align int) ([]byte, error) {
+	return f.imageBytes, nil
+}
+
 func (f *mockedFrameDataFrame) height() int {
 	return f.h
-}
-
-func (f *mockedFrameDataFrame) imageBufferSize(align int) (int, error) {
-	return len(f.imageBytes), nil
-}
-
-func (f *mockedFrameDataFrame) imageCopyToBuffer(b []byte, align int) (int, error) {
-	copy(b, f.imageBytes)
-	return len(f.imageBytes), nil
-}
-
-func (f *mockedFrameDataFrame) linesize(i int) int {
-	return f.linesizes[i]
 }
 
 func (f *mockedFrameDataFrame) pixelFormat() PixelFormat {
 	return f.pf
 }
 
-func (f *mockedFrameDataFrame) planeBytes(i int) []byte {
-	return f.planesBytes[i]
+func (f *mockedFrameDataFrame) planes() ([]frameDataPlane, error) {
+	return f.planes_, nil
 }
 
 func (f *mockedFrameDataFrame) width() int {
@@ -123,10 +113,8 @@ func TestFrameDataInternal(t *testing.T) {
 		}
 	}
 
-	fdf.imageBytes = []byte{0, 1, 2, 3}
-	_, err := fd.Bytes(0)
-	require.Error(t, err)
 	fdf.h = 1
+	fdf.imageBytes = []byte{0, 1, 2, 3}
 	fdf.w = 2
 	b, err := fd.Bytes(0)
 	require.NoError(t, err)
@@ -136,9 +124,8 @@ func TestFrameDataInternal(t *testing.T) {
 		e           image.Image
 		err         bool
 		i           image.Image
-		linesizes   []int
 		pixelFormat PixelFormat
-		planesBytes [][]byte
+		planes      []frameDataPlane
 	}{
 		{
 			e: &image.Alpha{
@@ -147,9 +134,13 @@ func TestFrameDataInternal(t *testing.T) {
 				Rect:   image.Rect(0, 0, 2, 1),
 			},
 			i:           &image.Alpha{},
-			linesizes:   []int{1},
 			pixelFormat: PixelFormatRgba,
-			planesBytes: [][]byte{{0, 1, 2, 3}},
+			planes: []frameDataPlane{
+				{
+					bytes:    []byte{0, 1, 2, 3},
+					linesize: 1,
+				},
+			},
 		},
 		{
 			e: &image.Alpha16{
@@ -158,9 +149,13 @@ func TestFrameDataInternal(t *testing.T) {
 				Rect:   image.Rect(0, 0, 2, 1),
 			},
 			i:           &image.Alpha16{},
-			linesizes:   []int{1},
 			pixelFormat: PixelFormatRgba,
-			planesBytes: [][]byte{{0, 1, 2, 3}},
+			planes: []frameDataPlane{
+				{
+					bytes:    []byte{0, 1, 2, 3},
+					linesize: 1,
+				},
+			},
 		},
 		{
 			e: &image.CMYK{
@@ -169,9 +164,13 @@ func TestFrameDataInternal(t *testing.T) {
 				Rect:   image.Rect(0, 0, 2, 1),
 			},
 			i:           &image.CMYK{},
-			linesizes:   []int{1},
 			pixelFormat: PixelFormatRgba,
-			planesBytes: [][]byte{{0, 1, 2, 3}},
+			planes: []frameDataPlane{
+				{
+					bytes:    []byte{0, 1, 2, 3},
+					linesize: 1,
+				},
+			},
 		},
 		{
 			e: &image.Gray{
@@ -180,9 +179,13 @@ func TestFrameDataInternal(t *testing.T) {
 				Rect:   image.Rect(0, 0, 2, 1),
 			},
 			i:           &image.Gray{},
-			linesizes:   []int{1},
 			pixelFormat: PixelFormatRgba,
-			planesBytes: [][]byte{{0, 1, 2, 3}},
+			planes: []frameDataPlane{
+				{
+					bytes:    []byte{0, 1, 2, 3},
+					linesize: 1,
+				},
+			},
 		},
 		{
 			e: &image.Gray16{
@@ -191,9 +194,13 @@ func TestFrameDataInternal(t *testing.T) {
 				Rect:   image.Rect(0, 0, 2, 1),
 			},
 			i:           &image.Gray16{},
-			linesizes:   []int{1},
 			pixelFormat: PixelFormatRgba,
-			planesBytes: [][]byte{{0, 1, 2, 3}},
+			planes: []frameDataPlane{
+				{
+					bytes:    []byte{0, 1, 2, 3},
+					linesize: 1,
+				},
+			},
 		},
 		{
 			e: &image.NRGBA{
@@ -202,9 +209,13 @@ func TestFrameDataInternal(t *testing.T) {
 				Rect:   image.Rect(0, 0, 2, 1),
 			},
 			i:           &image.NRGBA{},
-			linesizes:   []int{1},
 			pixelFormat: PixelFormatRgba,
-			planesBytes: [][]byte{{0, 1, 2, 3}},
+			planes: []frameDataPlane{
+				{
+					bytes:    []byte{0, 1, 2, 3},
+					linesize: 1,
+				},
+			},
 		},
 		{
 			e: &image.NRGBA64{
@@ -213,9 +224,13 @@ func TestFrameDataInternal(t *testing.T) {
 				Rect:   image.Rect(0, 0, 2, 1),
 			},
 			i:           &image.NRGBA64{},
-			linesizes:   []int{1},
 			pixelFormat: PixelFormatRgba,
-			planesBytes: [][]byte{{0, 1, 2, 3}},
+			planes: []frameDataPlane{
+				{
+					bytes:    []byte{0, 1, 2, 3},
+					linesize: 1,
+				},
+			},
 		},
 		{
 			e: &image.NYCbCrA{
@@ -232,9 +247,25 @@ func TestFrameDataInternal(t *testing.T) {
 				},
 			},
 			i:           &image.NYCbCrA{},
-			linesizes:   []int{1, 2, 3, 4},
 			pixelFormat: PixelFormatYuv444P,
-			planesBytes: [][]byte{{0, 1}, {2, 3}, {4, 5}, {6, 7}},
+			planes: []frameDataPlane{
+				{
+					bytes:    []byte{0, 1},
+					linesize: 1,
+				},
+				{
+					bytes:    []byte{2, 3},
+					linesize: 2,
+				},
+				{
+					bytes:    []byte{4, 5},
+					linesize: 3,
+				},
+				{
+					bytes:    []byte{6, 7},
+					linesize: 4,
+				},
+			},
 		},
 		{
 			e: &image.RGBA{
@@ -243,9 +274,13 @@ func TestFrameDataInternal(t *testing.T) {
 				Rect:   image.Rect(0, 0, 2, 1),
 			},
 			i:           &image.RGBA{},
-			linesizes:   []int{1},
 			pixelFormat: PixelFormatRgba,
-			planesBytes: [][]byte{{0, 1, 2, 3}},
+			planes: []frameDataPlane{
+				{
+					bytes:    []byte{0, 1, 2, 3},
+					linesize: 1,
+				},
+			},
 		},
 		{
 			e: &image.RGBA64{
@@ -254,9 +289,13 @@ func TestFrameDataInternal(t *testing.T) {
 				Rect:   image.Rect(0, 0, 2, 1),
 			},
 			i:           &image.RGBA64{},
-			linesizes:   []int{1},
 			pixelFormat: PixelFormatRgba,
-			planesBytes: [][]byte{{0, 1, 2, 3}},
+			planes: []frameDataPlane{
+				{
+					bytes:    []byte{0, 1, 2, 3},
+					linesize: 1,
+				},
+			},
 		},
 		{
 			e: &image.YCbCr{
@@ -269,14 +308,25 @@ func TestFrameDataInternal(t *testing.T) {
 				Rect:           image.Rect(0, 0, 2, 1),
 			},
 			i:           &image.YCbCr{},
-			linesizes:   []int{1, 2, 3},
 			pixelFormat: PixelFormatYuv420P,
-			planesBytes: [][]byte{{0, 1}, {2, 3}, {4, 5}},
+			planes: []frameDataPlane{
+				{
+					bytes:    []byte{0, 1},
+					linesize: 1,
+				},
+				{
+					bytes:    []byte{2, 3},
+					linesize: 2,
+				},
+				{
+					bytes:    []byte{4, 5},
+					linesize: 3,
+				},
+			},
 		},
 	} {
-		fdf.linesizes = v.linesizes
 		fdf.pf = v.pixelFormat
-		fdf.planesBytes = v.planesBytes
+		fdf.planes_ = v.planes
 		err = fd.ToImage(v.i)
 		if v.err {
 			require.Error(t, err)
@@ -287,30 +337,37 @@ func TestFrameDataInternal(t *testing.T) {
 }
 
 func TestFrameData(t *testing.T) {
-	const (
-		name = "image-rgba"
-		ext  = "png"
-	)
-	f, err := globalHelper.inputLastFrame(name+"."+ext, MediaTypeVideo)
-	require.NoError(t, err)
-	fd := f.Data()
+	for _, v := range []struct {
+		ext  string
+		name string
+	}{
+		{
+			ext:  "png",
+			name: "image-rgba",
+		},
+		{
+			ext:  "h264",
+			name: "video-yuv420p",
+		},
+	} {
+		f, err := globalHelper.inputLastFrame(v.name+"."+v.ext, MediaTypeVideo)
+		require.NoError(t, err)
+		fd := f.Data()
 
-	b1, err := fd.Bytes(1)
-	require.NoError(t, err)
+		b1, err := fd.Bytes(1)
+		require.NoError(t, err)
+		b2 := []byte(fmt.Sprintf("%+v", b1))
+		b3, err := os.ReadFile("testdata/" + v.name + "-bytes")
+		require.NoError(t, err)
+		require.Equal(t, b2, b3)
 
-	b2, err := os.ReadFile("testdata/" + name + "-bytes")
-	require.NoError(t, err)
-	require.Equal(t, b1, b2)
+		i1, err := fd.GuessImageFormat()
+		require.NoError(t, err)
+		require.NoError(t, fd.ToImage(i1))
+		b4 := []byte(fmt.Sprintf("%+v", i1))
+		b5, err := os.ReadFile("testdata/" + v.name + "-struct")
+		require.NoError(t, err)
+		require.Equal(t, b4, b5)
 
-	f1, err := os.Open("testdata/" + name + "." + ext)
-	require.NoError(t, err)
-	defer f1.Close()
-
-	i1, err := fd.GuessImageFormat()
-	require.NoError(t, err)
-	require.NoError(t, err)
-	require.NoError(t, fd.ToImage(i1))
-	i2, err := png.Decode(f1)
-	require.NoError(t, err)
-	require.Equal(t, i1, i2)
+	}
 }
