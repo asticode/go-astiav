@@ -15,7 +15,7 @@ WORKDIR /opt/ffmpeg/src
 
 RUN \
 	git clone https://github.com/FFmpeg/FFmpeg /opt/ffmpeg/src && \
-	git checkout n6.1.1
+	git checkout n7.0
 
 RUN \
 	./configure --prefix=.. && \

@@ -95,7 +95,7 @@ func newChannelLayoutFromC(c *C.struct_AVChannelLayout) ChannelLayout {
 	return ChannelLayout{c: c}
 }
 
-func (l ChannelLayout) NbChannels() int {
+func (l ChannelLayout) Channels() int {
 	return int(l.c.nb_channels)
 }
 

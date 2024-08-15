@@ -269,7 +269,6 @@ func openOutputFile() (err error) {
 			} else {
 				s.encCodecContext.SetChannelLayout(s.decCodecContext.ChannelLayout())
 			}
-			s.encCodecContext.SetChannels(s.decCodecContext.Channels())
 			s.encCodecContext.SetSampleRate(s.decCodecContext.SampleRate())
 			if v := s.encCodec.SampleFormats(); len(v) > 0 {
 				s.encCodecContext.SetSampleFormat(v[0])

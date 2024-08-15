@@ -37,14 +37,6 @@ func (cp *CodecParameters) SetChannelLayout(l ChannelLayout) {
 	l.copy(&cp.c.ch_layout) //nolint: errcheck
 }
 
-func (cp *CodecParameters) Channels() int {
-	return int(cp.c.channels)
-}
-
-func (cp *CodecParameters) SetChannels(c int) {
-	cp.c.channels = C.int(c)
-}
-
 func (cp *CodecParameters) CodecID() CodecID {
 	return CodecID(cp.c.codec_id)
 }

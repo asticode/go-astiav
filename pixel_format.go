@@ -127,7 +127,6 @@ const (
 	PixelFormatVaapi         = PixelFormat(C.AV_PIX_FMT_VAAPI)
 	PixelFormatVdpau         = PixelFormat(C.AV_PIX_FMT_VDPAU)
 	PixelFormatVideotoolbox  = PixelFormat(C.AV_PIX_FMT_VIDEOTOOLBOX)
-	PixelFormatXvmc          = PixelFormat(C.AV_PIX_FMT_XVMC)
 	PixelFormatXyz12Be       = PixelFormat(C.AV_PIX_FMT_XYZ12BE)
 	PixelFormatXyz12Le       = PixelFormat(C.AV_PIX_FMT_XYZ12LE)
 	PixelFormatY400A         = PixelFormat(C.AV_PIX_FMT_Y400A)

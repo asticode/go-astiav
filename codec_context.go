@@ -83,14 +83,6 @@ func (cc *CodecContext) SetBitRate(bitRate int64) {
 	cc.c.bit_rate = C.int64_t(bitRate)
 }
 
-func (cc *CodecContext) Channels() int {
-	return int(cc.c.channels)
-}
-
-func (cc *CodecContext) SetChannels(channels int) {
-	cc.c.channels = C.int(channels)
-}
-
 func (cc *CodecContext) ChannelLayout() ChannelLayout {
 	l, _ := newChannelLayoutFromC(&cc.c.ch_layout).clone()
 	return l
