@@ -106,6 +106,14 @@ func (fc *FormatContext) Metadata() *Dictionary {
 	return newDictionaryFromC(fc.c.metadata)
 }
 
+func (fc *FormatContext) SetMetadata(d *Dictionary) {
+	if d == nil {
+		fc.c.metadata = nil
+	} else {
+		fc.c.metadata = d.c
+	}
+}
+
 func (fc *FormatContext) NbStreams() int {
 	return int(fc.c.nb_streams)
 }

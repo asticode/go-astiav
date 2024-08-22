@@ -58,6 +58,16 @@ func TestFormatContext(t *testing.T) {
 	require.NotNil(t, s3)
 	require.Equal(t, 1, s3.Index())
 
+	d := NewDictionary()
+	d.Set("k", "v", 0)
+	fc3.SetMetadata(d)
+	e := fc3.Metadata().Get("k", nil, 0)
+	require.NotNil(t, e)
+	require.Equal(t, "v", e.Value())
+
+	fc3.SetMetadata(nil)
+	require.Nil(t, fc3.Metadata())
+
 	fc4 := AllocFormatContext()
 	require.NotNil(t, fc4)
 	defer fc4.Free()
