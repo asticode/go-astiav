@@ -284,7 +284,7 @@ func openOutputFile() (err error) {
 				s.encCodecContext.SetPixelFormat(s.decCodecContext.PixelFormat())
 			}
 			s.encCodecContext.SetSampleAspectRatio(s.decCodecContext.SampleAspectRatio())
-			s.encCodecContext.SetTimeBase(s.decCodecContext.Framerate().Inv())
+			s.encCodecContext.SetTimeBase(s.decCodecContext.Framerate().Invert())
 			s.encCodecContext.SetWidth(s.decCodecContext.Width())
 		}
 
@@ -376,8 +376,9 @@ func initFilters() (err error) {
 			args = astiav.FilterArgs{
 				"pix_fmt":      strconv.Itoa(int(s.decCodecContext.PixelFormat())),
 				"pixel_aspect": s.decCodecContext.SampleAspectRatio().String(),
-				"time_base":    s.decCodecContext.Framerate().Inv().String(),
-				"video_size":   strconv.Itoa(s.decCodecContext.Width()) + "x" + strconv.Itoa(s.decCodecContext.Height()),
+				//"time_base":    s.decCodecContext.Framerate().Invert().String(),
+				"time_base":  s.inputStream.TimeBase().String(),
+				"video_size": strconv.Itoa(s.decCodecContext.Width()) + "x" + strconv.Itoa(s.decCodecContext.Height()),
 			}
 			buffersrc = astiav.FindFilterByName("buffer")
 			buffersink = astiav.FindFilterByName("buffersink")

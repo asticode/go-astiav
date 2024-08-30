@@ -10,6 +10,7 @@ func TestRational(t *testing.T) {
 	r := NewRational(2, 1)
 	require.Equal(t, 2, r.Num())
 	require.Equal(t, 1, r.Den())
+	require.Equal(t, 0.5, r.Invert().Float64())
 	r.SetNum(1)
 	r.SetDen(2)
 	require.Equal(t, 1, r.Num())
