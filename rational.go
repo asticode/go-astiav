@@ -50,3 +50,7 @@ func (r Rational) String() string {
 	}
 	return strconv.Itoa(r.Num()) + "/" + strconv.Itoa(r.Den())
 }
+
+func (r Rational) Inv() Rational {
+	return NewRational(r.Den(), r.Num())
+}
