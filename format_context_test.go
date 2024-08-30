@@ -74,6 +74,15 @@ func TestFormatContext(t *testing.T) {
 	fc4.SetInterruptCallback().Interrupt()
 	require.ErrorIs(t, fc4.OpenInput("testdata/video.mp4", nil, nil), ErrExit)
 
+	fc5 := AllocFormatContext()
+	require.NotNil(t, fc5)
+	defer fc5.Free()
+	require.NotNil(t, fc5.NewProgram(1))
+	require.Equal(t, 1, fc5.NbPrograms())
+	ps := fc5.Programs()
+	require.Equal(t, 1, len(ps))
+	require.Equal(t, 1, ps[0].ID())
+
 	// TODO Test ReadFrame
 	// TODO Test SeekFrame
 	// TODO Test Flush

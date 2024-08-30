@@ -114,6 +114,10 @@ func (fc *FormatContext) SetMetadata(d *Dictionary) {
 	}
 }
 
+func (fc *FormatContext) NbPrograms() int {
+	return int(fc.c.nb_programs)
+}
+
 func (fc *FormatContext) NbStreams() int {
 	return int(fc.c.nb_streams)
 }
@@ -131,6 +135,14 @@ func (fc *FormatContext) Pb() *IOContext {
 		}
 	}
 	return newIOContextFromC(fc.c.pb)
+}
+
+func (fc *FormatContext) Programs() (ps []*Program) {
+	pcs := (*[(math.MaxInt32 - 1) / unsafe.Sizeof((*C.struct_AVProgram)(nil))](*C.struct_AVProgram))(unsafe.Pointer(fc.c.programs))
+	for i := 0; i < fc.NbPrograms(); i++ {
+		ps = append(ps, newProgramFromC(pcs[i], fc))
+	}
+	return
 }
 
 func (fc *FormatContext) SetPb(i *IOContext) {
@@ -188,6 +200,10 @@ func (fc *FormatContext) CloseInput() {
 	if fc.c != nil {
 		C.avformat_close_input(&fc.c)
 	}
+}
+
+func (fc *FormatContext) NewProgram(id int) *Program {
+	return newProgramFromC(C.av_new_program(fc.c, C.int(id)), fc)
 }
 
 func (fc *FormatContext) NewStream(c *Codec) *Stream {
