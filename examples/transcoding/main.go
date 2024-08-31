@@ -376,9 +376,8 @@ func initFilters() (err error) {
 			args = astiav.FilterArgs{
 				"pix_fmt":      strconv.Itoa(int(s.decCodecContext.PixelFormat())),
 				"pixel_aspect": s.decCodecContext.SampleAspectRatio().String(),
-				//"time_base":    s.decCodecContext.Framerate().Invert().String(),
-				"time_base":  s.inputStream.TimeBase().String(),
-				"video_size": strconv.Itoa(s.decCodecContext.Width()) + "x" + strconv.Itoa(s.decCodecContext.Height()),
+				"time_base":    s.inputStream.TimeBase().String(),
+				"video_size":   strconv.Itoa(s.decCodecContext.Width()) + "x" + strconv.Itoa(s.decCodecContext.Height()),
 			}
 			buffersrc = astiav.FindFilterByName("buffer")
 			buffersink = astiav.FindFilterByName("buffersink")
