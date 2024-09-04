@@ -37,6 +37,7 @@ type CodecContext struct {
 	c *C.struct_AVCodecContext
 	// We need to store this to unref it properly
 	hdc *HardwareDeviceContext
+	hfc *HardwareFrameContext
 }
 
 func newCodecContextFromC(c *C.struct_AVCodecContext) *CodecContext {
@@ -62,6 +63,10 @@ func (cc *CodecContext) Free() {
 	if cc.hdc != nil {
 		C.av_buffer_unref(&cc.hdc.c)
 		cc.hdc = nil
+	}
+	if cc.hfc != nil {
+		C.av_buffer_unref(&cc.hfc.c)
+		cc.hfc = nil
 	}
 	classers.del(cc)
 	C.avcodec_free_context(&cc.c)
@@ -341,6 +346,16 @@ func (cc *CodecContext) SetHardwareDeviceContext(hdc *HardwareDeviceContext) {
 	}
 }
 
+func (cc *CodecContext) SetHardwareFrameContext(hfc *HardwareFrameContext) {
+	if cc.c.hw_frames_ctx != nil {
+		C.av_buffer_unref(&cc.c.hw_frames_ctx)
+	}
+	cc.hfc = hfc
+	if cc.hfc != nil {
+		cc.c.hw_frames_ctx = C.av_buffer_ref(cc.hfc.c)
+	}
+}
+
 func (cc *CodecContext) ExtraHardwareFrames() int {
 	return int(cc.c.extra_hw_frames)
 }
@@ -391,5 +406,4 @@ func goAstiavCodecContextGetFormat(cc *C.struct_AVCodecContext, pfsCPtr *C.enum_
 
 	// Callback
 	return C.enum_AVPixelFormat(c(pfs))
-
 }
