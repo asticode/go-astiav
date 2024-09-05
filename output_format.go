@@ -6,10 +6,10 @@ import "unsafe"
 
 // https://github.com/FFmpeg/FFmpeg/blob/n5.0/libavformat/avformat.h#L503
 type OutputFormat struct {
-	c *C.struct_AVOutputFormat
+	c *C.AVOutputFormat
 }
 
-func newOutputFormatFromC(c *C.struct_AVOutputFormat) *OutputFormat {
+func newOutputFormatFromC(c *C.AVOutputFormat) *OutputFormat {
 	if c == nil {
 		return nil
 	}

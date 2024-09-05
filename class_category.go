@@ -4,8 +4,7 @@ package astiav
 import "C"
 
 // https://github.com/FFmpeg/FFmpeg/blob/n5.0/libavutil/log.h#L28
-// TODO Find a way to use C.enum_AVClassCategory instead of uint
-type ClassCategory uint
+type ClassCategory C.AVClassCategory
 
 const (
 	ClassCategoryBitstreamFilter   = ClassCategory(C.AV_CLASS_CATEGORY_BITSTREAM_FILTER)

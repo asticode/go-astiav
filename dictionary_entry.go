@@ -5,10 +5,10 @@ import "C"
 
 // https://github.com/FFmpeg/FFmpeg/blob/n5.0/libavutil/dict.h#L79
 type DictionaryEntry struct {
-	c *C.struct_AVDictionaryEntry
+	c *C.AVDictionaryEntry
 }
 
-func newDictionaryEntryFromC(c *C.struct_AVDictionaryEntry) *DictionaryEntry {
+func newDictionaryEntryFromC(c *C.AVDictionaryEntry) *DictionaryEntry {
 	return &DictionaryEntry{c: c}
 }
 

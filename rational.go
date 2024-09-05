@@ -6,10 +6,10 @@ import "strconv"
 
 // https://github.com/FFmpeg/FFmpeg/blob/n5.0/libavutil/rational.h#L58
 type Rational struct {
-	c C.struct_AVRational
+	c C.AVRational
 }
 
-func newRationalFromC(c C.struct_AVRational) Rational {
+func newRationalFromC(c C.AVRational) Rational {
 	return Rational{c: c}
 }
 

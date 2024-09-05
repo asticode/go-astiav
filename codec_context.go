@@ -1,30 +1,6 @@
 package astiav
 
-//#include <libavcodec/avcodec.h>
-//#include <libavutil/frame.h>
-/*
-extern enum AVPixelFormat goAstiavCodecContextGetFormat(AVCodecContext *ctx, enum AVPixelFormat *pix_fmts, int pix_fmts_size);
-
-static inline enum AVPixelFormat astiavCodecContextGetFormat(AVCodecContext *ctx, const enum AVPixelFormat *pix_fmts)
-{
-	int pix_fmts_size = 0;
-	while (*pix_fmts != AV_PIX_FMT_NONE) {
-		pix_fmts_size++;
-		pix_fmts++;
-	}
-	pix_fmts -= pix_fmts_size;
-	return goAstiavCodecContextGetFormat(ctx, (enum AVPixelFormat*)(pix_fmts), pix_fmts_size);
-}
-static inline void astiavSetCodecContextGetFormat(AVCodecContext *ctx)
-{
-	ctx->get_format = astiavCodecContextGetFormat;
-}
-static inline void astiavResetCodecContextGetFormat(AVCodecContext *ctx)
-{
-	ctx->get_format = NULL;
-}
-
-*/
+//#include "codec_context.h"
 import "C"
 import (
 	"sync"
@@ -33,12 +9,12 @@ import (
 
 // https://github.com/FFmpeg/FFmpeg/blob/n5.0/libavcodec/avcodec.h#L383
 type CodecContext struct {
-	c *C.struct_AVCodecContext
+	c *C.AVCodecContext
 	// We need to store this to unref it properly
 	hdc *HardwareDeviceContext
 }
 
-func newCodecContextFromC(c *C.struct_AVCodecContext) *CodecContext {
+func newCodecContextFromC(c *C.AVCodecContext) *CodecContext {
 	if c == nil {
 		return nil
 	}
@@ -50,7 +26,7 @@ func newCodecContextFromC(c *C.struct_AVCodecContext) *CodecContext {
 var _ Classer = (*CodecContext)(nil)
 
 func AllocCodecContext(c *Codec) *CodecContext {
-	var cc *C.struct_AVCodec
+	var cc *C.AVCodec
 	if c != nil {
 		cc = c.c
 	}
@@ -275,7 +251,7 @@ func (cc *CodecContext) SetWidth(width int) {
 }
 
 func (cc *CodecContext) Open(c *Codec, d *Dictionary) error {
-	var dc **C.struct_AVDictionary
+	var dc **C.AVDictionary
 	if d != nil {
 		dc = &d.c
 	}
@@ -283,7 +259,7 @@ func (cc *CodecContext) Open(c *Codec, d *Dictionary) error {
 }
 
 func (cc *CodecContext) ReceivePacket(p *Packet) error {
-	var pc *C.struct_AVPacket
+	var pc *C.AVPacket
 	if p != nil {
 		pc = p.c
 	}
@@ -291,7 +267,7 @@ func (cc *CodecContext) ReceivePacket(p *Packet) error {
 }
 
 func (cc *CodecContext) SendPacket(p *Packet) error {
-	var pc *C.struct_AVPacket
+	var pc *C.AVPacket
 	if p != nil {
 		pc = p.c
 	}
@@ -299,7 +275,7 @@ func (cc *CodecContext) SendPacket(p *Packet) error {
 }
 
 func (cc *CodecContext) ReceiveFrame(f *Frame) error {
-	var fc *C.struct_AVFrame
+	var fc *C.AVFrame
 	if f != nil {
 		fc = f.c
 	}
@@ -307,7 +283,7 @@ func (cc *CodecContext) ReceiveFrame(f *Frame) error {
 }
 
 func (cc *CodecContext) SendFrame(f *Frame) error {
-	var fc *C.struct_AVFrame
+	var fc *C.AVFrame
 	if f != nil {
 		fc = f.c
 	}
@@ -343,7 +319,7 @@ func (cc *CodecContext) SetExtraHardwareFrames(n int) {
 type CodecContextPixelFormatCallback func(pfs []PixelFormat) PixelFormat
 
 var (
-	codecContextPixelFormatCallbacks      = make(map[*C.struct_AVCodecContext]CodecContextPixelFormatCallback)
+	codecContextPixelFormatCallbacks      = make(map[*C.AVCodecContext]CodecContextPixelFormatCallback)
 	codecContextPixelFormatCallbacksMutex = &sync.Mutex{}
 )
 
@@ -363,7 +339,7 @@ func (cc *CodecContext) SetPixelFormatCallback(c CodecContextPixelFormatCallback
 }
 
 //export goAstiavCodecContextGetFormat
-func goAstiavCodecContextGetFormat(cc *C.struct_AVCodecContext, pfsCPtr *C.enum_AVPixelFormat, pfsCSize C.int) C.enum_AVPixelFormat {
+func goAstiavCodecContextGetFormat(cc *C.AVCodecContext, pfsCPtr *C.enum_AVPixelFormat, pfsCSize C.int) C.enum_AVPixelFormat {
 	// Lock
 	codecContextPixelFormatCallbacksMutex.Lock()
 	defer codecContextPixelFormatCallbacksMutex.Unlock()

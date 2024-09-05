@@ -9,10 +9,10 @@ import (
 
 // https://github.com/FFmpeg/FFmpeg/blob/n5.0/libavcodec/packet.h#L350
 type Packet struct {
-	c *C.struct_AVPacket
+	c *C.AVPacket
 }
 
-func newPacketFromC(c *C.struct_AVPacket) *Packet {
+func newPacketFromC(c *C.AVPacket) *Packet {
 	if c == nil {
 		return nil
 	}

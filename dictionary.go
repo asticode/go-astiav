@@ -10,14 +10,14 @@ import (
 
 // https://github.com/FFmpeg/FFmpeg/blob/n5.0/libavutil/dict.h#L84
 type Dictionary struct {
-	c *C.struct_AVDictionary
+	c *C.AVDictionary
 }
 
 func NewDictionary() *Dictionary {
 	return &Dictionary{}
 }
 
-func newDictionaryFromC(c *C.struct_AVDictionary) *Dictionary {
+func newDictionaryFromC(c *C.AVDictionary) *Dictionary {
 	if c == nil {
 		return nil
 	}
@@ -45,7 +45,7 @@ func (d *Dictionary) ParseString(i, keyValSep, pairsSep string, flags Dictionary
 func (d *Dictionary) Get(key string, prev *DictionaryEntry, flags DictionaryFlags) *DictionaryEntry {
 	ck := C.CString(key)
 	defer C.free(unsafe.Pointer(ck))
-	var cp *C.struct_AVDictionaryEntry
+	var cp *C.AVDictionaryEntry
 	if prev != nil {
 		cp = prev.c
 	}

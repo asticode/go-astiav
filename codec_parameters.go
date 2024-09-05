@@ -5,14 +5,14 @@ import "C"
 
 // https://github.com/FFmpeg/FFmpeg/blob/n5.0/libavcodec/codec_par.h#L52
 type CodecParameters struct {
-	c *C.struct_AVCodecParameters
+	c *C.AVCodecParameters
 }
 
 func AllocCodecParameters() *CodecParameters {
 	return newCodecParametersFromC(C.avcodec_parameters_alloc())
 }
 
-func newCodecParametersFromC(c *C.struct_AVCodecParameters) *CodecParameters {
+func newCodecParametersFromC(c *C.AVCodecParameters) *CodecParameters {
 	if c == nil {
 		return nil
 	}

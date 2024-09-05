@@ -9,10 +9,10 @@ import (
 
 // https://github.com/FFmpeg/FFmpeg/blob/n5.0/libavcodec/codec.h#L202
 type Codec struct {
-	c *C.struct_AVCodec
+	c *C.AVCodec
 }
 
-func newCodecFromC(c *C.struct_AVCodec) *Codec {
+func newCodecFromC(c *C.AVCodec) *Codec {
 	if c == nil {
 		return nil
 	}
@@ -37,7 +37,7 @@ func (c *Codec) ChannelLayouts() (o []ChannelLayout) {
 	}
 	size := unsafe.Sizeof(*c.c.ch_layouts)
 	for i := 0; ; i++ {
-		v, _ := newChannelLayoutFromC((*C.struct_AVChannelLayout)(unsafe.Pointer(uintptr(unsafe.Pointer(c.c.ch_layouts)) + uintptr(i)*size))).clone()
+		v, _ := newChannelLayoutFromC((*C.AVChannelLayout)(unsafe.Pointer(uintptr(unsafe.Pointer(c.c.ch_layouts)) + uintptr(i)*size))).clone()
 		if !v.Valid() {
 			break
 		}

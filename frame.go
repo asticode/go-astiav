@@ -14,10 +14,10 @@ const NumDataPointers = uint(C.AV_NUM_DATA_POINTERS)
 
 // https://github.com/FFmpeg/FFmpeg/blob/n5.0/libavutil/frame.h#L317
 type Frame struct {
-	c *C.struct_AVFrame
+	c *C.AVFrame
 }
 
-func newFrameFromC(c *C.struct_AVFrame) *Frame {
+func newFrameFromC(c *C.AVFrame) *Frame {
 	if c == nil {
 		return nil
 	}

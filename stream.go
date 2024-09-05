@@ -5,10 +5,10 @@ import "C"
 
 // https://github.com/FFmpeg/FFmpeg/blob/n5.0/libavformat/avformat.h#L937
 type Stream struct {
-	c *C.struct_AVStream
+	c *C.AVStream
 }
 
-func newStreamFromC(c *C.struct_AVStream) *Stream {
+func newStreamFromC(c *C.AVStream) *Stream {
 	if c == nil {
 		return nil
 	}

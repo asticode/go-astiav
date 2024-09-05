@@ -6,10 +6,10 @@ import "unsafe"
 
 // https://github.com/FFmpeg/FFmpeg/blob/n5.0/libavformat/avformat.h#L650
 type InputFormat struct {
-	c *C.struct_AVInputFormat
+	c *C.AVInputFormat
 }
 
-func newInputFormatFromC(c *C.struct_AVInputFormat) *InputFormat {
+func newInputFormatFromC(c *C.AVInputFormat) *InputFormat {
 	if c == nil {
 		return nil
 	}

@@ -9,11 +9,11 @@ import (
 
 // https://github.com/FFmpeg/FFmpeg/blob/n6.1.1/libavcodec/packet.h#L342
 type PacketSideData struct {
-	sd   **C.struct_AVPacketSideData
+	sd   **C.AVPacketSideData
 	size *C.int
 }
 
-func newPacketSideDataFromC(sd **C.struct_AVPacketSideData, size *C.int) *PacketSideData {
+func newPacketSideDataFromC(sd **C.AVPacketSideData, size *C.int) *PacketSideData {
 	return &PacketSideData{
 		sd:   sd,
 		size: size,

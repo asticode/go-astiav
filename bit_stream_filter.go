@@ -9,10 +9,10 @@ import (
 
 // https://github.com/FFmpeg/FFmpeg/blob/release/5.1/libavcodec/bsf.h#L111
 type BitStreamFilter struct {
-	c *C.struct_AVBitStreamFilter
+	c *C.AVBitStreamFilter
 }
 
-func newBitStreamFilterFromC(c *C.struct_AVBitStreamFilter) *BitStreamFilter {
+func newBitStreamFilterFromC(c *C.AVBitStreamFilter) *BitStreamFilter {
 	if c == nil {
 		return nil
 	}

@@ -1,13 +1,7 @@
 package astiav
 
 //#include <libavutil/imgutils.h>
-//#include <stdint.h>
-/*
-ptrdiff_t astiavFFAlign(int i, int align)
-{
-	return FFALIGN(i, align);
-}
-*/
+//#include "macros.h"
 import "C"
 import (
 	"errors"

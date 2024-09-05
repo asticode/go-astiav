@@ -6,10 +6,10 @@ import "unsafe"
 
 // https://github.com/FFmpeg/FFmpeg/blob/n5.0/libavfilter/avfilter.h#L165
 type Filter struct {
-	c *C.struct_AVFilter
+	c *C.AVFilter
 }
 
-func newFilterFromC(c *C.struct_AVFilter) *Filter {
+func newFilterFromC(c *C.AVFilter) *Filter {
 	if c == nil {
 		return nil
 	}

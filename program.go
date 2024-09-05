@@ -8,11 +8,11 @@ import (
 
 // https://github.com/FFmpeg/FFmpeg/blob/n7.0/libavformat/avformat.h#L1181
 type Program struct {
-	c  *C.struct_AVProgram
+	c  *C.AVProgram
 	fc *FormatContext
 }
 
-func newProgramFromC(c *C.struct_AVProgram, fc *FormatContext) *Program {
+func newProgramFromC(c *C.AVProgram, fc *FormatContext) *Program {
 	if c == nil {
 		return nil
 	}
