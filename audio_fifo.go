@@ -1,7 +1,6 @@
 package astiav
 
 //#include <libavutil/audio_fifo.h>
-//#include <stdlib.h>
 import "C"
 import "unsafe"
 
