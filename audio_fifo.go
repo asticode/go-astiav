@@ -34,17 +34,19 @@ func (a *AudioFifo) Space() int {
 }
 
 func (a *AudioFifo) Write(f *Frame) (int, error) {
-	frameRawData := (**uint8)(unsafe.Pointer(&f.c.data[0]))
-	ret := int(C.av_audio_fifo_write(a.c, (*unsafe.Pointer)(unsafe.Pointer(frameRawData)), C.int(f.NbSamples())))
+	ret := int(C.av_audio_fifo_write(a.c, (*unsafe.Pointer)(unsafe.Pointer(&f.c.data[0])), C.int(f.NbSamples())))
 	if ret < 0 {
 		return ret, newError(C.int(ret))
 	}
 	return ret, nil
 }
 
-func (a *AudioFifo) Read(f *Frame) int {
-	frameRawData := (**uint8)(unsafe.Pointer(&f.c.data[0]))
-	return int(C.av_audio_fifo_read(a.c, (*unsafe.Pointer)(unsafe.Pointer(frameRawData)), C.int(f.NbSamples())))
+func (a *AudioFifo) Read(f *Frame) (int, error) {
+	ret := int(C.av_audio_fifo_read(a.c, (*unsafe.Pointer)(unsafe.Pointer(&f.c.data[0])), C.int(f.NbSamples())))
+	if ret < 0 {
+		return ret, newError(C.int(ret))
+	}
+	return ret, nil
 }
 
 func (a *AudioFifo) Free() {

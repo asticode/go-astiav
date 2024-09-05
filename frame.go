@@ -217,7 +217,3 @@ func (f *Frame) MoveRef(src *Frame) {
 func (f *Frame) UnsafePointer() unsafe.Pointer {
 	return unsafe.Pointer(f.c)
 }
-
-func (f *Frame) DataPtr() **uint8 {
-	return (**uint8)(unsafe.Pointer(&f.c.data[0]))
-}

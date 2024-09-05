@@ -29,14 +29,15 @@ func TestAudioFIFO(t *testing.T) {
 	readFrame.AllocBuffer(0)
 
 	written, err := af.Write(writeFrame)
-	require.Equal(t, err, nil)
+	require.NoError(t, err)
 	require.Equal(t, writeSamples, written)
-	read := af.Read(readFrame)
+	read, err := af.Read(readFrame)
+	require.NoError(t, err)
 	require.Equal(t, readSamples, read)
 	require.Equal(t, af.Size(), writeSamples-readSamples)
 	reallocSamples := 3000
 	err = af.Realloc(reallocSamples)
-	require.Equal(t, err, nil)
+	require.NoError(t, err)
 	expectedAfSize := writeSamples - readSamples
 	require.Equal(t, af.Space(), reallocSamples-expectedAfSize)
 	// It still has the same amount of data
