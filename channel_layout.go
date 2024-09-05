@@ -67,8 +67,8 @@ func (l ChannelLayout) String() string {
 
 func (l ChannelLayout) Describe(b []byte) (int, error) {
 	ret := C.av_channel_layout_describe(l.c, (*C.char)(unsafe.Pointer(&b[0])), C.size_t(len(b)))
-	if ret < 0 {
-		return 0, newError(ret)
+	if err := newError(ret); err != nil {
+		return 0, err
 	}
 	if ret > 0 && b[ret-1] == '\x00' {
 		ret -= 1
@@ -82,8 +82,8 @@ func (l ChannelLayout) Valid() bool {
 
 func (l ChannelLayout) Compare(l2 ChannelLayout) (equal bool, err error) {
 	ret := C.av_channel_layout_compare(l.c, l2.c)
-	if ret < 0 {
-		return false, newError(ret)
+	if err := newError(ret); err != nil {
+		return false, err
 	}
 	return ret == 0, nil
 }

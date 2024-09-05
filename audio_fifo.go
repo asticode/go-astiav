@@ -10,7 +10,7 @@ type AudioFifo struct {
 	c *C.AVAudioFifo
 }
 
-func newAudioFifoFromC(c *C.struct_AVAudioFifo) *AudioFifo {
+func newAudioFifoFromC(c *C.AVAudioFifo) *AudioFifo {
 	if c == nil {
 		return nil
 	}
@@ -34,19 +34,19 @@ func (a *AudioFifo) Space() int {
 }
 
 func (a *AudioFifo) Write(f *Frame) (int, error) {
-	ret := int(C.av_audio_fifo_write(a.c, (*unsafe.Pointer)(unsafe.Pointer(&f.c.data[0])), C.int(f.NbSamples())))
-	if ret < 0 {
-		return ret, newError(C.int(ret))
+	ret := C.av_audio_fifo_write(a.c, (*unsafe.Pointer)(unsafe.Pointer(&f.c.data[0])), C.int(f.NbSamples()))
+	if err := newError(ret); err != nil {
+		return 0, err
 	}
-	return ret, nil
+	return int(ret), nil
 }
 
 func (a *AudioFifo) Read(f *Frame) (int, error) {
-	ret := int(C.av_audio_fifo_read(a.c, (*unsafe.Pointer)(unsafe.Pointer(&f.c.data[0])), C.int(f.NbSamples())))
-	if ret < 0 {
-		return ret, newError(C.int(ret))
+	ret := C.av_audio_fifo_read(a.c, (*unsafe.Pointer)(unsafe.Pointer(&f.c.data[0])), C.int(f.NbSamples()))
+	if err := newError(ret); err != nil {
+		return 0, err
 	}
-	return ret, nil
+	return int(ret), nil
 }
 
 func (a *AudioFifo) Free() {
