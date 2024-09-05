@@ -33,8 +33,8 @@ func (f *Frame) AllocBuffer(align int) error {
 	return newError(C.av_frame_get_buffer(f.c, C.int(align)))
 }
 
-func (f *Frame) AllocHWBuffer(hfc *HardwareFrameContext, align int) error {
-	return newError(C.av_hwframe_get_buffer(hfc.c, f.c, C.int(align)))
+func (f *Frame) AllocHardwareBuffer(hfc *HardwareFrameContext) error {
+	return newError(C.av_hwframe_get_buffer(hfc.c, f.c, 0))
 }
 
 func (f *Frame) AllocImage(align int) error {

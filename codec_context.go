@@ -347,8 +347,8 @@ func (cc *CodecContext) SetHardwareDeviceContext(hdc *HardwareDeviceContext) {
 }
 
 func (cc *CodecContext) SetHardwareFrameContext(hfc *HardwareFrameContext) {
-	if cc.c.hw_frames_ctx != nil {
-		C.av_buffer_unref(&cc.c.hw_frames_ctx)
+	if cc.hfc != nil {
+		C.av_buffer_unref(&cc.hfc.c)
 	}
 	cc.hfc = hfc
 	if cc.hfc != nil {
