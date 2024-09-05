@@ -7,11 +7,11 @@ import (
 )
 
 func TestAudioFIFO(t *testing.T) {
-	audioFifo := AllocAudioFifo(
+	af := AllocAudioFifo(
 		SampleFormatFltp,
 		2,
 		960)
-
+	defer af.Free()
 	writeSamples := 1024
 	readSamples := 120
 	writeFrame := AllocFrame()
@@ -28,9 +28,17 @@ func TestAudioFIFO(t *testing.T) {
 	readFrame.SetSampleRate(48000)
 	readFrame.AllocBuffer(0)
 
-	written := audioFifo.AudioFifoWrite(writeFrame.DataPtr(), writeFrame.NbSamples())
+	written, err := af.Write(writeFrame)
+	require.Equal(t, err, nil)
 	require.Equal(t, writeSamples, written)
-	read := audioFifo.AudioFifoRead(readFrame.DataPtr(), readFrame.NbSamples())
+	read := af.Read(readFrame)
 	require.Equal(t, readSamples, read)
-	require.Equal(t, audioFifo.AudioFifoSize(), writeSamples-readSamples)
+	require.Equal(t, af.Size(), writeSamples-readSamples)
+	reallocSamples := 3000
+	err = af.Realloc(reallocSamples)
+	require.Equal(t, err, nil)
+	expectedAfSize := writeSamples - readSamples
+	require.Equal(t, af.Space(), reallocSamples-expectedAfSize)
+	// It still has the same amount of data
+	require.Equal(t, af.Size(), expectedAfSize)
 }

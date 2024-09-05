@@ -1,13 +1,13 @@
 package astiav
 
-//#cgo pkg-config: libavutil
 //#include <libavutil/audio_fifo.h>
 //#include <stdlib.h>
 import "C"
 import "unsafe"
 
+// https://github.com/FFmpeg/FFmpeg/blob/n7.0/libavutil/audio_fifo.c#L37
 type AudioFifo struct {
-	c *C.struct_AVAudioFifo
+	c *C.AVAudioFifo
 }
 
 func newAudioFifoFromC(c *C.struct_AVAudioFifo) *AudioFifo {
@@ -21,26 +21,32 @@ func AllocAudioFifo(sampleFmt SampleFormat, channels int, nbSamples int) *AudioF
 	return newAudioFifoFromC(C.av_audio_fifo_alloc(C.enum_AVSampleFormat(sampleFmt), C.int(channels), C.int(nbSamples)))
 }
 
-func (a *AudioFifo) AudioFifoRealloc(nbSamples int) int {
-	return int(C.av_audio_fifo_realloc((*C.struct_AVAudioFifo)(a.c), C.int(nbSamples)))
+func (a *AudioFifo) Realloc(nbSamples int) error {
+	return newError(C.av_audio_fifo_realloc(a.c, C.int(nbSamples)))
 }
 
-func (a *AudioFifo) AudioFifoSize() int {
-	return int(C.av_audio_fifo_size((*C.struct_AVAudioFifo)(a.c)))
+func (a *AudioFifo) Size() int {
+	return int(C.av_audio_fifo_size(a.c))
 }
 
-func (a *AudioFifo) AudioFifoSpace() int {
-	return int(C.av_audio_fifo_space((*C.struct_AVAudioFifo)(a.c)))
+func (a *AudioFifo) Space() int {
+	return int(C.av_audio_fifo_space(a.c))
 }
 
-func (a *AudioFifo) AudioFifoWrite(data **uint8, nbSamples int) int {
-	return int(C.av_audio_fifo_write((*C.struct_AVAudioFifo)(a.c), (*unsafe.Pointer)(unsafe.Pointer(data)), C.int(nbSamples)))
+func (a *AudioFifo) Write(f *Frame) (int, error) {
+	frameRawData := (**uint8)(unsafe.Pointer(&f.c.data[0]))
+	ret := int(C.av_audio_fifo_write(a.c, (*unsafe.Pointer)(unsafe.Pointer(frameRawData)), C.int(f.NbSamples())))
+	if ret < 0 {
+		return ret, newError(C.int(ret))
+	}
+	return ret, nil
 }
 
-func (a *AudioFifo) AudioFifoRead(data **uint8, nbSamples int) int {
-	return int(C.av_audio_fifo_read((*C.struct_AVAudioFifo)(a.c), (*unsafe.Pointer)(unsafe.Pointer(data)), C.int(nbSamples)))
+func (a *AudioFifo) Read(f *Frame) int {
+	frameRawData := (**uint8)(unsafe.Pointer(&f.c.data[0]))
+	return int(C.av_audio_fifo_read(a.c, (*unsafe.Pointer)(unsafe.Pointer(frameRawData)), C.int(f.NbSamples())))
 }
 
-func (a *AudioFifo) AudioFifoFree() {
-	C.av_audio_fifo_free((*C.struct_AVAudioFifo)(a.c))
+func (a *AudioFifo) Free() {
+	C.av_audio_fifo_free(a.c)
 }
