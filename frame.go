@@ -1,6 +1,5 @@
 package astiav
 
-//#cgo pkg-config: libavutil
 //#include <libavutil/channel_layout.h>
 //#include <libavutil/frame.h>
 //#include <libavutil/imgutils.h>

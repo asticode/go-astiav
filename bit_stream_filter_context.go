@@ -1,6 +1,5 @@
 package astiav
 
-//#cgo pkg-config: libavcodec
 //#include <libavcodec/bsf.h>
 import "C"
 import (

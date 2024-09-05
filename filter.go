@@ -1,6 +1,5 @@
 package astiav
 
-//#cgo pkg-config: libavfilter
 //#include <libavfilter/avfilter.h>
 import "C"
 import "unsafe"

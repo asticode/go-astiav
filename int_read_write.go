@@ -1,6 +1,5 @@
 package astiav
 
-//#cgo pkg-config: libavutil
 //#include <libavutil/intreadwrite.h>
 /*
 uint32_t astiavRL32(uint8_t *i) {

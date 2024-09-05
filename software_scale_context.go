@@ -1,6 +1,5 @@
 package astiav
 
-//#cgo pkg-config: libswscale
 //#include <libswscale/swscale.h>
 import "C"
 import (

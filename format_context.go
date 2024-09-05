@@ -1,6 +1,5 @@
 package astiav
 
-//#cgo pkg-config: libavcodec libavformat
 //#include <libavcodec/avcodec.h>
 //#include <libavformat/avformat.h>
 import "C"

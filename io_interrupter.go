@@ -1,6 +1,5 @@
 package astiav
 
-//#cgo pkg-config: libavformat
 //#include <libavformat/avio.h>
 /*
 int astiavInterruptCallback(void *ret)
