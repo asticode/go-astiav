@@ -73,7 +73,7 @@ jobs:
 
     - if: ${{ steps.load-ffmpeg-cache.outputs.cache-hit != 'true' }}
       name: Save ffmpeg cache
-      uses: actions/cache/save@v3
+      uses: actions/cache/save@v4
       with:
         path: ${{ env.FFMPEG_CACHE_PATH }}
         key: ffmpeg-${{ env.FFMPEG_VERSION }}-${{ runner.os }}
