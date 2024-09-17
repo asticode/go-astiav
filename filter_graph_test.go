@@ -97,13 +97,13 @@ func TestFilterGraph(t *testing.T) {
 				channelLayout: ChannelLayoutStereo,
 				mediaType:     MediaTypeAudio,
 				sampleFormat:  SampleFormatS16,
-				sampleRate:    4,
+				sampleRate:    3,
 				timeBase:      NewRational(1, 4),
 			},
 			buffersinkName: "abuffersink",
 			buffersrcName:  "abuffer",
-			content:        "[input_1]aformat=sample_fmts=s16:channel_layouts=stereo:sample_rates=4,asettb=1/4",
-			s:              "                                                  +---------------+\nParsed_asettb_1:default--[4Hz s16:stereo]--default|  filter_out   |\n                                                  | (abuffersink) |\n                                                  +---------------+\n\n+-------------+\n| filter_in_1 |default--[2Hz fltp:mono]--auto_aresample_0:default\n|  (abuffer)  |\n+-------------+\n\n                                                   +------------------+\nauto_aresample_0:default--[4Hz s16:stereo]--default| Parsed_aformat_0 |default--[4Hz s16:stereo]--Parsed_asettb_1:default\n                                                   |    (aformat)     |\n                                                   +------------------+\n\n                                                   +-----------------+\nParsed_aformat_0:default--[4Hz s16:stereo]--default| Parsed_asettb_1 |default--[4Hz s16:stereo]--filter_out:default\n                                                   |    (asettb)     |\n                                                   +-----------------+\n\n                                             +------------------+\nfilter_in_1:default--[2Hz fltp:mono]--default| auto_aresample_0 |default--[4Hz s16:stereo]--Parsed_aformat_0:default\n                                             |   (aresample)    |\n                                             +------------------+\n\n",
+			content:        "[input_1]aformat=sample_fmts=s16:channel_layouts=stereo:sample_rates=3,asettb=1/4",
+			s:              "                                                  +---------------+\nParsed_asettb_1:default--[3Hz s16:stereo]--default|  filter_out   |\n                                                  | (abuffersink) |\n                                                  +---------------+\n\n+-------------+\n| filter_in_1 |default--[2Hz fltp:mono]--auto_aresample_0:default\n|  (abuffer)  |\n+-------------+\n\n                                                   +------------------+\nauto_aresample_0:default--[3Hz s16:stereo]--default| Parsed_aformat_0 |default--[3Hz s16:stereo]--Parsed_asettb_1:default\n                                                   |    (aformat)     |\n                                                   +------------------+\n\n                                                   +-----------------+\nParsed_aformat_0:default--[3Hz s16:stereo]--default| Parsed_asettb_1 |default--[3Hz s16:stereo]--filter_out:default\n                                                   |    (asettb)     |\n                                                   +-----------------+\n\n                                             +------------------+\nfilter_in_1:default--[2Hz fltp:mono]--default| auto_aresample_0 |default--[3Hz s16:stereo]--Parsed_aformat_0:default\n                                             |   (aresample)    |\n                                             +------------------+\n\n",
 			sources: []FilterArgs{
 				{
 					"channel_layout": ChannelLayoutMono.String(),
@@ -200,6 +200,26 @@ func TestFilterGraph(t *testing.T) {
 			require.Equal(t, command.resp, resp)
 		}
 	}
+
+	fg2 := AllocFilterGraph()
+	require.NotNil(t, fg2)
+	defer fg2.Free()
+	fgs, err := fg2.ParseSegment("anullsrc")
+	require.NoError(t, err)
+	defer fgs.Free()
+	require.Equal(t, 1, fgs.NbChains())
+	cs := fgs.Chains()
+	require.Equal(t, 1, len(cs))
+	require.Equal(t, 1, cs[0].NbFilters())
+	fs := cs[0].Filters()
+	require.Equal(t, 1, len(fs))
+	f := FindFilterByName(fs[0].FilterName())
+	require.NotNil(t, f)
+	require.Equal(t, 0, f.NbInputs())
+	require.Equal(t, 1, f.NbOutputs())
+	os := f.Outputs()
+	require.Equal(t, 1, len(os))
+	require.Equal(t, MediaTypeAudio, os[0].MediaType())
 
 	// TODO Test BuffersrcAddFrame
 	// TODO Test BuffersinkGetFrame

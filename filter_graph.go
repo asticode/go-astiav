@@ -97,6 +97,16 @@ func (g *FilterGraph) Parse(content string, inputs, outputs *FilterInOut) error 
 	return newError(C.avfilter_graph_parse_ptr(g.c, cc, ic, oc, nil))
 }
 
+func (g *FilterGraph) ParseSegment(content string) (*FilterGraphSegment, error) {
+	cc := C.CString(content)
+	defer C.free(unsafe.Pointer(cc))
+	var cs *C.AVFilterGraphSegment
+	if err := newError(C.avfilter_graph_segment_parse(g.c, cc, 0, &cs)); err != nil {
+		return nil, err
+	}
+	return newFilterGraphSegmentFromC(cs), nil
+}
+
 func (g *FilterGraph) Configure() error {
 	return newError(C.avfilter_graph_config(g.c, nil))
 }
