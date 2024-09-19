@@ -13,4 +13,6 @@ func TestChannelLayout(t *testing.T) {
 	require.True(t, cl.Valid())
 	require.True(t, cl.Equal(ChannelLayoutStereo))
 	require.False(t, cl.Equal(ChannelLayoutMono))
+	cl = ChannelLayout{}
+	require.Equal(t, "", cl.String())
 }

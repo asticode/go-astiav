@@ -2,7 +2,10 @@ package astiav
 
 //#include "channel_layout.h"
 import "C"
-import "unsafe"
+import (
+	"errors"
+	"unsafe"
+)
 
 // https://github.com/FFmpeg/FFmpeg/blob/n5.0/libavutil/channel_layout.h#L90
 var (
@@ -66,6 +69,9 @@ func (l ChannelLayout) String() string {
 }
 
 func (l ChannelLayout) Describe(b []byte) (int, error) {
+	if l.c == nil {
+		return 0, errors.New("astiav: channel layout is nil")
+	}
 	ret := C.av_channel_layout_describe(l.c, (*C.char)(unsafe.Pointer(&b[0])), C.size_t(len(b)))
 	if err := newError(ret); err != nil {
 		return 0, err
