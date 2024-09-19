@@ -3,7 +3,6 @@ package astiav
 //#include "channel_layout.h"
 import "C"
 import (
-	"errors"
 	"unsafe"
 )
 
@@ -56,6 +55,9 @@ func newChannelLayoutFromC(c *C.AVChannelLayout) ChannelLayout {
 }
 
 func (l ChannelLayout) Channels() int {
+	if l.c == nil {
+		return 0
+	}
 	return int(l.c.nb_channels)
 }
 
@@ -70,7 +72,7 @@ func (l ChannelLayout) String() string {
 
 func (l ChannelLayout) Describe(b []byte) (int, error) {
 	if l.c == nil {
-		return 0, errors.New("astiav: channel layout is nil")
+		return 0, nil
 	}
 	ret := C.av_channel_layout_describe(l.c, (*C.char)(unsafe.Pointer(&b[0])), C.size_t(len(b)))
 	if err := newError(ret); err != nil {
@@ -83,10 +85,16 @@ func (l ChannelLayout) Describe(b []byte) (int, error) {
 }
 
 func (l ChannelLayout) Valid() bool {
+	if l.c == nil {
+		return false
+	}
 	return C.av_channel_layout_check(l.c) > 0
 }
 
 func (l ChannelLayout) Compare(l2 ChannelLayout) (equal bool, err error) {
+	if l.c == nil || l2.c == nil {
+		return l.c == nil && l2.c == nil, nil
+	}
 	ret := C.av_channel_layout_compare(l.c, l2.c)
 	if err := newError(ret); err != nil {
 		return false, err
