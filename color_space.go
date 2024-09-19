@@ -1,5 +1,6 @@
 package astiav
 
+//#include <libavutil/pixdesc.h>
 //#include <libavutil/pixfmt.h>
 import "C"
 
@@ -25,3 +26,7 @@ const (
 	ColorSpaceIctcp            = ColorSpace(C.AVCOL_SPC_ICTCP)
 	ColorSpaceNb               = ColorSpace(C.AVCOL_SPC_NB)
 )
+
+func (s ColorSpace) String() string {
+	return C.GoString(C.av_color_space_name(C.enum_AVColorSpace(s)))
+}

@@ -80,6 +80,10 @@ func (cp *CodecParameters) ColorSpace() ColorSpace {
 	return ColorSpace(cp.c.color_space)
 }
 
+func (cp *CodecParameters) SetColorSpace(s ColorSpace) {
+	cp.c.color_space = C.enum_AVColorSpace(s)
+}
+
 func (cp *CodecParameters) ColorTransferCharacteristic() ColorTransferCharacteristic {
 	return ColorTransferCharacteristic(cp.c.color_trc)
 }

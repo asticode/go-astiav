@@ -20,6 +20,14 @@ func (l *FilterLink) ChannelLayout() ChannelLayout {
 	return v
 }
 
+func (l *FilterLink) ColorRange() ColorRange {
+	return ColorRange(l.c.color_range)
+}
+
+func (l *FilterLink) ColorSpace() ColorSpace {
+	return ColorSpace(l.c.colorspace)
+}
+
 func (l *FilterLink) FrameRate() Rational {
 	return newRationalFromC(l.c.frame_rate)
 }

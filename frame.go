@@ -57,6 +57,14 @@ func (f *Frame) SetColorRange(r ColorRange) {
 	f.c.color_range = C.enum_AVColorRange(r)
 }
 
+func (f *Frame) ColorSpace() ColorSpace {
+	return ColorSpace(f.c.colorspace)
+}
+
+func (f *Frame) SetColorSpace(s ColorSpace) {
+	f.c.colorspace = C.enum_AVColorSpace(s)
+}
+
 func (f *Frame) Data() *FrameData {
 	return newFrameData(newFrameDataFrame(f))
 }

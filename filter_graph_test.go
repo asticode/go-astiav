@@ -33,6 +33,8 @@ func TestFilterGraph(t *testing.T) {
 	}
 	type link struct {
 		channelLayout     ChannelLayout
+		colorRange        ColorRange
+		colorSpace        ColorSpace
 		frameRate         Rational
 		height            int
 		mediaType         MediaType
@@ -55,13 +57,15 @@ func TestFilterGraph(t *testing.T) {
 	for _, v := range []graph{
 		{
 			buffersinkExpectedInput: link{
+				colorRange:        ColorRangeUnspecified,
+				colorSpace:        ColorSpaceUnspecified,
 				frameRate:         NewRational(4, 1),
-				height:            4,
+				height:            8,
 				mediaType:         MediaTypeVideo,
-				pixelFormat:       PixelFormatRgba,
-				sampleAspectRatio: NewRational(1, 4),
+				pixelFormat:       PixelFormatYuv420P,
+				sampleAspectRatio: NewRational(2, 1),
 				timeBase:          NewRational(1, 4),
-				width:             2,
+				width:             4,
 			},
 			buffersinkName: "buffersink",
 			buffersrcName:  "buffer",
@@ -80,15 +84,15 @@ func TestFilterGraph(t *testing.T) {
 					target: "scale",
 				},
 			},
-			content: "[input_1]scale=2x4,settb=1/4,fps=fps=4/1,format=pix_fmts=rgba,setsar=1/4",
-			s:       "                                                +--------------+\nParsed_setsar_4:default--[2x4 1:4 rgba]--default|  filter_out  |\n                                                | (buffersink) |\n                                                +--------------+\n\n+-------------+\n| filter_in_1 |default--[1x2 1:2 yuv420p]--Parsed_scale_0:default\n|  (buffer)   |\n+-------------+\n\n                                               +----------------+\nfilter_in_1:default--[1x2 1:2 yuv420p]--default| Parsed_scale_0 |default--[2x4 1:2 rgba]--Parsed_settb_1:default\n                                               |    (scale)     |\n                                               +----------------+\n\n                                               +----------------+\nParsed_scale_0:default--[2x4 1:2 rgba]--default| Parsed_settb_1 |default--[2x4 1:2 rgba]--Parsed_fps_2:default\n                                               |    (settb)     |\n                                               +----------------+\n\n                                               +--------------+\nParsed_settb_1:default--[2x4 1:2 rgba]--default| Parsed_fps_2 |default--[2x4 1:2 rgba]--Parsed_format_3:default\n                                               |    (fps)     |\n                                               +--------------+\n\n                                             +-----------------+\nParsed_fps_2:default--[2x4 1:2 rgba]--default| Parsed_format_3 |default--[2x4 1:2 rgba]--Parsed_setsar_4:default\n                                             |    (format)     |\n                                             +-----------------+\n\n                                                +-----------------+\nParsed_format_3:default--[2x4 1:2 rgba]--default| Parsed_setsar_4 |default--[2x4 1:4 rgba]--filter_out:default\n                                                |    (setsar)     |\n                                                +-----------------+\n\n",
+			content: "[input_1]scale=4x8,settb=1/4,fps=fps=4/1,format=pix_fmts=yuv420p,setsar=2/1",
+			s:       "                                                   +--------------+\nParsed_setsar_4:default--[4x8 2:1 yuv420p]--default|  filter_out  |\n                                                   | (buffersink) |\n                                                   +--------------+\n\n+-------------+\n| filter_in_1 |default--[2x4 1:2 rgba]--Parsed_scale_0:default\n|  (buffer)   |\n+-------------+\n\n                                            +----------------+\nfilter_in_1:default--[2x4 1:2 rgba]--default| Parsed_scale_0 |default--[4x8 1:2 yuv420p]--Parsed_settb_1:default\n                                            |    (scale)     |\n                                            +----------------+\n\n                                                  +----------------+\nParsed_scale_0:default--[4x8 1:2 yuv420p]--default| Parsed_settb_1 |default--[4x8 1:2 yuv420p]--Parsed_fps_2:default\n                                                  |    (settb)     |\n                                                  +----------------+\n\n                                                  +--------------+\nParsed_settb_1:default--[4x8 1:2 yuv420p]--default| Parsed_fps_2 |default--[4x8 1:2 yuv420p]--Parsed_format_3:default\n                                                  |    (fps)     |\n                                                  +--------------+\n\n                                                +-----------------+\nParsed_fps_2:default--[4x8 1:2 yuv420p]--default| Parsed_format_3 |default--[4x8 1:2 yuv420p]--Parsed_setsar_4:default\n                                                |    (format)     |\n                                                +-----------------+\n\n                                                   +-----------------+\nParsed_format_3:default--[4x8 1:2 yuv420p]--default| Parsed_setsar_4 |default--[4x8 2:1 yuv420p]--filter_out:default\n                                                   |    (setsar)     |\n                                                   +-----------------+\n\n",
 			sources: []FilterArgs{
 				{
-					"height":    "2",
-					"pix_fmt":   strconv.Itoa(int(PixelFormatYuv420P)),
+					"height":    "4",
+					"pix_fmt":   strconv.Itoa(int(PixelFormatRgba)),
 					"sar":       "1/2",
 					"time_base": "1/2",
-					"width":     "1",
+					"width":     "2",
 				},
 			},
 		},
@@ -174,6 +178,8 @@ func TestFilterGraph(t *testing.T) {
 			require.Equal(t, e.sampleFormat, g.SampleFormat())
 			require.Equal(t, e.sampleRate, g.SampleRate())
 		default:
+			require.Equal(t, e.colorRange, g.ColorRange())
+			require.Equal(t, e.colorSpace, g.ColorSpace())
 			require.Equal(t, e.height, g.Height())
 			require.Equal(t, e.pixelFormat, g.PixelFormat())
 			require.Equal(t, e.sampleAspectRatio, g.SampleAspectRatio())
