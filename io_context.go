@@ -243,7 +243,7 @@ func goAstiavIOContextReadFunc(opaque unsafe.Pointer, buf *C.uint8_t, bufSize C.
 		if errors.As(err, &e) {
 			return C.int(e)
 		} else if errors.Is(err, io.EOF) {
-			return C.int(C.AVERROR_EOF)
+			return C.AVERROR_EOF
 		}
 		return C.AVERROR_UNKNOWN
 	}

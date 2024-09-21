@@ -41,7 +41,7 @@ func TestIOContext(t *testing.T) {
 		require.Equal(t, wb, written)
 	})
 
-	t.Run("support go eof -> ffmpeg eof when reading", func(t *testing.T) {
+	t.Run("io.EOF is mapped to AVERROR_EOF when reading", func(t *testing.T) {
 		c, err := AllocIOContext(8, false, func(b []byte) (int, error) {
 			return 0, io.EOF
 		}, nil, nil)
