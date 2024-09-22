@@ -1,6 +1,5 @@
 package astiav
 
-//#cgo pkg-config: libavutil
 //#include <libavutil/frame.h>
 import "C"
 

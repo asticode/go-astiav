@@ -1,6 +1,5 @@
 package astiav
 
-//#cgo pkg-config: libavutil
 //#include <libavutil/avutil.h>
 //#include <errno.h>
 import "C"

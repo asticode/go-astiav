@@ -1,6 +1,5 @@
 package astiav
 
-//#cgo pkg-config: libavcodec
 //#include <libavcodec/bsf.h>
 import "C"
 import (
@@ -10,10 +9,10 @@ import (
 
 // https://github.com/FFmpeg/FFmpeg/blob/release/5.1/libavcodec/bsf.h#L68
 type BitStreamFilterContext struct {
-	c *C.struct_AVBSFContext
+	c *C.AVBSFContext
 }
 
-func newBSFContextFromC(c *C.struct_AVBSFContext) *BitStreamFilterContext {
+func newBSFContextFromC(c *C.AVBSFContext) *BitStreamFilterContext {
 	if c == nil {
 		return nil
 	}
@@ -29,7 +28,7 @@ func AllocBitStreamFilterContext(f *BitStreamFilter) (*BitStreamFilterContext, e
 		return nil, errors.New("astiav: bit stream filter must not be nil")
 	}
 
-	var bsfc *C.struct_AVBSFContext
+	var bsfc *C.AVBSFContext
 	if err := newError(C.av_bsf_alloc(f.c, &bsfc)); err != nil {
 		return nil, err
 	}
@@ -46,7 +45,7 @@ func (bsfc *BitStreamFilterContext) Initialize() error {
 }
 
 func (bsfc *BitStreamFilterContext) SendPacket(p *Packet) error {
-	var pc *C.struct_AVPacket
+	var pc *C.AVPacket
 	if p != nil {
 		pc = p.c
 	}

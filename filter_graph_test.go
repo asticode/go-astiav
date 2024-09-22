@@ -12,88 +12,220 @@ import (
 )
 
 func TestFilterGraph(t *testing.T) {
-	fg := AllocFilterGraph()
-	defer fg.Free()
-	cl := fg.Class()
+	fg1 := AllocFilterGraph()
+	require.NotNil(t, fg1)
+	defer fg1.Free()
+	cl := fg1.Class()
 	require.NotNil(t, cl)
 	require.Equal(t, "AVFilterGraph", cl.Name())
-	fg.SetThreadCount(2)
-	require.Equal(t, 2, fg.ThreadCount())
-	fg.SetThreadType(ThreadTypeSlice)
-	require.Equal(t, ThreadTypeSlice, fg.ThreadType())
+	fg1.SetThreadCount(2)
+	require.Equal(t, 2, fg1.ThreadCount())
+	fg1.SetThreadType(ThreadTypeSlice)
+	require.Equal(t, ThreadTypeSlice, fg1.ThreadType())
 
-	bufferSink := FindFilterByName("buffersink")
-	require.NotNil(t, bufferSink)
+	type command struct {
+		args      string
+		cmd       string
+		flags     FilterCommandFlags
+		resp      string
+		target    string
+		withError bool
+	}
+	type link struct {
+		channelLayout     ChannelLayout
+		colorRange        ColorRange
+		colorSpace        ColorSpace
+		frameRate         Rational
+		height            int
+		mediaType         MediaType
+		pixelFormat       PixelFormat
+		sampleAspectRatio Rational
+		sampleFormat      SampleFormat
+		sampleRate        int
+		timeBase          Rational
+		width             int
+	}
+	type graph struct {
+		buffersinkExpectedInput link
+		buffersinkName          string
+		buffersrcName           string
+		commands                []command
+		content                 string
+		s                       string
+		sources                 []FilterArgs
+	}
+	for _, v := range []graph{
+		{
+			buffersinkExpectedInput: link{
+				colorRange:        ColorRangeUnspecified,
+				colorSpace:        ColorSpaceUnspecified,
+				frameRate:         NewRational(4, 1),
+				height:            8,
+				mediaType:         MediaTypeVideo,
+				pixelFormat:       PixelFormatYuv420P,
+				sampleAspectRatio: NewRational(2, 1),
+				timeBase:          NewRational(1, 4),
+				width:             4,
+			},
+			buffersinkName: "buffersink",
+			buffersrcName:  "buffer",
+			commands: []command{
+				{
+					args:      "a",
+					cmd:       "invalid",
+					flags:     NewFilterCommandFlags(),
+					target:    "scale",
+					withError: true,
+				},
+				{
+					args:   "4",
+					cmd:    "width",
+					flags:  NewFilterCommandFlags().Add(FilterCommandFlagOne),
+					target: "scale",
+				},
+			},
+			content: "[input_1]scale=4x8,settb=1/4,fps=fps=4/1,format=pix_fmts=yuv420p,setsar=2/1",
+			s:       "                                                   +--------------+\nParsed_setsar_4:default--[4x8 2:1 yuv420p]--default|  filter_out  |\n                                                   | (buffersink) |\n                                                   +--------------+\n\n+-------------+\n| filter_in_1 |default--[2x4 1:2 rgba]--Parsed_scale_0:default\n|  (buffer)   |\n+-------------+\n\n                                            +----------------+\nfilter_in_1:default--[2x4 1:2 rgba]--default| Parsed_scale_0 |default--[4x8 1:2 yuv420p]--Parsed_settb_1:default\n                                            |    (scale)     |\n                                            +----------------+\n\n                                                  +----------------+\nParsed_scale_0:default--[4x8 1:2 yuv420p]--default| Parsed_settb_1 |default--[4x8 1:2 yuv420p]--Parsed_fps_2:default\n                                                  |    (settb)     |\n                                                  +----------------+\n\n                                                  +--------------+\nParsed_settb_1:default--[4x8 1:2 yuv420p]--default| Parsed_fps_2 |default--[4x8 1:2 yuv420p]--Parsed_format_3:default\n                                                  |    (fps)     |\n                                                  +--------------+\n\n                                                +-----------------+\nParsed_fps_2:default--[4x8 1:2 yuv420p]--default| Parsed_format_3 |default--[4x8 1:2 yuv420p]--Parsed_setsar_4:default\n                                                |    (format)     |\n                                                +-----------------+\n\n                                                   +-----------------+\nParsed_format_3:default--[4x8 1:2 yuv420p]--default| Parsed_setsar_4 |default--[4x8 2:1 yuv420p]--filter_out:default\n                                                   |    (setsar)     |\n                                                   +-----------------+\n\n",
+			sources: []FilterArgs{
+				{
+					"height":    "4",
+					"pix_fmt":   strconv.Itoa(int(PixelFormatRgba)),
+					"sar":       "1/2",
+					"time_base": "1/2",
+					"width":     "2",
+				},
+			},
+		},
+		{
+			buffersinkExpectedInput: link{
+				channelLayout: ChannelLayoutStereo,
+				mediaType:     MediaTypeAudio,
+				sampleFormat:  SampleFormatS16,
+				sampleRate:    3,
+				timeBase:      NewRational(1, 4),
+			},
+			buffersinkName: "abuffersink",
+			buffersrcName:  "abuffer",
+			content:        "[input_1]aformat=sample_fmts=s16:channel_layouts=stereo:sample_rates=3,asettb=1/4",
+			s:              "                                                  +---------------+\nParsed_asettb_1:default--[3Hz s16:stereo]--default|  filter_out   |\n                                                  | (abuffersink) |\n                                                  +---------------+\n\n+-------------+\n| filter_in_1 |default--[2Hz fltp:mono]--auto_aresample_0:default\n|  (abuffer)  |\n+-------------+\n\n                                                   +------------------+\nauto_aresample_0:default--[3Hz s16:stereo]--default| Parsed_aformat_0 |default--[3Hz s16:stereo]--Parsed_asettb_1:default\n                                                   |    (aformat)     |\n                                                   +------------------+\n\n                                                   +-----------------+\nParsed_aformat_0:default--[3Hz s16:stereo]--default| Parsed_asettb_1 |default--[3Hz s16:stereo]--filter_out:default\n                                                   |    (asettb)     |\n                                                   +-----------------+\n\n                                             +------------------+\nfilter_in_1:default--[2Hz fltp:mono]--default| auto_aresample_0 |default--[3Hz s16:stereo]--Parsed_aformat_0:default\n                                             |   (aresample)    |\n                                             +------------------+\n\n",
+			sources: []FilterArgs{
+				{
+					"channel_layout": ChannelLayoutMono.String(),
+					"sample_fmt":     strconv.Itoa(int(SampleFormatFltp)),
+					"sample_rate":    "2",
+					"time_base":      "1/2",
+				},
+			},
+		},
+	} {
+		fg := AllocFilterGraph()
+		require.NotNil(t, fg)
+		defer fg.Free()
 
-	fcOut, err := fg.NewFilterContext(bufferSink, "filter_out", nil)
-	require.NoError(t, err)
-	defer fcOut.Free()
-	cl = fcOut.Class()
-	require.NotNil(t, cl)
-	require.Equal(t, "AVFilter", cl.Name())
+		buffersrc := FindFilterByName(v.buffersrcName)
+		require.NotNil(t, buffersrc)
+		buffersink := FindFilterByName(v.buffersinkName)
+		require.NotNil(t, buffersink)
 
-	inputs := AllocFilterInOut()
-	defer inputs.Free()
-	inputs.SetName("out")
-	inputs.SetFilterContext(fcOut)
-	inputs.SetPadIdx(0)
-	inputs.SetNext(nil)
-
-	var outputs *FilterInOut
-	defer func() {
-		if outputs != nil {
-			outputs.Free()
-		}
-	}()
-	var fcIns []*FilterContext
-	for i := 0; i < 2; i++ {
-		bufferSrc := FindFilterByName("buffer")
-		require.NotNil(t, bufferSrc)
-
-		fcIn, err := fg.NewFilterContext(bufferSrc, fmt.Sprintf("filter_in_%d", i+1), FilterArgs{
-			"pix_fmt":      strconv.Itoa(int(PixelFormatYuv420P)),
-			"pixel_aspect": "1/1",
-			"time_base":    "1/1000",
-			"video_size":   "1x1",
-		})
+		buffersinkContext, err := fg.NewFilterContext(buffersink, "filter_out", nil)
 		require.NoError(t, err)
-		fcIns = append(fcIns, fcIn)
-		defer fcIn.Free()
+		cl = buffersinkContext.Class()
+		require.NotNil(t, cl)
+		require.Equal(t, "AVFilter", cl.Name())
 
-		o := AllocFilterInOut()
-		o.SetName(fmt.Sprintf("input_%d", i+1))
-		o.SetFilterContext(fcIn)
-		o.SetPadIdx(0)
-		o.SetNext(outputs)
+		inputs := AllocFilterInOut()
+		defer inputs.Free()
+		inputs.SetName("out")
+		inputs.SetFilterContext(buffersinkContext)
+		inputs.SetPadIdx(0)
+		inputs.SetNext(nil)
 
-		outputs = o
+		var outputs *FilterInOut
+		defer func() {
+			if outputs != nil {
+				outputs.Free()
+			}
+		}()
+
+		var buffersrcContexts []*FilterContext
+		for idx, src := range v.sources {
+			buffersrcContext, err := fg.NewFilterContext(buffersrc, fmt.Sprintf("filter_in_%d", idx+1), src)
+			require.NoError(t, err)
+			buffersrcContexts = append(buffersrcContexts, buffersrcContext)
+
+			o := AllocFilterInOut()
+			o.SetName(fmt.Sprintf("input_%d", idx+1))
+			o.SetFilterContext(buffersrcContext)
+			o.SetPadIdx(0)
+			o.SetNext(outputs)
+
+			outputs = o
+		}
+
+		require.NoError(t, fg.Parse(v.content, inputs, outputs))
+		require.NoError(t, fg.Configure())
+
+		require.Equal(t, 1, buffersinkContext.NbInputs())
+		links := buffersinkContext.Inputs()
+		require.Equal(t, 1, len(links))
+		e, g := v.buffersinkExpectedInput, links[0]
+		require.Equal(t, e.frameRate, g.FrameRate())
+		require.Equal(t, e.mediaType, g.MediaType())
+		require.Equal(t, e.timeBase, g.TimeBase())
+		switch e.mediaType {
+		case MediaTypeAudio:
+			require.True(t, e.channelLayout.Equal(g.ChannelLayout()))
+			require.Equal(t, e.sampleFormat, g.SampleFormat())
+			require.Equal(t, e.sampleRate, g.SampleRate())
+		default:
+			require.Equal(t, e.colorRange, g.ColorRange())
+			require.Equal(t, e.colorSpace, g.ColorSpace())
+			require.Equal(t, e.height, g.Height())
+			require.Equal(t, e.pixelFormat, g.PixelFormat())
+			require.Equal(t, e.sampleAspectRatio, g.SampleAspectRatio())
+			require.Equal(t, e.width, g.Width())
+		}
+
+		for _, buffersrcContext := range buffersrcContexts {
+			require.Equal(t, 0, buffersrcContext.NbInputs())
+			require.Equal(t, 1, buffersrcContext.NbOutputs())
+			links := buffersrcContext.Outputs()
+			require.Equal(t, 1, len(links))
+			require.Equal(t, v.buffersinkExpectedInput.mediaType, links[0].MediaType())
+		}
+
+		require.Equal(t, v.s, fg.String())
+
+		for _, command := range v.commands {
+			resp, err := fg.SendCommand(command.target, command.cmd, command.args, command.flags)
+			if command.withError {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+			}
+			require.Equal(t, command.resp, resp)
+		}
 	}
 
-	err = fg.Parse("[input_1]scale=2x2[scaled_1];[input_2]scale=3x3[scaled_2];[scaled_1][scaled_2]overlay", inputs, outputs)
+	fg2 := AllocFilterGraph()
+	require.NotNil(t, fg2)
+	defer fg2.Free()
+	fgs, err := fg2.ParseSegment("anullsrc")
 	require.NoError(t, err)
-
-	err = fg.Configure()
-	require.NoError(t, err)
-
-	require.Equal(t, 1, fcOut.NbInputs())
-	require.Equal(t, 1, len(fcOut.Inputs()))
-	require.Equal(t, NewRational(1, 1000), fcOut.Inputs()[0].TimeBase())
-	require.Equal(t, 0, fcOut.NbOutputs())
-	for _, fc := range fcIns {
-		require.Equal(t, 0, fc.NbInputs())
-		require.Equal(t, 1, fc.NbOutputs())
-		require.Equal(t, 1, len(fc.Outputs()))
-		require.Equal(t, NewRational(1, 1000), fc.Outputs()[0].TimeBase())
-	}
-
-	resp, err := fg.SendCommand("scale", "invalid", "a", NewFilterCommandFlags())
-	require.Error(t, err)
-	require.Empty(t, resp)
-	resp, err = fg.SendCommand("scale", "width", "4", NewFilterCommandFlags().Add(FilterCommandFlagOne))
-	require.NoError(t, err)
-	require.Empty(t, resp)
-
-	require.Equal(t, "                                                    +--------------+\nParsed_overlay_2:default--[2x2 1:1 yuv420p]--default|  filter_out  |\n                                                    | (buffersink) |\n                                                    +--------------+\n\n+-------------+\n| filter_in_1 |default--[1x1 1:1 yuv420p]--Parsed_scale_0:default\n|  (buffer)   |\n+-------------+\n\n+-------------+\n| filter_in_2 |default--[1x1 1:1 yuv420p]--Parsed_scale_1:default\n|  (buffer)   |\n+-------------+\n\n                                               +----------------+\nfilter_in_1:default--[1x1 1:1 yuv420p]--default| Parsed_scale_0 |default--[4x2 1:2 yuv420p]--Parsed_overlay_2:main\n                                               |    (scale)     |\n                                               +----------------+\n\n                                               +----------------+\nfilter_in_2:default--[1x1 1:1 yuv420p]--default| Parsed_scale_1 |default--[3x3 1:1 yuva420p]--Parsed_overlay_2:overlay\n                                               |    (scale)     |\n                                               +----------------+\n\n                                                   +------------------+\nParsed_scale_0:default--[4x2 1:2 yuv420p]------main| Parsed_overlay_2 |default--[2x2 1:1 yuv420p]--filter_out:default\nParsed_scale_1:default--[3x3 1:1 yuva420p]--overlay|    (overlay)     |\n                                                   +------------------+\n\n", fg.String())
+	defer fgs.Free()
+	require.Equal(t, 1, fgs.NbChains())
+	cs := fgs.Chains()
+	require.Equal(t, 1, len(cs))
+	require.Equal(t, 1, cs[0].NbFilters())
+	fs := cs[0].Filters()
+	require.Equal(t, 1, len(fs))
+	f := FindFilterByName(fs[0].FilterName())
+	require.NotNil(t, f)
+	require.Equal(t, 0, f.NbInputs())
+	require.Equal(t, 1, f.NbOutputs())
+	os := f.Outputs()
+	require.Equal(t, 1, len(os))
+	require.Equal(t, MediaTypeAudio, os[0].MediaType())
 
 	// TODO Test BuffersrcAddFrame
 	// TODO Test BuffersinkGetFrame

@@ -1,6 +1,5 @@
 package astiav
 
-//#cgo pkg-config: libavcodec libavutil
 //#include <libavutil/mathematics.h>
 import "C"
 

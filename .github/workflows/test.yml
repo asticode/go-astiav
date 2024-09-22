@@ -8,18 +8,18 @@ on:
 
 jobs:
 
-  test:
+  test-cpu:
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
 
     env:
-      FFMPEG_VERSION: n5.1.2
+      FFMPEG_VERSION: n7.0
     
     runs-on: ${{ matrix.os }}
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - if: ${{ runner.os == 'Windows' }}
       name: Prepare windows
@@ -44,7 +44,7 @@ jobs:
 
     - name: Load ffmpeg cache
       id: load-ffmpeg-cache
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: ${{ env.FFMPEG_CACHE_PATH }}
         key: ffmpeg-${{ env.FFMPEG_VERSION }}-${{ runner.os }}
@@ -73,7 +73,7 @@ jobs:
 
     - if: ${{ steps.load-ffmpeg-cache.outputs.cache-hit != 'true' }}
       name: Save ffmpeg cache
-      uses: actions/cache/save@v3
+      uses: actions/cache/save@v4
       with:
         path: ${{ env.FFMPEG_CACHE_PATH }}
         key: ffmpeg-${{ env.FFMPEG_VERSION }}-${{ runner.os }}
@@ -93,7 +93,7 @@ jobs:
         echo "PKG_CONFIG_PATH=${{ env.FFMPEG_PATH }}/lib/pkgconfig" >> $GITHUB_ENV
 
     - name: Set up Go
-      uses: actions/setup-go@v4
+      uses: actions/setup-go@v5
       with:
         go-version: '1.20'
 

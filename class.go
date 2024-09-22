@@ -1,30 +1,6 @@
 package astiav
 
-//#cgo pkg-config: libavutil
-//#include <libavutil/log.h>
-//#include <stdint.h>
-/*
-
-static inline char* astiavClassItemName(AVClass* c, void* ptr) {
-	return (char*)c->item_name(ptr);
-}
-
-static inline AVClassCategory astiavClassCategory(AVClass* c, void* ptr) {
-	if (c->get_category) return c->get_category(ptr);
-	return c->category;
-}
-
-static inline AVClass** astiavClassParent(AVClass* c, void* ptr) {
-	if (c->parent_log_context_offset) {
-		AVClass** parent = *(AVClass ***) (((uint8_t *) ptr) + c->parent_log_context_offset);
-		if (parent && *parent) {
-			return parent;
-		}
-	}
-	return NULL;
-}
-
-*/
+//#include "class.h"
 import "C"
 import (
 	"fmt"
@@ -34,7 +10,7 @@ import (
 
 // https://github.com/FFmpeg/FFmpeg/blob/n5.0/libavutil/log.h#L66
 type Class struct {
-	c   *C.struct_AVClass
+	c   *C.AVClass
 	ptr unsafe.Pointer
 }
 
@@ -42,7 +18,7 @@ func newClassFromC(ptr unsafe.Pointer) *Class {
 	if ptr == nil {
 		return nil
 	}
-	c := (**C.struct_AVClass)(ptr)
+	c := (**C.AVClass)(ptr)
 	if c == nil {
 		return nil
 	}

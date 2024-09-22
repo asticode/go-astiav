@@ -1,19 +1,18 @@
 package astiav
 
-//#cgo pkg-config: libavcodec
 //#include <libavcodec/avcodec.h>
 import "C"
 
 // https://github.com/FFmpeg/FFmpeg/blob/n5.0/libavcodec/codec_par.h#L52
 type CodecParameters struct {
-	c *C.struct_AVCodecParameters
+	c *C.AVCodecParameters
 }
 
 func AllocCodecParameters() *CodecParameters {
 	return newCodecParametersFromC(C.avcodec_parameters_alloc())
 }
 
-func newCodecParametersFromC(c *C.struct_AVCodecParameters) *CodecParameters {
+func newCodecParametersFromC(c *C.AVCodecParameters) *CodecParameters {
 	if c == nil {
 		return nil
 	}
@@ -35,14 +34,6 @@ func (cp *CodecParameters) ChannelLayout() ChannelLayout {
 
 func (cp *CodecParameters) SetChannelLayout(l ChannelLayout) {
 	l.copy(&cp.c.ch_layout) //nolint: errcheck
-}
-
-func (cp *CodecParameters) Channels() int {
-	return int(cp.c.channels)
-}
-
-func (cp *CodecParameters) SetChannels(c int) {
-	cp.c.channels = C.int(c)
 }
 
 func (cp *CodecParameters) CodecID() CodecID {
@@ -87,6 +78,10 @@ func (cp *CodecParameters) SetColorRange(r ColorRange) {
 
 func (cp *CodecParameters) ColorSpace() ColorSpace {
 	return ColorSpace(cp.c.color_space)
+}
+
+func (cp *CodecParameters) SetColorSpace(s ColorSpace) {
+	cp.c.color_space = C.enum_AVColorSpace(s)
 }
 
 func (cp *CodecParameters) ColorTransferCharacteristic() ColorTransferCharacteristic {
@@ -158,6 +153,10 @@ func (cp *CodecParameters) SampleAspectRatio() Rational {
 
 func (cp *CodecParameters) SetSampleAspectRatio(r Rational) {
 	cp.c.sample_aspect_ratio = r.c
+}
+
+func (cp *CodecParameters) SideData() *PacketSideData {
+	return newPacketSideDataFromC(&cp.c.coded_side_data, &cp.c.nb_coded_side_data)
 }
 
 func (cp *CodecParameters) SampleFormat() SampleFormat {

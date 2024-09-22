@@ -1,15 +1,14 @@
 package astiav
 
-//#cgo pkg-config: libavfilter
 //#include <libavfilter/avfilter.h>
 import "C"
 
 // https://github.com/FFmpeg/FFmpeg/blob/n5.0/libavfilter/avfilter.h#L1021
 type FilterInOut struct {
-	c *C.struct_AVFilterInOut
+	c *C.AVFilterInOut
 }
 
-func newFilterInOutFromC(c *C.struct_AVFilterInOut) *FilterInOut {
+func newFilterInOutFromC(c *C.AVFilterInOut) *FilterInOut {
 	if c == nil {
 		return nil
 	}
@@ -29,7 +28,7 @@ func (i *FilterInOut) SetName(n string) {
 }
 
 func (i *FilterInOut) SetFilterContext(c *FilterContext) {
-	i.c.filter_ctx = (*C.struct_AVFilterContext)(c.c)
+	i.c.filter_ctx = (*C.AVFilterContext)(c.c)
 }
 
 func (i *FilterInOut) SetPadIdx(idx int) {
@@ -37,7 +36,7 @@ func (i *FilterInOut) SetPadIdx(idx int) {
 }
 
 func (i *FilterInOut) SetNext(n *FilterInOut) {
-	var nc *C.struct_AVFilterInOut
+	var nc *C.AVFilterInOut
 	if n != nil {
 		nc = n.c
 	}

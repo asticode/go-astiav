@@ -1,18 +1,6 @@
 package astiav
 
-//#cgo pkg-config: libavformat
-//#include <libavformat/avio.h>
-/*
-int astiavInterruptCallback(void *ret)
-{
-    return *((int*)ret);
-}
-AVIOInterruptCB astiavNewInterruptCallback(int *ret)
-{
-	AVIOInterruptCB c = { astiavInterruptCallback, ret };
-	return c;
-}
-*/
+//#include "io_interrupter.h"
 import "C"
 
 type IOInterrupter interface {
@@ -21,7 +9,7 @@ type IOInterrupter interface {
 }
 
 type defaultIOInterrupter struct {
-	c C.struct_AVIOInterruptCB
+	c C.AVIOInterruptCB
 	i C.int
 }
 

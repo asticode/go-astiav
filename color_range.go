@@ -1,6 +1,6 @@
 package astiav
 
-//#cgo pkg-config: libavutil
+//#include <libavutil/pixdesc.h>
 //#include <libavutil/pixfmt.h>
 import "C"
 
@@ -13,3 +13,7 @@ const (
 	ColorRangeJpeg        = ColorRange(C.AVCOL_RANGE_JPEG)
 	ColorRangeNb          = ColorRange(C.AVCOL_RANGE_NB)
 )
+
+func (r ColorRange) String() string {
+	return C.GoString(C.av_color_range_name(C.enum_AVColorRange(r)))
+}

@@ -1,6 +1,5 @@
 package astiav
 
-//#cgo pkg-config: libavcodec
 //#include <libavcodec/avcodec.h>
 import "C"
 
@@ -37,3 +36,11 @@ const (
 	PacketSideDataTypeWebvttIdentifier         = PacketSideDataType(C.AV_PKT_DATA_WEBVTT_IDENTIFIER)
 	PacketSideDataTypeWebvttSettings           = PacketSideDataType(C.AV_PKT_DATA_WEBVTT_SETTINGS)
 )
+
+func (t PacketSideDataType) Name() string {
+	return C.GoString(C.av_packet_side_data_name((C.enum_AVPacketSideDataType)(t)))
+}
+
+func (t PacketSideDataType) String() string {
+	return t.Name()
+}

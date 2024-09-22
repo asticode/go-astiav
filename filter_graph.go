@@ -1,6 +1,5 @@
 package astiav
 
-//#cgo pkg-config: libavfilter
 //#include <libavfilter/avfilter.h>
 import "C"
 import (
@@ -10,10 +9,10 @@ import (
 
 // https://github.com/FFmpeg/FFmpeg/blob/n5.0/libavfilter/avfilter.h#L861
 type FilterGraph struct {
-	c *C.struct_AVFilterGraph
+	c *C.AVFilterGraph
 }
 
-func newFilterGraphFromC(c *C.struct_AVFilterGraph) *FilterGraph {
+func newFilterGraphFromC(c *C.AVFilterGraph) *FilterGraph {
 	if c == nil {
 		return nil
 	}
@@ -77,7 +76,7 @@ func (g *FilterGraph) NewFilterContext(f *Filter, name string, args FilterArgs) 
 	}
 	cn := C.CString(name)
 	defer C.free(unsafe.Pointer(cn))
-	var c *C.struct_AVFilterContext
+	var c *C.AVFilterContext
 	if err := newError(C.avfilter_graph_create_filter(&c, f.c, cn, ca, nil, g.c)); err != nil {
 		return nil, err
 	}
@@ -87,15 +86,25 @@ func (g *FilterGraph) NewFilterContext(f *Filter, name string, args FilterArgs) 
 func (g *FilterGraph) Parse(content string, inputs, outputs *FilterInOut) error {
 	cc := C.CString(content)
 	defer C.free(unsafe.Pointer(cc))
-	var ic **C.struct_AVFilterInOut
+	var ic **C.AVFilterInOut
 	if inputs != nil {
 		ic = &inputs.c
 	}
-	var oc **C.struct_AVFilterInOut
+	var oc **C.AVFilterInOut
 	if outputs != nil {
 		oc = &outputs.c
 	}
 	return newError(C.avfilter_graph_parse_ptr(g.c, cc, ic, oc, nil))
+}
+
+func (g *FilterGraph) ParseSegment(content string) (*FilterGraphSegment, error) {
+	cc := C.CString(content)
+	defer C.free(unsafe.Pointer(cc))
+	var cs *C.AVFilterGraphSegment
+	if err := newError(C.avfilter_graph_segment_parse(g.c, cc, 0, &cs)); err != nil {
+		return nil, err
+	}
+	return newFilterGraphSegmentFromC(cs), nil
 }
 
 func (g *FilterGraph) Configure() error {

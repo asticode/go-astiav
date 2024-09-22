@@ -1,6 +1,5 @@
 package astiav
 
-//#cgo pkg-config: libavutil
 //#include <libavutil/frame.h>
 import "C"
 import (
@@ -10,10 +9,10 @@ import (
 
 // https://github.com/FFmpeg/FFmpeg/blob/n5.0/libavutil/frame.h#L223
 type FrameSideData struct {
-	c *C.struct_AVFrameSideData
+	c *C.AVFrameSideData
 }
 
-func newFrameSideDataFromC(c *C.struct_AVFrameSideData) *FrameSideData {
+func newFrameSideDataFromC(c *C.AVFrameSideData) *FrameSideData {
 	if c == nil {
 		return nil
 	}

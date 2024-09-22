@@ -1,16 +1,15 @@
 package astiav
 
-//#cgo pkg-config: libavutil
 //#include <libavutil/rational.h>
 import "C"
 import "strconv"
 
 // https://github.com/FFmpeg/FFmpeg/blob/n5.0/libavutil/rational.h#L58
 type Rational struct {
-	c C.struct_AVRational
+	c C.AVRational
 }
 
-func newRationalFromC(c C.struct_AVRational) Rational {
+func newRationalFromC(c C.AVRational) Rational {
 	return Rational{c: c}
 }
 
@@ -49,4 +48,8 @@ func (r Rational) String() string {
 		return "0"
 	}
 	return strconv.Itoa(r.Num()) + "/" + strconv.Itoa(r.Den())
+}
+
+func (r Rational) Invert() Rational {
+	return NewRational(r.Den(), r.Num())
 }

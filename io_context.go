@@ -1,6 +1,5 @@
 package astiav
 
-//#cgo pkg-config: libavformat
 //#include <libavformat/avformat.h>
 //#include "io_context.h"
 import "C"
@@ -13,11 +12,11 @@ import (
 
 // https://github.com/FFmpeg/FFmpeg/blob/n5.0/libavformat/avio.h#L161
 type IOContext struct {
-	c         *C.struct_AVIOContext
+	c         *C.AVIOContext
 	handlerID unsafe.Pointer
 }
 
-func newIOContextFromC(c *C.struct_AVIOContext) *IOContext {
+func newIOContextFromC(c *C.AVIOContext) *IOContext {
 	if c == nil {
 		return nil
 	}
@@ -110,7 +109,7 @@ func AllocIOContext(bufferSize int, writable bool, readFunc IOContextReadFunc, s
 func OpenIOContext(filename string, flags IOContextFlags) (*IOContext, error) {
 	cfi := C.CString(filename)
 	defer C.free(unsafe.Pointer(cfi))
-	var c *C.struct_AVIOContext
+	var c *C.AVIOContext
 	if err := newError(C.avio_open(&c, cfi, C.int(flags))); err != nil {
 		return nil, err
 	}

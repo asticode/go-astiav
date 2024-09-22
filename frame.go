@@ -1,6 +1,5 @@
 package astiav
 
-//#cgo pkg-config: libavutil
 //#include <libavutil/channel_layout.h>
 //#include <libavutil/frame.h>
 //#include <libavutil/imgutils.h>
@@ -15,10 +14,10 @@ const NumDataPointers = uint(C.AV_NUM_DATA_POINTERS)
 
 // https://github.com/FFmpeg/FFmpeg/blob/n5.0/libavutil/frame.h#L317
 type Frame struct {
-	c *C.struct_AVFrame
+	c *C.AVFrame
 }
 
-func newFrameFromC(c *C.struct_AVFrame) *Frame {
+func newFrameFromC(c *C.AVFrame) *Frame {
 	if c == nil {
 		return nil
 	}
@@ -62,6 +61,14 @@ func (f *Frame) SetColorRange(r ColorRange) {
 	f.c.color_range = C.enum_AVColorRange(r)
 }
 
+func (f *Frame) ColorSpace() ColorSpace {
+	return ColorSpace(f.c.colorspace)
+}
+
+func (f *Frame) SetColorSpace(s ColorSpace) {
+	f.c.colorspace = C.enum_AVColorSpace(s)
+}
+
 func (f *Frame) Data() *FrameData {
 	return newFrameData(newFrameDataFrame(f))
 }
@@ -88,16 +95,16 @@ func (f *Frame) SetKeyFrame(k bool) {
 
 func (f *Frame) ImageBufferSize(align int) (int, error) {
 	ret := C.av_image_get_buffer_size((C.enum_AVSampleFormat)(f.c.format), f.c.width, f.c.height, C.int(align))
-	if ret < 0 {
-		return 0, newError(ret)
+	if err := newError(ret); err != nil {
+		return 0, err
 	}
 	return int(ret), nil
 }
 
 func (f *Frame) ImageCopyToBuffer(b []byte, align int) (int, error) {
 	ret := C.av_image_copy_to_buffer((*C.uint8_t)(unsafe.Pointer(&b[0])), C.int(len(b)), &f.c.data[0], &f.c.linesize[0], (C.enum_AVSampleFormat)(f.c.format), f.c.width, f.c.height, C.int(align))
-	if ret < 0 {
-		return 0, newError(ret)
+	if err := newError(ret); err != nil {
+		return 0, err
 	}
 	return int(ret), nil
 }

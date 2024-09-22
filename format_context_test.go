@@ -13,9 +13,9 @@ func TestFormatContext(t *testing.T) {
 	require.Len(t, ss, 2)
 	s1 := ss[0]
 
-	require.Equal(t, int64(607583), fc1.BitRate())
+	require.Equal(t, int64(607664), fc1.BitRate())
 	require.Equal(t, NewFormatContextCtxFlags(0), fc1.CtxFlags())
-	require.Equal(t, int64(5014000), fc1.Duration())
+	require.Equal(t, int64(5013333), fc1.Duration())
 	require.True(t, fc1.EventFlags().Has(FormatEventFlagMetadataUpdated))
 	require.True(t, fc1.Flags().Has(FormatContextFlagAutoBsf))
 	require.Equal(t, NewRational(24, 1), fc1.GuessFrameRate(s1, nil))
@@ -33,9 +33,9 @@ func TestFormatContext(t *testing.T) {
 
 	sdp, err := fc1.SDPCreate()
 	require.NoError(t, err)
-	require.Equal(t, "v=0\r\no=- 0 0 IN IP4 127.0.0.1\r\ns=Big Buck Bunny\r\nt=0 0\r\na=tool:libavformat LIBAVFORMAT_VERSION\r\nm=video 0 RTP/AVP 96\r\nb=AS:441\r\na=rtpmap:96 H264/90000\r\na=fmtp:96 packetization-mode=1; sprop-parameter-sets=Z0LADasgKDPz4CIAAAMAAgAAAwBhHihUkA==,aM48gA==; profile-level-id=42C00D\r\na=control:streamid=0\r\nm=audio 0 RTP/AVP 97\r\nb=AS:161\r\na=rtpmap:97 MPEG4-GENERIC/48000/2\r\na=fmtp:97 profile-level-id=1;mode=AAC-hbr;sizelength=13;indexlength=3;indexdeltalength=3; config=1190\r\na=control:streamid=1\r\n", sdp)
+	require.Equal(t, "v=0\r\no=- 0 0 IN IP4 127.0.0.1\r\ns=Big Buck Bunny\r\nt=0 0\r\na=tool:libavformat 61.1.100\r\nm=video 0 RTP/AVP 96\r\nb=AS:441\r\na=rtpmap:96 H264/90000\r\na=fmtp:96 packetization-mode=1; sprop-parameter-sets=Z0LADasgKDPz4CIAAAMAAgAAAwBhHihUkA==,aM48gA==; profile-level-id=42C00D\r\na=control:streamid=0\r\nm=audio 0 RTP/AVP 97\r\nb=AS:161\r\na=rtpmap:97 MPEG4-GENERIC/48000/2\r\na=fmtp:97 profile-level-id=1;mode=AAC-hbr;sizelength=13;indexlength=3;indexdeltalength=3; config=1190\r\na=control:streamid=1\r\n", sdp)
 
-	fc2, err := AllocOutputFormatContext(nil, "", "/tmp/test.mp4")
+	fc2, err := AllocOutputFormatContext(nil, "mp4", "")
 	require.NoError(t, err)
 	defer fc2.Free()
 	require.True(t, fc2.OutputFormat().Flags().Has(IOFormatFlagGlobalheader))
@@ -58,17 +58,82 @@ func TestFormatContext(t *testing.T) {
 	require.NotNil(t, s3)
 	require.Equal(t, 1, s3.Index())
 
+	d := NewDictionary()
+	d.Set("k", "v", 0)
+	fc3.SetMetadata(d)
+	e := fc3.Metadata().Get("k", nil, 0)
+	require.NotNil(t, e)
+	require.Equal(t, "v", e.Value())
+
+	fc3.SetMetadata(nil)
+	require.Nil(t, fc3.Metadata())
+
 	fc4 := AllocFormatContext()
 	require.NotNil(t, fc4)
 	defer fc4.Free()
 	fc4.SetInterruptCallback().Interrupt()
 	require.ErrorIs(t, fc4.OpenInput("testdata/video.mp4", nil, nil), ErrExit)
 
-	// TODO Test ReadFrame
-	// TODO Test SeekFrame
-	// TODO Test Flush
-	// TODO Test WriteHeader
-	// TODO Test WriteFrame
-	// TODO Test WriteInterleavedFrame
-	// TODO Test WriteTrailer
+	fc5 := AllocFormatContext()
+	require.NotNil(t, fc5)
+	defer fc5.Free()
+	require.NotNil(t, fc5.NewProgram(1))
+	require.Equal(t, 1, fc5.NbPrograms())
+	ps := fc5.Programs()
+	require.Equal(t, 1, len(ps))
+	require.Equal(t, 1, ps[0].ID())
+
+	fc6 := AllocFormatContext()
+	require.NotNil(t, fc6)
+	defer fc6.Free()
+	require.NoError(t, fc6.OpenInput("testdata/video.mp4", nil, nil))
+	require.NoError(t, fc6.FindStreamInfo(nil))
+	require.Equal(t, 2, fc6.NbStreams())
+	pkt1 := AllocPacket()
+	require.NotNil(t, pkt1)
+	defer pkt1.Free()
+	require.NoError(t, fc6.ReadFrame(pkt1))
+	require.Equal(t, int64(48), pkt1.Pos())
+	pkt2 := AllocPacket()
+	require.NotNil(t, pkt2)
+	defer pkt2.Free()
+	require.NoError(t, fc6.ReadFrame(pkt2))
+	require.Equal(t, int64(261), pkt2.Pos())
+	require.NoError(t, fc6.SeekFrame(0, 0, NewSeekFlags().Add(SeekFlagBackward)))
+	require.NoError(t, fc6.ReadFrame(pkt1))
+	require.Equal(t, int64(48), pkt1.Pos())
+
+	const outputPath = "tmp/test-format-context-output.mp4"
+	fc7, err := AllocOutputFormatContext(nil, "", outputPath)
+	require.NoError(t, err)
+	defer fc7.Free()
+	for _, is := range fc6.Streams() {
+		os := fc7.NewStream(nil)
+		require.NotNil(t, os)
+		require.NoError(t, is.CodecParameters().Copy(os.CodecParameters()))
+	}
+	ic, err := OpenIOContext(outputPath, NewIOContextFlags(IOContextFlagWrite))
+	require.NoError(t, err)
+	fc7.SetPb(ic)
+	require.NoError(t, fc7.WriteHeader(nil))
+	require.NoError(t, fc7.WriteFrame(pkt1))
+	require.NoError(t, fc7.WriteInterleavedFrame(pkt2))
+	require.NoError(t, fc7.WriteTrailer())
+	require.NoError(t, fc7.Flush())
+	fc8 := AllocFormatContext()
+	require.NotNil(t, fc8)
+	defer fc8.Free()
+	require.NoError(t, fc8.OpenInput(outputPath, nil, nil))
+	require.NoError(t, fc8.FindStreamInfo(nil))
+	require.Equal(t, 2, fc8.NbStreams())
+	pkt3 := AllocPacket()
+	require.NotNil(t, pkt3)
+	defer pkt3.Free()
+	require.NoError(t, fc8.ReadFrame(pkt3))
+	require.Equal(t, int64(48), pkt3.Pos())
+	pkt4 := AllocPacket()
+	require.NotNil(t, pkt4)
+	defer pkt4.Free()
+	require.NoError(t, fc8.ReadFrame(pkt4))
+	require.Equal(t, int64(261), pkt4.Pos())
 }

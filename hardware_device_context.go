@@ -1,6 +1,5 @@
 package astiav
 
-//#cgo pkg-config: libavutil libavcodec
 //#include <libavcodec/avcodec.h>
 //#include <libavutil/hwcontext.h>
 import "C"
@@ -10,7 +9,7 @@ import (
 
 // https://github.com/FFmpeg/FFmpeg/blob/n5.0/libavutil/hwcontext.h#L61
 type HardwareDeviceContext struct {
-	c *C.struct_AVBufferRef
+	c *C.AVBufferRef
 }
 
 func CreateHardwareDeviceContext(t HardwareDeviceType, device string, options *Dictionary) (*HardwareDeviceContext, error) {
@@ -20,7 +19,7 @@ func CreateHardwareDeviceContext(t HardwareDeviceType, device string, options *D
 		deviceC = C.CString(device)
 		defer C.free(unsafe.Pointer(deviceC))
 	}
-	optionsC := (*C.struct_AVDictionary)(nil)
+	optionsC := (*C.AVDictionary)(nil)
 	if options != nil {
 		optionsC = options.c
 	}

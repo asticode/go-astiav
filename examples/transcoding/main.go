@@ -269,14 +269,13 @@ func openOutputFile() (err error) {
 			} else {
 				s.encCodecContext.SetChannelLayout(s.decCodecContext.ChannelLayout())
 			}
-			s.encCodecContext.SetChannels(s.decCodecContext.Channels())
 			s.encCodecContext.SetSampleRate(s.decCodecContext.SampleRate())
 			if v := s.encCodec.SampleFormats(); len(v) > 0 {
 				s.encCodecContext.SetSampleFormat(v[0])
 			} else {
 				s.encCodecContext.SetSampleFormat(s.decCodecContext.SampleFormat())
 			}
-			s.encCodecContext.SetTimeBase(s.decCodecContext.TimeBase())
+			s.encCodecContext.SetTimeBase(astiav.NewRational(1, s.encCodecContext.SampleRate()))
 		} else {
 			s.encCodecContext.SetHeight(s.decCodecContext.Height())
 			if v := s.encCodec.PixelFormats(); len(v) > 0 {
@@ -285,7 +284,7 @@ func openOutputFile() (err error) {
 				s.encCodecContext.SetPixelFormat(s.decCodecContext.PixelFormat())
 			}
 			s.encCodecContext.SetSampleAspectRatio(s.decCodecContext.SampleAspectRatio())
-			s.encCodecContext.SetTimeBase(s.decCodecContext.TimeBase())
+			s.encCodecContext.SetTimeBase(s.decCodecContext.Framerate().Invert())
 			s.encCodecContext.SetWidth(s.decCodecContext.Width())
 		}
 
@@ -377,7 +376,7 @@ func initFilters() (err error) {
 			args = astiav.FilterArgs{
 				"pix_fmt":      strconv.Itoa(int(s.decCodecContext.PixelFormat())),
 				"pixel_aspect": s.decCodecContext.SampleAspectRatio().String(),
-				"time_base":    s.decCodecContext.TimeBase().String(),
+				"time_base":    s.inputStream.TimeBase().String(),
 				"video_size":   strconv.Itoa(s.decCodecContext.Width()) + "x" + strconv.Itoa(s.decCodecContext.Height()),
 			}
 			buffersrc = astiav.FindFilterByName("buffer")

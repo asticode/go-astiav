@@ -1,15 +1,14 @@
 package astiav
 
-//#cgo pkg-config: libavcodec
 //#include <libavcodec/avcodec.h>
 import "C"
 
 // https://github.com/FFmpeg/FFmpeg/blob/n5.0/libavcodec/codec.h#L460
 type CodecHardwareConfig struct {
-	c *C.struct_AVCodecHWConfig
+	c *C.AVCodecHWConfig
 }
 
-func newCodecHardwareConfigFromC(c *C.struct_AVCodecHWConfig) CodecHardwareConfig {
+func newCodecHardwareConfigFromC(c *C.AVCodecHWConfig) CodecHardwareConfig {
 	return CodecHardwareConfig{c: c}
 }
 

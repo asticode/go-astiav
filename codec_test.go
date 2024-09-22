@@ -28,6 +28,10 @@ func TestCodec(t *testing.T) {
 		ChannelLayout5Point0Back,
 		ChannelLayout5Point1Back,
 		ChannelLayout7Point1WideBack,
+		ChannelLayout6Point1Back,
+		ChannelLayout7Point1,
+		ChannelLayout22Point2,
+		ChannelLayout5Point1Point2Back,
 	}
 	gls := c.ChannelLayouts()
 	require.Len(t, gls, len(els))

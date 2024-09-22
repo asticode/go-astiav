@@ -1,19 +1,14 @@
 package astiav
 
-//#cgo pkg-config: libavformat
 //#include <libavformat/avformat.h>
 import "C"
-import (
-	"errors"
-	"unsafe"
-)
 
 // https://github.com/FFmpeg/FFmpeg/blob/n5.0/libavformat/avformat.h#L937
 type Stream struct {
-	c *C.struct_AVStream
+	c *C.AVStream
 }
 
-func newStreamFromC(c *C.struct_AVStream) *Stream {
+func newStreamFromC(c *C.AVStream) *Stream {
 	if c == nil {
 		return nil
 	}
@@ -78,26 +73,6 @@ func (s *Stream) SampleAspectRatio() Rational {
 
 func (s *Stream) SetSampleAspectRatio(r Rational) {
 	s.c.sample_aspect_ratio = r.c
-}
-
-func (s *Stream) SideData(t PacketSideDataType) []byte {
-	return bytesFromC(func(size *C.size_t) *C.uint8_t {
-		return C.av_stream_get_side_data(s.c, (C.enum_AVPacketSideDataType)(t), size)
-	})
-}
-
-func (s *Stream) AddSideData(t PacketSideDataType, d []byte) error {
-	if len(d) == 0 {
-		return nil
-	}
-
-	ptr := C.av_stream_new_side_data(s.c, (C.enum_AVPacketSideDataType)(t), C.size_t(len(d)))
-	if ptr == nil {
-		return errors.New("astiav: nil pointer")
-	}
-
-	C.memcpy(unsafe.Pointer(ptr), unsafe.Pointer(&d[0]), C.size_t(len(d)))
-	return nil
 }
 
 func (s *Stream) StartTime() int64 {

@@ -1,15 +1,6 @@
 package astiav
 
-//#cgo pkg-config: libavutil
-//#include <libavutil/intreadwrite.h>
-/*
-uint32_t astiavRL32(uint8_t *i) {
-	return AV_RL32(i);
-}
-uint32_t astiavRL32WithOffset(uint8_t *i, int o) {
-	return AV_RL32(i+o);
-}
-*/
+//#include "int_read_write.h"
 import "C"
 import "unsafe"
 
