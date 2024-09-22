@@ -6,6 +6,7 @@ import "C"
 import (
 	"errors"
 	"fmt"
+	"io"
 	"sync"
 	"unsafe"
 )
@@ -241,6 +242,8 @@ func goAstiavIOContextReadFunc(opaque unsafe.Pointer, buf *C.uint8_t, bufSize C.
 		var e Error
 		if errors.As(err, &e) {
 			return C.int(e)
+		} else if errors.Is(err, io.EOF) {
+			return C.AVERROR_EOF
 		}
 		return C.AVERROR_UNKNOWN
 	}
