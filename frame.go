@@ -32,6 +32,10 @@ func (f *Frame) AllocBuffer(align int) error {
 	return newError(C.av_frame_get_buffer(f.c, C.int(align)))
 }
 
+func (f *Frame) AllocHardwareBuffer(hfc *HardwareFrameContext) error {
+	return newError(C.av_hwframe_get_buffer(hfc.c, f.c, 0))
+}
+
 func (f *Frame) AllocImage(align int) error {
 	return newError(C.av_image_alloc(&f.c.data[0], &f.c.linesize[0], f.c.width, f.c.height, (C.enum_AVPixelFormat)(f.c.format), C.int(align)))
 }
@@ -67,6 +71,10 @@ func (f *Frame) SetColorSpace(s ColorSpace) {
 
 func (f *Frame) Data() *FrameData {
 	return newFrameData(newFrameDataFrame(f))
+}
+
+func (f *Frame) SetData(plane int, data []byte) {
+	f.c.data[plane] = (*C.uint8_t)(unsafe.Pointer(&data[0]))
 }
 
 func (f *Frame) Height() int {
