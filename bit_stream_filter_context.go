@@ -60,8 +60,15 @@ func (bsfc *BitStreamFilterContext) ReceivePacket(p *Packet) error {
 }
 
 func (bsfc *BitStreamFilterContext) Free() {
-	classers.del(bsfc)
-	C.av_bsf_free(&bsfc.c)
+	if bsfc.c != nil {
+		// Make sure to clone the classer before freeing the object since
+		// the C free method resets the pointer
+		c := newClonedClasser(bsfc)
+		C.av_bsf_free(&bsfc.c)
+		// Make sure to remove from classers after freeing the object since
+		// the C free method may use methods needing the classer
+		classers.del(c)
+	}
 }
 
 func (bsfc *BitStreamFilterContext) InputTimeBase() Rational {

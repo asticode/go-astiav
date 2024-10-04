@@ -28,9 +28,14 @@ func AllocFilterGraph() *FilterGraph {
 }
 
 func (g *FilterGraph) Free() {
-	classers.del(g)
 	if g.c != nil {
+		// Make sure to clone the classer before freeing the object since
+		// the C free method resets the pointer
+		c := newClonedClasser(g)
 		C.avfilter_graph_free(&g.c)
+		// Make sure to remove from classers after freeing the object since
+		// the C free method may use methods needing the classer
+		classers.del(c)
 	}
 }
 

@@ -122,15 +122,21 @@ func (ic *IOContext) Class() *Class {
 }
 
 func (ic *IOContext) Close() error {
-	classers.del(ic)
 	if ic.c != nil {
-		return newError(C.avio_closep(&ic.c))
+		// Make sure to clone the classer before freeing the object since
+		// the C free method resets the pointer
+		c := newClonedClasser(ic)
+		if err := newError(C.avio_closep(&ic.c)); err != nil {
+			return err
+		}
+		// Make sure to remove from classers after freeing the object since
+		// the C free method may use methods needing the classer
+		classers.del(c)
 	}
 	return nil
 }
 
 func (ic *IOContext) Free() {
-	classers.del(ic)
 	if ic.c != nil {
 		if ic.c.buffer != nil {
 			C.av_freep(unsafe.Pointer(&ic.c.buffer))
@@ -139,7 +145,13 @@ func (ic *IOContext) Free() {
 			C.free(ic.handlerID)
 			ic.handlerID = nil
 		}
+		// Make sure to clone the classer before freeing the object since
+		// the C free method resets the pointer
+		c := newClonedClasser(ic)
 		C.avio_context_free(&ic.c)
+		// Make sure to remove from classers after freeing the object since
+		// the C free method may use methods needing the classer
+		classers.del(c)
 	}
 	return
 }

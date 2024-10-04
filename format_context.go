@@ -51,8 +51,10 @@ func AllocOutputFormatContext(of *OutputFormat, formatName, filename string) (*F
 }
 
 func (fc *FormatContext) Free() {
-	classers.del(fc)
 	C.avformat_free_context(fc.c)
+	// Make sure to remove from classers after freeing the object since
+	// the C free method may use methods needing the classer
+	classers.del(fc)
 }
 
 func (fc *FormatContext) BitRate() int64 {
@@ -192,12 +194,18 @@ func (fc *FormatContext) OpenInput(url string, fmt *InputFormat, d *Dictionary) 
 }
 
 func (fc *FormatContext) CloseInput() {
-	if pb := fc.Pb(); pb != nil {
-		classers.del(pb)
-	}
-	classers.del(fc)
+	pb := fc.Pb()
 	if fc.c != nil {
+		// Make sure to clone the classer before freeing the object since
+		// the C free method resets the pointer
+		c := newClonedClasser(fc)
 		C.avformat_close_input(&fc.c)
+		// Make sure to remove from classers after freeing the object since
+		// the C free method may use methods needing the classer
+		if pb != nil {
+			classers.del(pb)
+		}
+		classers.del(c)
 	}
 }
 

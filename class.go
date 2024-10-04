@@ -52,6 +52,8 @@ type Classer interface {
 	Class() *Class
 }
 
+var _ Classer = (*UnknownClasser)(nil)
+
 type UnknownClasser struct {
 	c *Class
 }
@@ -61,6 +63,24 @@ func newUnknownClasser(ptr unsafe.Pointer) *UnknownClasser {
 }
 
 func (c *UnknownClasser) Class() *Class {
+	return c.c
+}
+
+var _ Classer = (*ClonedClasser)(nil)
+
+type ClonedClasser struct {
+	c *Class
+}
+
+func newClonedClasser(c Classer) *ClonedClasser {
+	cl := c.Class()
+	if cl == nil {
+		return nil
+	}
+	return &ClonedClasser{c: newClassFromC(cl.ptr)}
+}
+
+func (c *ClonedClasser) Class() *Class {
 	return c.c
 }
 
