@@ -27,10 +27,15 @@ func newFilterContext(c *C.AVFilterContext) *FilterContext {
 var _ Classer = (*FilterContext)(nil)
 
 func (fc *FilterContext) Free() {
+	// Make sure to clone the classer before freeing the object since
+	// the C free method may reset the pointer
+	c := newClonedClasser(fc)
 	C.avfilter_free(fc.c)
 	// Make sure to remove from classers after freeing the object since
 	// the C free method may use methods needing the classer
-	classers.del(fc)
+	if c != nil {
+		classers.del(c)
+	}
 }
 
 func (fc *FilterContext) BuffersrcAddFrame(f *Frame, fs BuffersrcFlags) error {

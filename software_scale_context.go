@@ -66,7 +66,9 @@ func (ssc *SoftwareScaleContext) Free() {
 	C.sws_freeContext(ssc.c)
 	// Make sure to remove from classers after freeing the object since
 	// the C free method may use methods needing the classer
-	classers.del(c)
+	if c != nil {
+		classers.del(c)
+	}
 }
 
 var _ Classer = (*SoftwareScaleContext)(nil)
