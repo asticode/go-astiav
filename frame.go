@@ -90,7 +90,7 @@ func (f *Frame) SetKeyFrame(k bool) {
 }
 
 func (f *Frame) ImageBufferSize(align int) (int, error) {
-	ret := C.av_image_get_buffer_size((C.enum_AVSampleFormat)(f.c.format), f.c.width, f.c.height, C.int(align))
+	ret := C.av_image_get_buffer_size((C.enum_AVPixelFormat)(f.c.format), f.c.width, f.c.height, C.int(align))
 	if err := newError(ret); err != nil {
 		return 0, err
 	}
@@ -98,7 +98,7 @@ func (f *Frame) ImageBufferSize(align int) (int, error) {
 }
 
 func (f *Frame) ImageCopyToBuffer(b []byte, align int) (int, error) {
-	ret := C.av_image_copy_to_buffer((*C.uint8_t)(unsafe.Pointer(&b[0])), C.int(len(b)), &f.c.data[0], &f.c.linesize[0], (C.enum_AVSampleFormat)(f.c.format), f.c.width, f.c.height, C.int(align))
+	ret := C.av_image_copy_to_buffer((*C.uint8_t)(unsafe.Pointer(&b[0])), C.int(len(b)), &f.c.data[0], &f.c.linesize[0], (C.enum_AVPixelFormat)(f.c.format), f.c.width, f.c.height, C.int(align))
 	if err := newError(ret); err != nil {
 		return 0, err
 	}
@@ -223,4 +223,12 @@ func (f *Frame) MoveRef(src *Frame) {
 
 func (f *Frame) UnsafePointer() unsafe.Pointer {
 	return unsafe.Pointer(f.c)
+}
+
+func (f *Frame) IsWritable() bool {
+	return C.av_frame_is_writable(f.c) > 0
+}
+
+func (f *Frame) MakeWritable() error {
+	return newError(C.av_frame_make_writable(f.c))
 }

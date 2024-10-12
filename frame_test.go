@@ -115,4 +115,10 @@ func TestFrame(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 12, n)
 	require.Equal(t, []byte{0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x10, 0x80, 0x80, 0x80, 0x80}, b)
+
+	require.True(t, f6.IsWritable())
+	require.NoError(t, f5.Ref(f6))
+	require.False(t, f6.IsWritable())
+	require.NoError(t, f6.MakeWritable())
+	require.True(t, f6.IsWritable())
 }
