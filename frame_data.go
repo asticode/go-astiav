@@ -280,7 +280,12 @@ func (f *frameDataFrame) bytes(align int) ([]byte, error) {
 	return nil, errors.New("astiav: frame type not implemented")
 }
 
-func (f *frameDataFrame) copyPlanes(ps []frameDataPlane) (err error) {
+func (f *frameDataFrame) copyPlanes(ps []frameDataPlane) error {
+	// Check writability
+	if !f.f.IsWritable() {
+		return errors.New("astiav: frame is not writable")
+	}
+
 	switch {
 	// Video
 	case f.height() > 0 && f.width() > 0:
@@ -300,9 +305,9 @@ func (f *frameDataFrame) copyPlanes(ps []frameDataPlane) (err error) {
 
 		// Copy image
 		C.av_image_copy(&f.f.c.data[0], &f.f.c.linesize[0], &cdata[0], &clinesizes[0], (C.enum_AVPixelFormat)(f.f.c.format), f.f.c.width, f.f.c.height)
-		return
+		return nil
 	}
-	return
+	return nil
 }
 
 func (f *frameDataFrame) height() int {
