@@ -518,5 +518,14 @@ func TestFrameData(t *testing.T) {
 		require.NoError(t, err)
 		b9 := []byte(fmt.Sprintf("%+v", b8))
 		require.Equal(t, b3, b9)
+
+		f3 := AllocFrame()
+		defer f3.Free()
+		require.NoError(t, f3.Ref(f2))
+		require.Error(t, fd2.FromImage(i1))
+		require.Error(t, fd2.SetBytes(b1, align))
+		f3.MakeWritable()
+		require.NoError(t, fd2.FromImage(i1))
+		require.NoError(t, fd2.SetBytes(b1, align))
 	}
 }
