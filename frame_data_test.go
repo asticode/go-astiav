@@ -524,7 +524,7 @@ func TestFrameData(t *testing.T) {
 		require.NoError(t, f3.Ref(f2))
 		require.Error(t, fd2.FromImage(i1))
 		require.Error(t, fd2.SetBytes(b1, align))
-		f3.MakeWritable()
+		f2.MakeWritable()
 		require.NoError(t, fd2.FromImage(i1))
 		require.NoError(t, fd2.SetBytes(b1, align))
 	}
