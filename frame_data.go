@@ -284,6 +284,11 @@ func (f *frameDataFrame) copyPlanes(ps []frameDataPlane) (err error) {
 	switch {
 	// Video
 	case f.height() > 0 && f.width() > 0:
+		// Check writability
+		if !f.f.IsWritable() {
+			return errors.New("astiav: frame is not writable")
+		}
+
 		// Loop through planes
 		var cdata [8]*C.uint8_t
 		var clinesizes [8]C.int
