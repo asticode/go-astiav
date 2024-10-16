@@ -1,6 +1,7 @@
 package astiav
 
 //#include <libavutil/imgutils.h>
+//#include <libavutil/samplefmt.h>
 //#include <stdlib.h>
 //#include "macros.h"
 import "C"
@@ -254,30 +255,39 @@ func newFrameDataFrame(f *Frame) *frameDataFrame {
 }
 
 func (f *frameDataFrame) bytes(align int) ([]byte, error) {
-	switch {
-	// Video
-	case f.height() > 0 && f.width() > 0:
-		// Get buffer size
-		s, err := f.f.ImageBufferSize(align)
-		if err != nil {
-			return nil, fmt.Errorf("astiav: getting image buffer size failed: %w", err)
-		}
-
-		// Invalid buffer size
-		if s == 0 {
-			return nil, errors.New("astiav: invalid image buffer size")
-		}
-
-		// Create buffer
-		b := make([]byte, s)
-
-		// Copy image to buffer
-		if _, err = f.f.ImageCopyToBuffer(b, align); err != nil {
-			return nil, fmt.Errorf("astiav: copying image to buffer failed: %w", err)
-		}
-		return b, nil
+	// Get funcs
+	var bufferSizeFunc func(int) (int, error)
+	var copyToBufferFunc func([]byte, int) (int, error)
+	switch f.mediaType() {
+	case MediaTypeAudio:
+		bufferSizeFunc = f.f.SamplesBufferSize
+		copyToBufferFunc = f.f.SamplesCopyToBuffer
+	case MediaTypeVideo:
+		bufferSizeFunc = f.f.ImageBufferSize
+		copyToBufferFunc = f.f.ImageCopyToBuffer
+	default:
+		return nil, errors.New("astiav: media type not implemented")
 	}
-	return nil, errors.New("astiav: frame type not implemented")
+
+	// Get buffer size
+	s, err := bufferSizeFunc(align)
+	if err != nil {
+		return nil, fmt.Errorf("astiav: getting buffer size failed: %w", err)
+	}
+
+	// Invalid buffer size
+	if s == 0 {
+		return nil, errors.New("astiav: invalid buffer size")
+	}
+
+	// Create buffer
+	b := make([]byte, s)
+
+	// Copy to buffer
+	if _, err = copyToBufferFunc(b, align); err != nil {
+		return nil, fmt.Errorf("astiav: copying to buffer failed: %w", err)
+	}
+	return b, nil
 }
 
 func (f *frameDataFrame) copyPlanes(ps []frameDataPlane) error {
@@ -286,26 +296,28 @@ func (f *frameDataFrame) copyPlanes(ps []frameDataPlane) error {
 		return errors.New("astiav: frame is not writable")
 	}
 
-	switch {
-	// Video
-	case f.height() > 0 && f.width() > 0:
-		// Loop through planes
-		var cdata [8]*C.uint8_t
-		var clinesizes [8]C.int
-		for i, p := range ps {
-			// Convert data
-			if len(p.bytes) > 0 {
-				cdata[i] = (*C.uint8_t)(C.CBytes(p.bytes))
-				defer C.free(unsafe.Pointer(cdata[i]))
-			}
-
-			// Convert linesize
-			clinesizes[i] = C.int(p.linesize)
+	// Prepare data
+	var cdata [8]*C.uint8_t
+	var clinesizes [8]C.int
+	for i, p := range ps {
+		// Convert data
+		if len(p.bytes) > 0 {
+			cdata[i] = (*C.uint8_t)(C.CBytes(p.bytes))
+			defer C.free(unsafe.Pointer(cdata[i]))
 		}
 
-		// Copy image
+		// Convert linesize
+		clinesizes[i] = C.int(p.linesize)
+	}
+
+	// Copy data
+	switch f.mediaType() {
+	case MediaTypeAudio:
+		C.av_samples_copy(&f.f.c.data[0], &cdata[0], 0, 0, f.f.c.nb_samples, f.f.c.ch_layout.nb_channels, (C.enum_AVSampleFormat)(f.f.c.format))
+	case MediaTypeVideo:
 		C.av_image_copy(&f.f.c.data[0], &f.f.c.linesize[0], &cdata[0], &clinesizes[0], (C.enum_AVPixelFormat)(f.f.c.format), f.f.c.width, f.f.c.height)
-		return nil
+	default:
+		return errors.New("astiav: media type not implemented")
 	}
 	return nil
 }
@@ -314,57 +326,91 @@ func (f *frameDataFrame) height() int {
 	return f.f.Height()
 }
 
+func (f *frameDataFrame) mediaType() MediaType {
+	switch {
+	// Audio
+	case f.f.NbSamples() > 0:
+		return MediaTypeAudio
+	// Video
+	case f.f.Height() > 0 && f.f.Width() > 0:
+		return MediaTypeVideo
+	default:
+		return MediaTypeUnknown
+	}
+}
+
 func (f *frameDataFrame) pixelFormat() PixelFormat {
 	return f.f.PixelFormat()
 }
 
 func (f *frameDataFrame) planes(b []byte, align int) ([]frameDataPlane, error) {
-	switch {
-	// Video
-	case f.height() > 0 && f.width() > 0:
+	// Get line and plane sizes
+	var linesizes [8]int
+	var planeSizes [8]int
+	switch f.mediaType() {
+	case MediaTypeAudio:
+		// Get buffer size
+		var cLinesize C.int
+		cBufferSize := C.av_samples_get_buffer_size(&cLinesize, f.f.c.ch_layout.nb_channels, f.f.c.nb_samples, (C.enum_AVSampleFormat)(f.f.c.format), C.int(align))
+		if err := newError(cBufferSize); err != nil {
+			return nil, fmt.Errorf("astiav: getting buffer size failed: %w", err)
+		}
+
+		// Update line and plane sizes
+		for i := 0; i < int(cBufferSize/cLinesize); i++ {
+			linesizes[i] = int(cLinesize)
+			planeSizes[i] = int(cLinesize)
+		}
+	case MediaTypeVideo:
 		// Below is mostly inspired by https://github.com/FFmpeg/FFmpeg/blob/n5.1.2/libavutil/imgutils.c#L466
 
 		// Get linesize
-		var linesizes [4]C.int
-		if err := newError(C.av_image_fill_linesizes(&linesizes[0], (C.enum_AVPixelFormat)(f.f.c.format), f.f.c.width)); err != nil {
+		var cLinesizes [8]C.int
+		if err := newError(C.av_image_fill_linesizes(&cLinesizes[0], (C.enum_AVPixelFormat)(f.f.c.format), f.f.c.width)); err != nil {
 			return nil, fmt.Errorf("astiav: getting linesize failed: %w", err)
 		}
 
 		// Align linesize
-		var alignedLinesizes [4]C.ptrdiff_t
+		var cAlignedLinesizes [8]C.ptrdiff_t
 		for i := 0; i < 4; i++ {
-			alignedLinesizes[i] = C.astiavFFAlign(linesizes[i], C.int(align))
+			cAlignedLinesizes[i] = C.astiavFFAlign(cLinesizes[i], C.int(align))
 		}
 
 		// Get plane sizes
-		var planeSizes [4]C.size_t
-		if err := newError(C.av_image_fill_plane_sizes(&planeSizes[0], (C.enum_AVPixelFormat)(f.f.c.format), f.f.c.height, &alignedLinesizes[0])); err != nil {
+		var cPlaneSizes [8]C.size_t
+		if err := newError(C.av_image_fill_plane_sizes(&cPlaneSizes[0], (C.enum_AVPixelFormat)(f.f.c.format), f.f.c.height, &cAlignedLinesizes[0])); err != nil {
 			return nil, fmt.Errorf("astiav: getting plane sizes failed: %w", err)
 		}
 
-		// Loop through planes
-		var ps []frameDataPlane
-		start := 0
-		for i := range planeSizes {
-			// Get end
-			end := start + int(planeSizes[i])
-			if len(b) < end {
-				return nil, fmt.Errorf("astiav: buffer length %d is invalid for [%d:%d]", len(b), start, end)
-			}
-
-			// Append plane
-			ps = append(ps, frameDataPlane{
-				bytes:    b[start:end],
-				linesize: int(linesizes[i]),
-			})
-
-			// Update start
-			start = end
+		// Update line and plane sizes
+		for i := range cPlaneSizes {
+			linesizes[i] = int(cAlignedLinesizes[i])
+			planeSizes[i] = int(cPlaneSizes[i])
 		}
-		return ps, nil
 	default:
-		return nil, errors.New("astiav: frame type not implemented")
+		return nil, errors.New("astiav: media type not implemented")
 	}
+
+	// Loop through plane sizes
+	var ps []frameDataPlane
+	start := 0
+	for i := range planeSizes {
+		// Get end
+		end := start + planeSizes[i]
+		if len(b) < end {
+			return nil, fmt.Errorf("astiav: buffer length %d is invalid for [%d:%d]", len(b), start, end)
+		}
+
+		// Append plane
+		ps = append(ps, frameDataPlane{
+			bytes:    b[start:end],
+			linesize: linesizes[i],
+		})
+
+		// Update start
+		start = end
+	}
+	return ps, nil
 }
 
 func (f *frameDataFrame) width() int {

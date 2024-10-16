@@ -5,6 +5,7 @@ package astiav
 //#include <libavutil/imgutils.h>
 //#include <libavutil/samplefmt.h>
 //#include <libavutil/hwcontext.h>
+//#include "frame.h"
 import "C"
 import (
 	"unsafe"
@@ -111,6 +112,26 @@ func (f *Frame) ImageFillBlack() error {
 		linesize[i] = C.ptrdiff_t(f.c.linesize[i])
 	}
 	return newError(C.av_image_fill_black(&f.c.data[0], &linesize[0], (C.enum_AVPixelFormat)(f.c.format), (C.enum_AVColorRange)(f.c.color_range), f.c.width, f.c.height))
+}
+
+func (f *Frame) SamplesBufferSize(align int) (int, error) {
+	ret := C.av_samples_get_buffer_size(nil, f.c.ch_layout.nb_channels, f.c.nb_samples, (C.enum_AVSampleFormat)(f.c.format), C.int(align))
+	if err := newError(ret); err != nil {
+		return 0, err
+	}
+	return int(ret), nil
+}
+
+func (f *Frame) SamplesCopyToBuffer(b []byte, align int) (int, error) {
+	ret := C.astiavSamplesCopyToBuffer((*C.uint8_t)(unsafe.Pointer(&b[0])), C.int(len(b)), &f.c.data[0], f.c.ch_layout.nb_channels, f.c.nb_samples, (C.enum_AVSampleFormat)(f.c.format), C.int(align))
+	if err := newError(ret); err != nil {
+		return 0, err
+	}
+	return int(ret), nil
+}
+
+func (f *Frame) SamplesFillSilence() error {
+	return newError(C.av_samples_set_silence(&f.c.data[0], 0, f.c.nb_samples, f.c.ch_layout.nb_channels, (C.enum_AVSampleFormat)(f.c.format)))
 }
 
 func (f *Frame) Linesize() [NumDataPointers]int {

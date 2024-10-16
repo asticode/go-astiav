@@ -119,14 +119,14 @@ func TestFrameDataInternal(t *testing.T) {
 		}
 	}
 
-	fdf.h = 1
 	b1 := []byte{0, 1, 2, 3}
 	fdf.onBytes = func(align int) ([]byte, error) { return b1, nil }
-	fdf.w = 2
 	b2, err := fd.Bytes(0)
 	require.NoError(t, err)
 	require.Equal(t, b1, b2)
 
+	fdf.h = 1
+	fdf.w = 2
 	for _, v := range []struct {
 		e           image.Image
 		i           image.Image
@@ -465,18 +465,28 @@ func TestFrameDataInternal(t *testing.T) {
 func TestFrameData(t *testing.T) {
 	for _, v := range []struct {
 		ext  string
+		ifmt *InputFormat
+		md   MediaType
 		name string
 	}{
 		{
+			ext:  "pcm",
+			ifmt: FindInputFormat("s16le"),
+			md:   MediaTypeAudio,
+			name: "audio-s16le",
+		},
+		{
 			ext:  "png",
+			md:   MediaTypeVideo,
 			name: "image-rgba",
 		},
 		{
 			ext:  "h264",
+			md:   MediaTypeVideo,
 			name: "video-yuv420p",
 		},
 	} {
-		f1, err := globalHelper.inputLastFrame(v.name+"."+v.ext, MediaTypeVideo)
+		f1, err := globalHelper.inputLastFrame(v.name+"."+v.ext, v.md, v.ifmt)
 		require.NoError(t, err)
 		fd1 := f1.Data()
 
@@ -487,31 +497,55 @@ func TestFrameData(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, b3, b2)
 
-		i1, err := fd1.GuessImageFormat()
-		require.NoError(t, err)
-		require.NoError(t, fd1.ToImage(i1))
-		b4 := []byte(fmt.Sprintf("%+v", i1))
-		b5, err := os.ReadFile("testdata/" + v.name + "-struct")
-		require.NoError(t, err)
-		require.Equal(t, b5, b4)
+		var i1 image.Image
+		switch v.md {
+		case MediaTypeVideo:
+			i1, err = fd1.GuessImageFormat()
+			require.NoError(t, err)
+			require.NoError(t, fd1.ToImage(i1))
+			b4 := []byte(fmt.Sprintf("%+v", i1))
+			b5, err := os.ReadFile("testdata/" + v.name + "-struct")
+			require.NoError(t, err)
+			require.Equal(t, b5, b4)
+		}
 
 		f2 := AllocFrame()
 		defer f2.Free()
-		f2.SetHeight(f1.Height())
-		f2.SetPixelFormat(f1.PixelFormat())
-		f2.SetWidth(f1.Width())
-		const align = 1
-		require.NoError(t, f2.AllocBuffer(align))
-		require.NoError(t, f2.AllocImage(align))
 		fd2 := f2.Data()
 
-		require.NoError(t, fd2.FromImage(i1))
-		b6, err := fd2.Bytes(align)
-		require.NoError(t, err)
-		b7 := []byte(fmt.Sprintf("%+v", b6))
-		require.Equal(t, b3, b7)
+		align := 0
+		switch v.md {
+		case MediaTypeAudio:
+			f2.SetChannelLayout(f1.ChannelLayout())
+			f2.SetNbSamples(f1.NbSamples())
+			f2.SetSampleFormat(f1.SampleFormat())
+			f2.SetSampleRate(f1.SampleRate())
+			require.NoError(t, f2.AllocBuffer(align))
+			require.NoError(t, f2.AllocSamples(align))
+		case MediaTypeVideo:
+			align = 1
+			f2.SetHeight(f1.Height())
+			f2.SetPixelFormat(f1.PixelFormat())
+			f2.SetWidth(f1.Width())
+			require.NoError(t, f2.AllocBuffer(align))
+			require.NoError(t, f2.AllocImage(align))
+		}
 
-		require.NoError(t, f2.ImageFillBlack())
+		switch v.md {
+		case MediaTypeVideo:
+			require.NoError(t, fd2.FromImage(i1))
+			b6, err := fd2.Bytes(align)
+			require.NoError(t, err)
+			b7 := []byte(fmt.Sprintf("%+v", b6))
+			require.Equal(t, b3, b7)
+		}
+
+		switch v.md {
+		case MediaTypeAudio:
+			require.NoError(t, f2.SamplesFillSilence())
+		case MediaTypeVideo:
+			require.NoError(t, f2.ImageFillBlack())
+		}
 		require.NoError(t, fd2.SetBytes(b1, align))
 		b1[0] -= 1
 		b8, err := fd2.Bytes(align)
@@ -522,10 +556,16 @@ func TestFrameData(t *testing.T) {
 		f3 := AllocFrame()
 		defer f3.Free()
 		require.NoError(t, f3.Ref(f2))
-		require.Error(t, fd2.FromImage(i1))
+		switch v.md {
+		case MediaTypeVideo:
+			require.Error(t, fd2.FromImage(i1))
+		}
 		require.Error(t, fd2.SetBytes(b1, align))
 		f2.MakeWritable()
-		require.NoError(t, fd2.FromImage(i1))
+		switch v.md {
+		case MediaTypeVideo:
+			require.NoError(t, fd2.FromImage(i1))
+		}
 		require.NoError(t, fd2.SetBytes(b1, align))
 	}
 }

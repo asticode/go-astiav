@@ -50,7 +50,7 @@ type helperInput struct {
 	lastFrame     *Frame
 }
 
-func (h *helper) inputFormatContext(name string) (fc *FormatContext, err error) {
+func (h *helper) inputFormatContext(name string, ifmt *InputFormat) (fc *FormatContext, err error) {
 	h.m.Lock()
 	i, ok := h.inputs[name]
 	if ok && i.formatContext != nil {
@@ -65,7 +65,7 @@ func (h *helper) inputFormatContext(name string) (fc *FormatContext, err error) 
 	}
 	h.closer.Add(fc.Free)
 
-	if err = fc.OpenInput("testdata/"+name, nil, nil); err != nil {
+	if err = fc.OpenInput("testdata/"+name, ifmt, nil); err != nil {
 		err = fmt.Errorf("astiav_test: opening input failed: %w", err)
 		return
 	}
@@ -95,7 +95,7 @@ func (h *helper) inputFirstPacket(name string) (pkt *Packet, err error) {
 	h.m.Unlock()
 
 	var fc *FormatContext
-	if fc, err = h.inputFormatContext(name); err != nil {
+	if fc, err = h.inputFormatContext(name, nil); err != nil {
 		err = fmt.Errorf("astiav_test: getting input format context failed")
 		return
 	}
@@ -118,7 +118,7 @@ func (h *helper) inputFirstPacket(name string) (pkt *Packet, err error) {
 	return
 }
 
-func (h *helper) inputLastFrame(name string, mediaType MediaType) (f *Frame, err error) {
+func (h *helper) inputLastFrame(name string, mediaType MediaType, ifmt *InputFormat) (f *Frame, err error) {
 	h.m.Lock()
 	i, ok := h.inputs[name]
 	if ok && i.lastFrame != nil {
@@ -128,7 +128,7 @@ func (h *helper) inputLastFrame(name string, mediaType MediaType) (f *Frame, err
 	h.m.Unlock()
 
 	var fc *FormatContext
-	if fc, err = h.inputFormatContext(name); err != nil {
+	if fc, err = h.inputFormatContext(name, ifmt); err != nil {
 		err = fmt.Errorf("astiav_test: getting input format context failed: %w", err)
 		return
 	}

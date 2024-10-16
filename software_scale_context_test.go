@@ -93,7 +93,7 @@ func TestSoftwareScaleContext(t *testing.T) {
 	require.Equal(t, w, srcW)
 	require.Equal(t, h, srcH)
 
-	f4, err := globalHelper.inputLastFrame("image-rgba.png", MediaTypeVideo)
+	f4, err := globalHelper.inputLastFrame("image-rgba.png", MediaTypeVideo, nil)
 	require.NoError(t, err)
 
 	f5 := AllocFrame()
