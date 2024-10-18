@@ -58,3 +58,7 @@ export PKG_CONFIG_PATH="{{ path to your working directory }}/tmp/n7.0/lib/pkgcon
 # Why astiav?
 
 After maintaining for several years the most starred [fork](https://github.com/asticode/goav) of [goav](https://github.com/giorgisio/goav), I've decided to write from scratch my own C bindings to fix most of the problems I still encountered using `goav`.
+
+# Breaking changes
+
+You can see the list of breaking changes [here](BREAKING_CHANGES.md).

@@ -6,7 +6,6 @@ package astiav
 //#include <libavutil/frame.h>
 import "C"
 import (
-	"math"
 	"unsafe"
 )
 
@@ -38,46 +37,96 @@ func (fc *FilterContext) Free() {
 	}
 }
 
-func (fc *FilterContext) BuffersrcAddFrame(f *Frame, fs BuffersrcFlags) error {
-	var cf *C.AVFrame
-	if f != nil {
-		cf = f.c
-	}
-	return newError(C.av_buffersrc_add_frame_flags(fc.c, cf, C.int(fs)))
-}
-
-func (fc *FilterContext) BuffersinkGetFrame(f *Frame, fs BuffersinkFlags) error {
-	var cf *C.AVFrame
-	if f != nil {
-		cf = f.c
-	}
-	return newError(C.av_buffersink_get_frame_flags(fc.c, cf, C.int(fs)))
-}
-
 func (fc *FilterContext) Class() *Class {
 	return newClassFromC(unsafe.Pointer(fc.c))
 }
 
-func (fc *FilterContext) NbInputs() int {
-	return int(fc.c.nb_inputs)
+type BuffersinkFilterContext struct {
+	fc *FilterContext
 }
 
-func (fc *FilterContext) NbOutputs() int {
-	return int(fc.c.nb_outputs)
+func newBuffersinkFilterContext(fc *FilterContext) *BuffersinkFilterContext {
+	return &BuffersinkFilterContext{fc: fc}
 }
 
-func (fc *FilterContext) Inputs() (ls []*FilterLink) {
-	lcs := (*[(math.MaxInt32 - 1) / unsafe.Sizeof((*C.AVFilterLink)(nil))](*C.AVFilterLink))(unsafe.Pointer(fc.c.inputs))
-	for i := 0; i < fc.NbInputs(); i++ {
-		ls = append(ls, newFilterLinkFromC(lcs[i]))
+func (bfc *BuffersinkFilterContext) ChannelLayout() ChannelLayout {
+	var cl C.AVChannelLayout
+	C.av_buffersink_get_ch_layout(bfc.fc.c, &cl)
+	return newChannelLayoutFromC(&cl)
+}
+
+func (bfc *BuffersinkFilterContext) ColorRange() ColorRange {
+	return ColorRange(C.av_buffersink_get_color_range(bfc.fc.c))
+}
+
+func (bfc *BuffersinkFilterContext) ColorSpace() ColorSpace {
+	return ColorSpace(C.av_buffersink_get_colorspace(bfc.fc.c))
+}
+
+func (bfc *BuffersinkFilterContext) FilterContext() *FilterContext {
+	return bfc.fc
+}
+
+func (bfc *BuffersinkFilterContext) FrameRate() Rational {
+	return newRationalFromC(C.av_buffersink_get_frame_rate(bfc.fc.c))
+}
+
+func (bfc *BuffersinkFilterContext) GetFrame(f *Frame, fs BuffersinkFlags) error {
+	var cf *C.AVFrame
+	if f != nil {
+		cf = f.c
 	}
-	return
+	return newError(C.av_buffersink_get_frame_flags(bfc.fc.c, cf, C.int(fs)))
 }
 
-func (fc *FilterContext) Outputs() (ls []*FilterLink) {
-	lcs := (*[(math.MaxInt32 - 1) / unsafe.Sizeof((*C.AVFilterLink)(nil))](*C.AVFilterLink))(unsafe.Pointer(fc.c.outputs))
-	for i := 0; i < fc.NbOutputs(); i++ {
-		ls = append(ls, newFilterLinkFromC(lcs[i]))
+func (bfc *BuffersinkFilterContext) Height() int {
+	return int(C.av_buffersink_get_h(bfc.fc.c))
+}
+
+func (bfc *BuffersinkFilterContext) MediaType() MediaType {
+	return MediaType(C.av_buffersink_get_type(bfc.fc.c))
+}
+
+func (bfc *BuffersinkFilterContext) PixelFormat() PixelFormat {
+	return PixelFormat(C.av_buffersink_get_format(bfc.fc.c))
+}
+
+func (bfc *BuffersinkFilterContext) SampleAspectRatio() Rational {
+	return newRationalFromC(C.av_buffersink_get_sample_aspect_ratio(bfc.fc.c))
+}
+
+func (bfc *BuffersinkFilterContext) SampleFormat() SampleFormat {
+	return SampleFormat(C.av_buffersink_get_format(bfc.fc.c))
+}
+
+func (bfc *BuffersinkFilterContext) SampleRate() int {
+	return int(C.av_buffersink_get_sample_rate(bfc.fc.c))
+}
+
+func (bfc *BuffersinkFilterContext) TimeBase() Rational {
+	return newRationalFromC(C.av_buffersink_get_time_base(bfc.fc.c))
+}
+
+func (bfc *BuffersinkFilterContext) Width() int {
+	return int(C.av_buffersink_get_w(bfc.fc.c))
+}
+
+type BuffersrcFilterContext struct {
+	fc *FilterContext
+}
+
+func newBuffersrcFilterContext(fc *FilterContext) *BuffersrcFilterContext {
+	return &BuffersrcFilterContext{fc: fc}
+}
+
+func (bfc *BuffersrcFilterContext) AddFrame(f *Frame, fs BuffersrcFlags) error {
+	var cf *C.AVFrame
+	if f != nil {
+		cf = f.c
 	}
-	return
+	return newError(C.av_buffersrc_add_frame_flags(bfc.fc.c, cf, C.int(fs)))
+}
+
+func (bfc *BuffersrcFilterContext) FilterContext() *FilterContext {
+	return bfc.fc
 }

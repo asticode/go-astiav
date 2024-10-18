@@ -103,6 +103,22 @@ func (g *FilterGraph) NewFilterContext(f *Filter, name string, args FilterArgs) 
 	return fc, nil
 }
 
+func (g *FilterGraph) NewBuffersinkFilterContext(f *Filter, name string, args FilterArgs) (*BuffersinkFilterContext, error) {
+	fc, err := g.NewFilterContext(f, name, args)
+	if err != nil {
+		return nil, err
+	}
+	return newBuffersinkFilterContext(fc), nil
+}
+
+func (g *FilterGraph) NewBuffersrcFilterContext(f *Filter, name string, args FilterArgs) (*BuffersrcFilterContext, error) {
+	fc, err := g.NewFilterContext(f, name, args)
+	if err != nil {
+		return nil, err
+	}
+	return newBuffersrcFilterContext(fc), nil
+}
+
 func (g *FilterGraph) Parse(content string, inputs, outputs *FilterInOut) error {
 	cc := C.CString(content)
 	defer C.free(unsafe.Pointer(cc))
