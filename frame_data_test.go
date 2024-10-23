@@ -10,17 +10,23 @@ import (
 )
 
 type mockedFrameDataFrame struct {
-	h          int
-	imageBytes []byte
-	pf         PixelFormat
-	planes_    []frameDataPlane
-	w          int
+	copiedPlanes []frameDataPlane
+	h            int
+	onBytes      func(align int) ([]byte, error)
+	onPlanes     func(b []byte, align int) ([]frameDataPlane, error)
+	pf           PixelFormat
+	w            int
 }
 
 var _ frameDataFramer = (*mockedFrameDataFrame)(nil)
 
 func (f *mockedFrameDataFrame) bytes(align int) ([]byte, error) {
-	return f.imageBytes, nil
+	return f.onBytes(align)
+}
+
+func (f *mockedFrameDataFrame) copyPlanes(ps []frameDataPlane) error {
+	f.copiedPlanes = ps
+	return nil
 }
 
 func (f *mockedFrameDataFrame) height() int {
@@ -31,8 +37,8 @@ func (f *mockedFrameDataFrame) pixelFormat() PixelFormat {
 	return f.pf
 }
 
-func (f *mockedFrameDataFrame) planes() ([]frameDataPlane, error) {
-	return f.planes_, nil
+func (f *mockedFrameDataFrame) planes(b []byte, align int) ([]frameDataPlane, error) {
+	return f.onPlanes(b, align)
 }
 
 func (f *mockedFrameDataFrame) width() int {
@@ -113,16 +119,16 @@ func TestFrameDataInternal(t *testing.T) {
 		}
 	}
 
-	fdf.h = 1
-	fdf.imageBytes = []byte{0, 1, 2, 3}
-	fdf.w = 2
-	b, err := fd.Bytes(0)
+	b1 := []byte{0, 1, 2, 3}
+	fdf.onBytes = func(align int) ([]byte, error) { return b1, nil }
+	b2, err := fd.Bytes(0)
 	require.NoError(t, err)
-	require.Equal(t, fdf.imageBytes, b)
+	require.Equal(t, b1, b2)
 
+	fdf.h = 1
+	fdf.w = 2
 	for _, v := range []struct {
 		e           image.Image
-		err         bool
 		i           image.Image
 		pixelFormat PixelFormat
 		planes      []frameDataPlane
@@ -326,48 +332,240 @@ func TestFrameDataInternal(t *testing.T) {
 		},
 	} {
 		fdf.pf = v.pixelFormat
-		fdf.planes_ = v.planes
-		err = fd.ToImage(v.i)
-		if v.err {
-			require.Error(t, err)
-		} else {
-			require.Equal(t, v.e, v.i)
-		}
+		fdf.onPlanes = func(b []byte, align int) ([]frameDataPlane, error) { return v.planes, nil }
+		require.NoError(t, fd.ToImage(v.i))
+		require.Equal(t, v.e, v.i)
+	}
+
+	b1 = []byte{1, 2, 3, 4}
+	fdf.onPlanes = func(b []byte, align int) ([]frameDataPlane, error) {
+		return []frameDataPlane{
+			{
+				bytes:    b1[:2],
+				linesize: 1,
+			},
+			{
+				bytes:    b1[2:],
+				linesize: 2,
+			},
+		}, nil
+	}
+	require.NoError(t, fd.SetBytes(b1, 0))
+	require.Equal(t, []frameDataPlane{
+		{bytes: b1[:2], linesize: 1},
+		{bytes: b1[2:], linesize: 2},
+	}, fdf.copiedPlanes)
+
+	for _, v := range []struct {
+		expectedCopiedPlanes []frameDataPlane
+		i                    image.Image
+	}{
+		{
+			expectedCopiedPlanes: []frameDataPlane{{bytes: []byte{0, 1, 2, 3}, linesize: 1}},
+			i: &image.Alpha{
+				Pix:    []byte{0, 1, 2, 3},
+				Stride: 1,
+			},
+		},
+		{
+			expectedCopiedPlanes: []frameDataPlane{{bytes: []byte{0, 1, 2, 3}, linesize: 1}},
+			i: &image.Alpha16{
+				Pix:    []byte{0, 1, 2, 3},
+				Stride: 1,
+			},
+		},
+		{
+			expectedCopiedPlanes: []frameDataPlane{{bytes: []byte{0, 1, 2, 3}, linesize: 1}},
+			i: &image.CMYK{
+				Pix:    []byte{0, 1, 2, 3},
+				Stride: 1,
+			},
+		},
+		{
+			expectedCopiedPlanes: []frameDataPlane{{bytes: []byte{0, 1, 2, 3}, linesize: 1}},
+			i: &image.Gray{
+				Pix:    []byte{0, 1, 2, 3},
+				Stride: 1,
+			},
+		},
+		{
+			expectedCopiedPlanes: []frameDataPlane{{bytes: []byte{0, 1, 2, 3}, linesize: 1}},
+			i: &image.Gray16{
+				Pix:    []byte{0, 1, 2, 3},
+				Stride: 1,
+			},
+		},
+		{
+			expectedCopiedPlanes: []frameDataPlane{{bytes: []byte{0, 1, 2, 3}, linesize: 1}},
+			i: &image.NRGBA{
+				Pix:    []byte{0, 1, 2, 3},
+				Stride: 1,
+			},
+		},
+		{
+			expectedCopiedPlanes: []frameDataPlane{{bytes: []byte{0, 1, 2, 3}, linesize: 1}},
+			i: &image.NRGBA64{
+				Pix:    []byte{0, 1, 2, 3},
+				Stride: 1,
+			},
+		},
+		{
+			expectedCopiedPlanes: []frameDataPlane{
+				{bytes: []byte{0, 1}, linesize: 1},
+				{bytes: []byte{2, 3}, linesize: 2},
+				{bytes: []byte{4, 5}, linesize: 2},
+				{bytes: []byte{6, 7}, linesize: 4},
+			},
+			i: &image.NYCbCrA{
+				A:       []byte{6, 7},
+				AStride: 4,
+				YCbCr: image.YCbCr{
+					Y:       []byte{0, 1},
+					Cb:      []byte{2, 3},
+					Cr:      []byte{4, 5},
+					YStride: 1,
+					CStride: 2,
+				},
+			},
+		},
+		{
+			expectedCopiedPlanes: []frameDataPlane{{bytes: []byte{0, 1, 2, 3}, linesize: 1}},
+			i: &image.RGBA{
+				Pix:    []byte{0, 1, 2, 3},
+				Stride: 1,
+			},
+		},
+		{
+			expectedCopiedPlanes: []frameDataPlane{{bytes: []byte{0, 1, 2, 3}, linesize: 1}},
+			i: &image.RGBA64{
+				Pix:    []byte{0, 1, 2, 3},
+				Stride: 1,
+			},
+		},
+		{
+			expectedCopiedPlanes: []frameDataPlane{
+				{bytes: []byte{0, 1}, linesize: 1},
+				{bytes: []byte{2, 3}, linesize: 2},
+				{bytes: []byte{4, 5}, linesize: 2},
+			},
+			i: &image.YCbCr{
+				Y:       []byte{0, 1},
+				Cb:      []byte{2, 3},
+				Cr:      []byte{4, 5},
+				YStride: 1,
+				CStride: 2,
+			},
+		},
+	} {
+		require.NoError(t, fd.FromImage(v.i))
+		require.Equal(t, v.expectedCopiedPlanes, fdf.copiedPlanes)
 	}
 }
 
 func TestFrameData(t *testing.T) {
 	for _, v := range []struct {
 		ext  string
+		ifmt *InputFormat
+		md   MediaType
 		name string
 	}{
 		{
+			ext:  "pcm",
+			ifmt: FindInputFormat("s16le"),
+			md:   MediaTypeAudio,
+			name: "audio-s16le",
+		},
+		{
 			ext:  "png",
+			md:   MediaTypeVideo,
 			name: "image-rgba",
 		},
 		{
 			ext:  "h264",
+			md:   MediaTypeVideo,
 			name: "video-yuv420p",
 		},
 	} {
-		f, err := globalHelper.inputLastFrame(v.name+"."+v.ext, MediaTypeVideo)
+		f1, err := globalHelper.inputLastFrame(v.name+"."+v.ext, v.md, v.ifmt)
 		require.NoError(t, err)
-		fd := f.Data()
+		fd1 := f1.Data()
 
-		b1, err := fd.Bytes(1)
+		b1, err := fd1.Bytes(1)
 		require.NoError(t, err)
 		b2 := []byte(fmt.Sprintf("%+v", b1))
 		b3, err := os.ReadFile("testdata/" + v.name + "-bytes")
 		require.NoError(t, err)
-		require.Equal(t, b2, b3)
+		require.Equal(t, b3, b2)
 
-		i1, err := fd.GuessImageFormat()
-		require.NoError(t, err)
-		require.NoError(t, fd.ToImage(i1))
-		b4 := []byte(fmt.Sprintf("%+v", i1))
-		b5, err := os.ReadFile("testdata/" + v.name + "-struct")
-		require.NoError(t, err)
-		require.Equal(t, b4, b5)
+		var i1 image.Image
+		switch v.md {
+		case MediaTypeVideo:
+			i1, err = fd1.GuessImageFormat()
+			require.NoError(t, err)
+			require.NoError(t, fd1.ToImage(i1))
+			b4 := []byte(fmt.Sprintf("%+v", i1))
+			b5, err := os.ReadFile("testdata/" + v.name + "-struct")
+			require.NoError(t, err)
+			require.Equal(t, b5, b4)
+		}
 
+		f2 := AllocFrame()
+		defer f2.Free()
+		fd2 := f2.Data()
+
+		align := 0
+		switch v.md {
+		case MediaTypeAudio:
+			f2.SetChannelLayout(f1.ChannelLayout())
+			f2.SetNbSamples(f1.NbSamples())
+			f2.SetSampleFormat(f1.SampleFormat())
+			f2.SetSampleRate(f1.SampleRate())
+			require.NoError(t, f2.AllocBuffer(align))
+			require.NoError(t, f2.AllocSamples(align))
+		case MediaTypeVideo:
+			align = 1
+			f2.SetHeight(f1.Height())
+			f2.SetPixelFormat(f1.PixelFormat())
+			f2.SetWidth(f1.Width())
+			require.NoError(t, f2.AllocBuffer(align))
+			require.NoError(t, f2.AllocImage(align))
+		}
+
+		switch v.md {
+		case MediaTypeVideo:
+			require.NoError(t, fd2.FromImage(i1))
+			b6, err := fd2.Bytes(align)
+			require.NoError(t, err)
+			b7 := []byte(fmt.Sprintf("%+v", b6))
+			require.Equal(t, b3, b7)
+		}
+
+		switch v.md {
+		case MediaTypeAudio:
+			require.NoError(t, f2.SamplesFillSilence())
+		case MediaTypeVideo:
+			require.NoError(t, f2.ImageFillBlack())
+		}
+		require.NoError(t, fd2.SetBytes(b1, align))
+		b1[0] -= 1
+		b8, err := fd2.Bytes(align)
+		require.NoError(t, err)
+		b9 := []byte(fmt.Sprintf("%+v", b8))
+		require.Equal(t, b3, b9)
+
+		f3 := AllocFrame()
+		defer f3.Free()
+		require.NoError(t, f3.Ref(f2))
+		switch v.md {
+		case MediaTypeVideo:
+			require.Error(t, fd2.FromImage(i1))
+		}
+		require.Error(t, fd2.SetBytes(b1, align))
+		f2.MakeWritable()
+		switch v.md {
+		case MediaTypeVideo:
+			require.NoError(t, fd2.FromImage(i1))
+		}
+		require.NoError(t, fd2.SetBytes(b1, align))
 	}
 }

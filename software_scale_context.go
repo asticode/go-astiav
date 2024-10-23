@@ -60,8 +60,15 @@ func CreateSoftwareScaleContext(srcW, srcH int, srcFormat PixelFormat, dstW, dst
 }
 
 func (ssc *SoftwareScaleContext) Free() {
-	classers.del(ssc)
+	// Make sure to clone the classer before freeing the object since
+	// the C free method may reset the pointer
+	c := newClonedClasser(ssc)
 	C.sws_freeContext(ssc.c)
+	// Make sure to remove from classers after freeing the object since
+	// the C free method may use methods needing the classer
+	if c != nil {
+		classers.del(c)
+	}
 }
 
 var _ Classer = (*SoftwareScaleContext)(nil)

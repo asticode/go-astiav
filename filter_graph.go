@@ -10,6 +10,8 @@ import (
 // https://github.com/FFmpeg/FFmpeg/blob/n5.0/libavfilter/avfilter.h#L861
 type FilterGraph struct {
 	c *C.AVFilterGraph
+	// We need to store filter contexts to clean classer once filter graph is freed
+	fcs []*FilterContext
 }
 
 func newFilterGraphFromC(c *C.AVFilterGraph) *FilterGraph {
@@ -28,9 +30,25 @@ func AllocFilterGraph() *FilterGraph {
 }
 
 func (g *FilterGraph) Free() {
-	classers.del(g)
 	if g.c != nil {
+		// Make sure to clone the classer before freeing the object since
+		// the C free method may reset the pointer
+		c := newClonedClasser(g)
+		var cfcs []Classer
+		for _, fc := range g.fcs {
+			cfcs = append(cfcs, newClonedClasser(fc))
+		}
 		C.avfilter_graph_free(&g.c)
+		// Make sure to remove from classers after freeing the object since
+		// the C free method may use methods needing the classer
+		for _, cfc := range cfcs {
+			if cfc != nil {
+				classers.del(cfc)
+			}
+		}
+		if c != nil {
+			classers.del(c)
+		}
 	}
 }
 
@@ -80,7 +98,25 @@ func (g *FilterGraph) NewFilterContext(f *Filter, name string, args FilterArgs) 
 	if err := newError(C.avfilter_graph_create_filter(&c, f.c, cn, ca, nil, g.c)); err != nil {
 		return nil, err
 	}
-	return newFilterContext(c), nil
+	fc := newFilterContext(c)
+	g.fcs = append(g.fcs, fc)
+	return fc, nil
+}
+
+func (g *FilterGraph) NewBuffersinkFilterContext(f *Filter, name string, args FilterArgs) (*BuffersinkFilterContext, error) {
+	fc, err := g.NewFilterContext(f, name, args)
+	if err != nil {
+		return nil, err
+	}
+	return newBuffersinkFilterContext(fc), nil
+}
+
+func (g *FilterGraph) NewBuffersrcFilterContext(f *Filter, name string, args FilterArgs) (*BuffersrcFilterContext, error) {
+	fc, err := g.NewFilterContext(f, name, args)
+	if err != nil {
+		return nil, err
+	}
+	return newBuffersrcFilterContext(fc), nil
 }
 
 func (g *FilterGraph) Parse(content string, inputs, outputs *FilterInOut) error {

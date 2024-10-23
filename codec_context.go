@@ -43,8 +43,17 @@ func (cc *CodecContext) Free() {
 		C.av_buffer_unref(&cc.hfc.c)
 		cc.hfc = nil
 	}
-	classers.del(cc)
-	C.avcodec_free_context(&cc.c)
+	if cc.c != nil {
+		// Make sure to clone the classer before freeing the object since
+		// the C free method may reset the pointer
+		c := newClonedClasser(cc)
+		C.avcodec_free_context(&cc.c)
+		// Make sure to remove from classers after freeing the object since
+		// the C free method may use methods needing the classer
+		if c != nil {
+			classers.del(c)
+		}
+	}
 }
 
 func (cc *CodecContext) String() string {

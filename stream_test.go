@@ -7,7 +7,7 @@ import (
 )
 
 func TestStream(t *testing.T) {
-	fc, err := globalHelper.inputFormatContext("video.mp4")
+	fc, err := globalHelper.inputFormatContext("video.mp4", nil)
 	require.NoError(t, err)
 	ss := fc.Streams()
 	require.Len(t, ss, 2)

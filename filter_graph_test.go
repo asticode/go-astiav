@@ -31,13 +31,14 @@ func TestFilterGraph(t *testing.T) {
 		target    string
 		withError bool
 	}
-	type link struct {
+	type buffersink struct {
 		channelLayout     ChannelLayout
 		colorRange        ColorRange
 		colorSpace        ColorSpace
 		frameRate         Rational
 		height            int
 		mediaType         MediaType
+		name              string
 		pixelFormat       PixelFormat
 		sampleAspectRatio Rational
 		sampleFormat      SampleFormat
@@ -45,30 +46,32 @@ func TestFilterGraph(t *testing.T) {
 		timeBase          Rational
 		width             int
 	}
+	type buffersrc struct {
+		name string
+	}
 	type graph struct {
-		buffersinkExpectedInput link
-		buffersinkName          string
-		buffersrcName           string
-		commands                []command
-		content                 string
-		s                       string
-		sources                 []FilterArgs
+		buffersink buffersink
+		buffersrc  buffersrc
+		commands   []command
+		content    string
+		s          string
+		sources    []FilterArgs
 	}
 	for _, v := range []graph{
 		{
-			buffersinkExpectedInput: link{
+			buffersink: buffersink{
 				colorRange:        ColorRangeUnspecified,
 				colorSpace:        ColorSpaceUnspecified,
 				frameRate:         NewRational(4, 1),
 				height:            8,
 				mediaType:         MediaTypeVideo,
+				name:              "buffersink",
 				pixelFormat:       PixelFormatYuv420P,
 				sampleAspectRatio: NewRational(2, 1),
 				timeBase:          NewRational(1, 4),
 				width:             4,
 			},
-			buffersinkName: "buffersink",
-			buffersrcName:  "buffer",
+			buffersrc: buffersrc{name: "buffer"},
 			commands: []command{
 				{
 					args:      "a",
@@ -97,17 +100,17 @@ func TestFilterGraph(t *testing.T) {
 			},
 		},
 		{
-			buffersinkExpectedInput: link{
+			buffersink: buffersink{
 				channelLayout: ChannelLayoutStereo,
 				mediaType:     MediaTypeAudio,
+				name:          "abuffersink",
 				sampleFormat:  SampleFormatS16,
 				sampleRate:    3,
 				timeBase:      NewRational(1, 4),
 			},
-			buffersinkName: "abuffersink",
-			buffersrcName:  "abuffer",
-			content:        "[input_1]aformat=sample_fmts=s16:channel_layouts=stereo:sample_rates=3,asettb=1/4",
-			s:              "                                                  +---------------+\nParsed_asettb_1:default--[3Hz s16:stereo]--default|  filter_out   |\n                                                  | (abuffersink) |\n                                                  +---------------+\n\n+-------------+\n| filter_in_1 |default--[2Hz fltp:mono]--auto_aresample_0:default\n|  (abuffer)  |\n+-------------+\n\n                                                   +------------------+\nauto_aresample_0:default--[3Hz s16:stereo]--default| Parsed_aformat_0 |default--[3Hz s16:stereo]--Parsed_asettb_1:default\n                                                   |    (aformat)     |\n                                                   +------------------+\n\n                                                   +-----------------+\nParsed_aformat_0:default--[3Hz s16:stereo]--default| Parsed_asettb_1 |default--[3Hz s16:stereo]--filter_out:default\n                                                   |    (asettb)     |\n                                                   +-----------------+\n\n                                             +------------------+\nfilter_in_1:default--[2Hz fltp:mono]--default| auto_aresample_0 |default--[3Hz s16:stereo]--Parsed_aformat_0:default\n                                             |   (aresample)    |\n                                             +------------------+\n\n",
+			buffersrc: buffersrc{name: "abuffer"},
+			content:   "[input_1]aformat=sample_fmts=s16:channel_layouts=stereo:sample_rates=3,asettb=1/4",
+			s:         "                                                  +---------------+\nParsed_asettb_1:default--[3Hz s16:stereo]--default|  filter_out   |\n                                                  | (abuffersink) |\n                                                  +---------------+\n\n+-------------+\n| filter_in_1 |default--[2Hz fltp:mono]--auto_aresample_0:default\n|  (abuffer)  |\n+-------------+\n\n                                                   +------------------+\nauto_aresample_0:default--[3Hz s16:stereo]--default| Parsed_aformat_0 |default--[3Hz s16:stereo]--Parsed_asettb_1:default\n                                                   |    (aformat)     |\n                                                   +------------------+\n\n                                                   +-----------------+\nParsed_aformat_0:default--[3Hz s16:stereo]--default| Parsed_asettb_1 |default--[3Hz s16:stereo]--filter_out:default\n                                                   |    (asettb)     |\n                                                   +-----------------+\n\n                                             +------------------+\nfilter_in_1:default--[2Hz fltp:mono]--default| auto_aresample_0 |default--[3Hz s16:stereo]--Parsed_aformat_0:default\n                                             |   (aresample)    |\n                                             +------------------+\n\n",
 			sources: []FilterArgs{
 				{
 					"channel_layout": ChannelLayoutMono.String(),
@@ -122,21 +125,21 @@ func TestFilterGraph(t *testing.T) {
 		require.NotNil(t, fg)
 		defer fg.Free()
 
-		buffersrc := FindFilterByName(v.buffersrcName)
+		buffersrc := FindFilterByName(v.buffersrc.name)
 		require.NotNil(t, buffersrc)
-		buffersink := FindFilterByName(v.buffersinkName)
+		buffersink := FindFilterByName(v.buffersink.name)
 		require.NotNil(t, buffersink)
 
-		buffersinkContext, err := fg.NewFilterContext(buffersink, "filter_out", nil)
+		buffersinkContext, err := fg.NewBuffersinkFilterContext(buffersink, "filter_out", nil)
 		require.NoError(t, err)
-		cl = buffersinkContext.Class()
+		cl = buffersinkContext.FilterContext().Class()
 		require.NotNil(t, cl)
 		require.Equal(t, "AVFilter", cl.Name())
 
 		inputs := AllocFilterInOut()
 		defer inputs.Free()
 		inputs.SetName("out")
-		inputs.SetFilterContext(buffersinkContext)
+		inputs.SetFilterContext(buffersinkContext.FilterContext())
 		inputs.SetPadIdx(0)
 		inputs.SetNext(nil)
 
@@ -147,15 +150,15 @@ func TestFilterGraph(t *testing.T) {
 			}
 		}()
 
-		var buffersrcContexts []*FilterContext
+		var buffersrcContexts []*BuffersrcFilterContext
 		for idx, src := range v.sources {
-			buffersrcContext, err := fg.NewFilterContext(buffersrc, fmt.Sprintf("filter_in_%d", idx+1), src)
+			buffersrcContext, err := fg.NewBuffersrcFilterContext(buffersrc, fmt.Sprintf("filter_in_%d", idx+1), src)
 			require.NoError(t, err)
 			buffersrcContexts = append(buffersrcContexts, buffersrcContext)
 
 			o := AllocFilterInOut()
 			o.SetName(fmt.Sprintf("input_%d", idx+1))
-			o.SetFilterContext(buffersrcContext)
+			o.SetFilterContext(buffersrcContext.FilterContext())
 			o.SetPadIdx(0)
 			o.SetNext(outputs)
 
@@ -165,33 +168,21 @@ func TestFilterGraph(t *testing.T) {
 		require.NoError(t, fg.Parse(v.content, inputs, outputs))
 		require.NoError(t, fg.Configure())
 
-		require.Equal(t, 1, buffersinkContext.NbInputs())
-		links := buffersinkContext.Inputs()
-		require.Equal(t, 1, len(links))
-		e, g := v.buffersinkExpectedInput, links[0]
-		require.Equal(t, e.frameRate, g.FrameRate())
-		require.Equal(t, e.mediaType, g.MediaType())
-		require.Equal(t, e.timeBase, g.TimeBase())
-		switch e.mediaType {
+		require.Equal(t, v.buffersink.frameRate, buffersinkContext.FrameRate())
+		require.Equal(t, v.buffersink.mediaType, buffersinkContext.MediaType())
+		require.Equal(t, v.buffersink.timeBase, buffersinkContext.TimeBase())
+		switch v.buffersink.mediaType {
 		case MediaTypeAudio:
-			require.True(t, e.channelLayout.Equal(g.ChannelLayout()))
-			require.Equal(t, e.sampleFormat, g.SampleFormat())
-			require.Equal(t, e.sampleRate, g.SampleRate())
+			require.True(t, v.buffersink.channelLayout.Equal(buffersinkContext.ChannelLayout()))
+			require.Equal(t, v.buffersink.sampleFormat, buffersinkContext.SampleFormat())
+			require.Equal(t, v.buffersink.sampleRate, buffersinkContext.SampleRate())
 		default:
-			require.Equal(t, e.colorRange, g.ColorRange())
-			require.Equal(t, e.colorSpace, g.ColorSpace())
-			require.Equal(t, e.height, g.Height())
-			require.Equal(t, e.pixelFormat, g.PixelFormat())
-			require.Equal(t, e.sampleAspectRatio, g.SampleAspectRatio())
-			require.Equal(t, e.width, g.Width())
-		}
-
-		for _, buffersrcContext := range buffersrcContexts {
-			require.Equal(t, 0, buffersrcContext.NbInputs())
-			require.Equal(t, 1, buffersrcContext.NbOutputs())
-			links := buffersrcContext.Outputs()
-			require.Equal(t, 1, len(links))
-			require.Equal(t, v.buffersinkExpectedInput.mediaType, links[0].MediaType())
+			require.Equal(t, v.buffersink.colorRange, buffersinkContext.ColorRange())
+			require.Equal(t, v.buffersink.colorSpace, buffersinkContext.ColorSpace())
+			require.Equal(t, v.buffersink.height, buffersinkContext.Height())
+			require.Equal(t, v.buffersink.pixelFormat, buffersinkContext.PixelFormat())
+			require.Equal(t, v.buffersink.sampleAspectRatio, buffersinkContext.SampleAspectRatio())
+			require.Equal(t, v.buffersink.width, buffersinkContext.Width())
 		}
 
 		require.Equal(t, v.s, fg.String())

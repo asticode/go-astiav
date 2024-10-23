@@ -6,6 +6,7 @@ import "C"
 import (
 	"errors"
 	"fmt"
+	"io"
 	"sync"
 	"unsafe"
 )
@@ -121,15 +122,23 @@ func (ic *IOContext) Class() *Class {
 }
 
 func (ic *IOContext) Close() error {
-	classers.del(ic)
 	if ic.c != nil {
-		return newError(C.avio_closep(&ic.c))
+		// Make sure to clone the classer before freeing the object since
+		// the C free method may reset the pointer
+		c := newClonedClasser(ic)
+		if err := newError(C.avio_closep(&ic.c)); err != nil {
+			return err
+		}
+		// Make sure to remove from classers after freeing the object since
+		// the C free method may use methods needing the classer
+		if c != nil {
+			classers.del(c)
+		}
 	}
 	return nil
 }
 
 func (ic *IOContext) Free() {
-	classers.del(ic)
 	if ic.c != nil {
 		if ic.c.buffer != nil {
 			C.av_freep(unsafe.Pointer(&ic.c.buffer))
@@ -138,7 +147,15 @@ func (ic *IOContext) Free() {
 			C.free(ic.handlerID)
 			ic.handlerID = nil
 		}
+		// Make sure to clone the classer before freeing the object since
+		// the C free method may reset the pointer
+		c := newClonedClasser(ic)
 		C.avio_context_free(&ic.c)
+		// Make sure to remove from classers after freeing the object since
+		// the C free method may use methods needing the classer
+		if c != nil {
+			classers.del(c)
+		}
 	}
 	return
 }
@@ -241,6 +258,8 @@ func goAstiavIOContextReadFunc(opaque unsafe.Pointer, buf *C.uint8_t, bufSize C.
 		var e Error
 		if errors.As(err, &e) {
 			return C.int(e)
+		} else if errors.Is(err, io.EOF) {
+			return C.AVERROR_EOF
 		}
 		return C.AVERROR_UNKNOWN
 	}

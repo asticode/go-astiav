@@ -27,6 +27,7 @@ Examples are located in the [examples](examples) directory and mirror as much as
 |Custom IO Demuxing|[see](examples/custom_io_demuxing/main.go)|[see](https://github.com/FFmpeg/FFmpeg/blob/n7.0/doc/examples/avio_reading.c)
 |Demuxing/Decoding|[see](examples/demuxing_decoding/main.go)|[see](https://github.com/FFmpeg/FFmpeg/blob/n7.0/doc/examples/demuxing_decoding.c)
 |Filtering|[see](examples/filtering/main.go)|[see](https://github.com/FFmpeg/FFmpeg/blob/n7.0/doc/examples/filtering_video.c)
+|Frame data manipulation|[see](examples/frame_data_manipulation/main.go)|X
 |Hardware Decoding|[see](examples/hardware_decoding/main.go)|[see](https://github.com/FFmpeg/FFmpeg/blob/n7.0/doc/examples/hw_decode.c)
 |Hardware Encoding|[see](examples/hardware_encoding/main.go)|[see](https://github.com/FFmpeg/FFmpeg/blob/n7.0/doc/examples/vaapi_encode.c)
 |Remuxing|[see](examples/remuxing/main.go)|[see](https://github.com/FFmpeg/FFmpeg/blob/n7.0/doc/examples/remuxing.c)
@@ -58,3 +59,7 @@ export PKG_CONFIG_PATH="{{ path to your working directory }}/tmp/n7.0/lib/pkgcon
 # Why astiav?
 
 After maintaining for several years the most starred [fork](https://github.com/asticode/goav) of [goav](https://github.com/giorgisio/goav), I've decided to write from scratch my own C bindings to fix most of the problems I still encountered using `goav`.
+
+# Breaking changes
+
+You can see the list of breaking changes [here](BREAKING_CHANGES.md).

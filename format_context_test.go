@@ -7,7 +7,7 @@ import (
 )
 
 func TestFormatContext(t *testing.T) {
-	fc1, err := globalHelper.inputFormatContext("video.mp4")
+	fc1, err := globalHelper.inputFormatContext("video.mp4", nil)
 	require.NoError(t, err)
 	ss := fc1.Streams()
 	require.Len(t, ss, 2)
