@@ -73,10 +73,6 @@ func (f *Frame) Data() *FrameData {
 	return newFrameData(newFrameDataFrame(f))
 }
 
-func (f *Frame) SetData(plane int, data []byte) {
-	f.c.data[plane] = (*C.uint8_t)(unsafe.Pointer(&data[0]))
-}
-
 func (f *Frame) Height() int {
 	return int(f.c.height)
 }
