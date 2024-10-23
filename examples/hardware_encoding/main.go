@@ -16,6 +16,7 @@ var (
 	hardwareDeviceTypeName  = flag.String("t", "", "the hardware device type (e.g. cuda)")
 	hardwarePixelFormatName = flag.String("hpf", "", "the hardware pixel format name (e.g. cuda)")
 	height                  = flag.Int("h", 1080, "the height")
+	softwarePixelFormatName = flag.String("spf", "", "the software pixel format name (e.g. nv12)")
 	width                   = flag.Int("w", 1920, "the width")
 )
 
@@ -66,16 +67,18 @@ func main() {
 	}
 	defer encCodecContext.Free()
 
+	// Get hardware pixel format
+	hardwarePixelFormat := astiav.FindPixelFormatByName(*hardwarePixelFormatName)
+	if hardwarePixelFormat == astiav.PixelFormatNone {
+		log.Fatal("main: hardware pixel format not found")
+	}
+
 	// Set codec context
 	encCodecContext.SetWidth(*width)
 	encCodecContext.SetHeight(*height)
 	encCodecContext.SetTimeBase(astiav.NewRational(1, 25))
 	encCodecContext.SetFramerate(encCodecContext.TimeBase().Invert())
-	hardwarePixelFormatName := astiav.FindPixelFormatByName(*hardwarePixelFormatName)
-	if hardwarePixelFormatName == astiav.PixelFormatNone {
-		log.Fatal("main: hardware pixel format not found")
-	}
-	encCodecContext.SetPixelFormat(hardwarePixelFormatName)
+	encCodecContext.SetPixelFormat(hardwarePixelFormat)
 
 	// Alloc hardware frame context
 	hardwareFrameContext := astiav.AllocHardwareFrameContext(hardwareDeviceContext)
@@ -83,9 +86,14 @@ func main() {
 		log.Fatal("main: hardware frame context is nil")
 	}
 
+	// Get software pixel format
+	softwarePixelFormat := astiav.FindPixelFormatByName(*softwarePixelFormatName)
+	if softwarePixelFormat == astiav.PixelFormatNone {
+		log.Fatal("main: software pixel format not found")
+	}
+
 	// Set hardware frame content
-	const softwarePixelFormat = astiav.PixelFormatNv12
-	hardwareFrameContext.SetPixelFormat(hardwarePixelFormatName)
+	hardwareFrameContext.SetPixelFormat(hardwarePixelFormat)
 	hardwareFrameContext.SetSoftwarePixelFormat(softwarePixelFormat)
 	hardwareFrameContext.SetWidth(*width)
 	hardwareFrameContext.SetHeight(*height)
@@ -96,7 +104,7 @@ func main() {
 		log.Fatal(fmt.Errorf("main: initializing hardware frame context failed: %w", err))
 	}
 
-	// Update hardware frame context
+	// Update encoder codec context hardware frame context
 	encCodecContext.SetHardwareFrameContext(hardwareFrameContext)
 
 	// Open codec context
