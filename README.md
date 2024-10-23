@@ -29,6 +29,7 @@ Examples are located in the [examples](examples) directory and mirror as much as
 |Filtering|[see](examples/filtering/main.go)|[see](https://github.com/FFmpeg/FFmpeg/blob/n7.0/doc/examples/filtering_video.c)
 |Frame data manipulation|[see](examples/frame_data_manipulation/main.go)|X
 |Hardware Decoding|[see](examples/hardware_decoding/main.go)|[see](https://github.com/FFmpeg/FFmpeg/blob/n7.0/doc/examples/hw_decode.c)
+|Hardware Encoding|[see](examples/hardware_encoding/main.go)|[see](https://github.com/FFmpeg/FFmpeg/blob/n7.0/doc/examples/vaapi_encode.c)
 |Remuxing|[see](examples/remuxing/main.go)|[see](https://github.com/FFmpeg/FFmpeg/blob/n7.0/doc/examples/remuxing.c)
 |Scaling|[see](examples/scaling/main.go)|[see](https://github.com/FFmpeg/FFmpeg/blob/n7.0/doc/examples/scaling_video.c)
 |Transcoding|[see](examples/transcoding/main.go)|[see](https://github.com/FFmpeg/FFmpeg/blob/n7.0/doc/examples/transcoding.c)
