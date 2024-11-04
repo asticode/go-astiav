@@ -340,6 +340,10 @@ func (cc *CodecContext) SetExtraHardwareFrames(n int) {
 	cc.c.extra_hw_frames = C.int(n)
 }
 
+func (cc *CodecContext) UnsafePointer() unsafe.Pointer {
+	return unsafe.Pointer(cc.c)
+}
+
 type CodecContextPixelFormatCallback func(pfs []PixelFormat) PixelFormat
 
 var (
