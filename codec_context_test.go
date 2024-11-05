@@ -2,6 +2,7 @@ package astiav
 
 import (
 	"testing"
+	"unsafe"
 
 	"github.com/stretchr/testify/require"
 )
@@ -40,6 +41,7 @@ func TestCodecContext(t *testing.T) {
 	require.Equal(t, 1, cc1.ThreadCount())
 	require.Equal(t, ThreadType(3), cc1.ThreadType())
 	require.Equal(t, 320, cc1.Width())
+	require.Equal(t, unsafe.Pointer(cc1.c), cc1.UnsafePointer())
 	cl := cc1.Class()
 	require.NotNil(t, cl)
 	require.Equal(t, "AVCodecContext", cl.Name())
