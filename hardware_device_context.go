@@ -12,7 +12,7 @@ type HardwareDeviceContext struct {
 	c *C.AVBufferRef
 }
 
-func CreateHardwareDeviceContext(t HardwareDeviceType, device string, options *Dictionary) (*HardwareDeviceContext, error) {
+func CreateHardwareDeviceContext(t HardwareDeviceType, device string, options *Dictionary, flags int) (*HardwareDeviceContext, error) {
 	hdc := HardwareDeviceContext{}
 	deviceC := (*C.char)(nil)
 	if device != "" {
@@ -23,7 +23,7 @@ func CreateHardwareDeviceContext(t HardwareDeviceType, device string, options *D
 	if options != nil {
 		optionsC = options.c
 	}
-	if err := newError(C.av_hwdevice_ctx_create(&hdc.c, (C.enum_AVHWDeviceType)(t), deviceC, optionsC, 0)); err != nil {
+	if err := newError(C.av_hwdevice_ctx_create(&hdc.c, (C.enum_AVHWDeviceType)(t), deviceC, optionsC, C.int(flags))); err != nil {
 		return nil, err
 	}
 	return &hdc, nil

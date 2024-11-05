@@ -49,7 +49,7 @@ func main() {
 	}
 
 	// Create hardware device context
-	hardwareDeviceContext, err := astiav.CreateHardwareDeviceContext(hardwareDeviceType, *hardwareDeviceName, nil)
+	hardwareDeviceContext, err := astiav.CreateHardwareDeviceContext(hardwareDeviceType, *hardwareDeviceName, nil, 0)
 	if err != nil {
 		log.Fatal(fmt.Errorf("main: creating hardware device context failed: %w", err))
 	}
