@@ -56,6 +56,28 @@ export CGO_CFLAGS="-I{{ path to your working directory }}/tmp/n7.0/include/",
 export PKG_CONFIG_PATH="{{ path to your working directory }}/tmp/n7.0/lib/pkgconfig",
 ```
 
+## Building on Windows
+
+Building on Windows requires msys2 / mingw64 gcc toolchain. Read the [Quickstart guide](https://www.msys2.org) to install Msys2.
+
+Once complete run the Mingw64 shell from the installation folder, run the below commands:
+
+```shell
+# Update Packages
+pacman -Syu
+# Install Requirements to Build
+pacman -S --noconfirm --needed git diffutils mingw-w64-x86_64-toolchain pkg-config make yasm
+# Clone the repository using git
+git clone https://github.com/asticode/go-astiav
+cd go-astiav
+```
+
+Then once you clone this repository, follow along the build instructions above.
+
+> **Notes:**
+> For `pkg-config` use `pkgconfiglite` from choco.
+> Remember to set `CGO` and `PKG_CONFIG` env vars properly to point to the folder where ffmpeg was built. 
+
 # Why astiav?
 
 After maintaining for several years the most starred [fork](https://github.com/asticode/goav) of [goav](https://github.com/giorgisio/goav), I've decided to write from scratch my own C bindings to fix most of the problems I still encountered using `goav`.
