@@ -7,6 +7,7 @@ import (
 )
 
 func TestHardwareDeviceType(t *testing.T) {
+	require.Equal(t, "cuda", HardwareDeviceTypeCUDA.Name())
 	require.Equal(t, "cuda", HardwareDeviceTypeCUDA.String())
 	require.Equal(t, FindHardwareDeviceTypeByName("cuda"), HardwareDeviceTypeCUDA)
 }

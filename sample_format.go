@@ -3,7 +3,7 @@ package astiav
 //#include <libavutil/samplefmt.h>
 import "C"
 
-// https://github.com/FFmpeg/FFmpeg/blob/n5.0/libavutil/samplefmt.h#L58
+// https://ffmpeg.org/doxygen/7.0/group__lavu__sampfmts.html#gaf9a51ca15301871723577c730b5865c5
 type SampleFormat C.enum_AVSampleFormat
 
 const (
@@ -23,6 +23,7 @@ const (
 	SampleFormatU8P  = SampleFormat(C.AV_SAMPLE_FMT_U8P)
 )
 
+// https://ffmpeg.org/doxygen/7.0/group__lavu__sampfmts.html#ga31b9d149b2de9821a65f4f5612970838
 func (f SampleFormat) Name() string {
 	return C.GoString(C.av_get_sample_fmt_name((C.enum_AVSampleFormat)(f)))
 }

@@ -7,7 +7,7 @@ package astiav
 import "C"
 import "unsafe"
 
-// https://github.com/FFmpeg/FFmpeg/blob/n5.0/libavutil/pixfmt.h#L64
+// https://ffmpeg.org/doxygen/7.0/pixfmt_8h.html#a9a8e335cf3be472042bc9f0cf80cd4c5
 type PixelFormat C.enum_AVPixelFormat
 
 const (
@@ -202,6 +202,7 @@ const (
 	PixelFormatYvyu422       = PixelFormat(C.AV_PIX_FMT_YVYU422)
 )
 
+// https://ffmpeg.org/doxygen/7.0/pixdesc_8c.html#ab92e2a8a9b58c982560c49df9f01e47e
 func (f PixelFormat) Name() string {
 	return C.GoString(C.av_get_pix_fmt_name((C.enum_AVPixelFormat)(f)))
 }
@@ -210,6 +211,7 @@ func (f PixelFormat) String() string {
 	return f.Name()
 }
 
+// https://ffmpeg.org/doxygen/7.0/pixdesc_8c.html#a925ef18d69c24c3be8c53d5a7dc0660e
 func FindPixelFormatByName(name string) PixelFormat {
 	cn := C.CString(name)
 	defer C.free(unsafe.Pointer(cn))

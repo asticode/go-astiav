@@ -7,7 +7,7 @@ import (
 	"unsafe"
 )
 
-// https://github.com/FFmpeg/FFmpeg/blob/n5.0/libavfilter/avfilter.h#L861
+// https://ffmpeg.org/doxygen/7.0/structAVFilterGraph.html
 type FilterGraph struct {
 	c *C.AVFilterGraph
 	// We need to store filter contexts to clean classer once filter graph is freed
@@ -25,10 +25,12 @@ func newFilterGraphFromC(c *C.AVFilterGraph) *FilterGraph {
 
 var _ Classer = (*FilterGraph)(nil)
 
+// https://ffmpeg.org/doxygen/7.0/group__lavfi.html#ga6c778454b86f845805ffd814b4ce51d4
 func AllocFilterGraph() *FilterGraph {
 	return newFilterGraphFromC(C.avfilter_graph_alloc())
 }
 
+// https://ffmpeg.org/doxygen/7.0/group__lavfi.html#ga871684449dac05050df238a18d0d493b
 func (g *FilterGraph) Free() {
 	if g.c != nil {
 		// Make sure to clone the classer before freeing the object since
@@ -52,26 +54,32 @@ func (g *FilterGraph) Free() {
 	}
 }
 
+// https://ffmpeg.org/doxygen/7.0/group__lavfi.html#gadb442aca4e5a8c3ba740f6049f0a288b
 func (g *FilterGraph) String() string {
 	return C.GoString(C.avfilter_graph_dump(g.c, nil))
 }
 
+// https://ffmpeg.org/doxygen/7.0/structAVFilterGraph.html#af00925dd69b474fac48887efc0e1ac94
 func (g *FilterGraph) Class() *Class {
 	return newClassFromC(unsafe.Pointer(g.c))
 }
 
+// https://ffmpeg.org/doxygen/7.0/structAVFilterGraph.html#ac28dcbf76e6fdd800295a2738d41660e
 func (g *FilterGraph) ThreadCount() int {
 	return int(g.c.nb_threads)
 }
 
+// https://ffmpeg.org/doxygen/7.0/structAVFilterGraph.html#ac28dcbf76e6fdd800295a2738d41660e
 func (g *FilterGraph) SetThreadCount(threadCount int) {
 	g.c.nb_threads = C.int(threadCount)
 }
 
+// https://ffmpeg.org/doxygen/7.0/structAVFilterGraph.html#a7fd96bbd6d1a3b730681dc0bf5107a5e
 func (g *FilterGraph) ThreadType() ThreadType {
 	return ThreadType(g.c.thread_type)
 }
 
+// https://ffmpeg.org/doxygen/7.0/structAVFilterGraph.html#a7fd96bbd6d1a3b730681dc0bf5107a5e
 func (g *FilterGraph) SetThreadType(t ThreadType) {
 	g.c.thread_type = C.int(t)
 }
@@ -86,6 +94,7 @@ func (args FilterArgs) String() string {
 	return strings.Join(ss, ":")
 }
 
+// https://ffmpeg.org/doxygen/7.0/group__lavfi.html#gac0788a9ab6966dba9318b5d5c7524fea
 func (g *FilterGraph) NewFilterContext(f *Filter, name string, args FilterArgs) (*FilterContext, error) {
 	ca := (*C.char)(nil)
 	if len(args) > 0 {
@@ -119,6 +128,7 @@ func (g *FilterGraph) NewBuffersrcFilterContext(f *Filter, name string, args Fil
 	return newBuffersrcFilterContext(fc), nil
 }
 
+// https://ffmpeg.org/doxygen/7.0/group__lavfi.html#ga34f4ff420bd58da6747a3ff1fbedd001
 func (g *FilterGraph) Parse(content string, inputs, outputs *FilterInOut) error {
 	cc := C.CString(content)
 	defer C.free(unsafe.Pointer(cc))
@@ -133,6 +143,7 @@ func (g *FilterGraph) Parse(content string, inputs, outputs *FilterInOut) error 
 	return newError(C.avfilter_graph_parse_ptr(g.c, cc, ic, oc, nil))
 }
 
+// https://ffmpeg.org/doxygen/7.0/group__lavfi.html#ga2ecfd3667219b6cd1e37b7047cc0ef2b
 func (g *FilterGraph) ParseSegment(content string) (*FilterGraphSegment, error) {
 	cc := C.CString(content)
 	defer C.free(unsafe.Pointer(cc))
@@ -143,10 +154,12 @@ func (g *FilterGraph) ParseSegment(content string) (*FilterGraphSegment, error) 
 	return newFilterGraphSegmentFromC(cs), nil
 }
 
+// https://ffmpeg.org/doxygen/7.0/group__lavfi.html#ga1896c46b7bc6ff1bdb1a4815faa9ad07
 func (g *FilterGraph) Configure() error {
 	return newError(C.avfilter_graph_config(g.c, nil))
 }
 
+// https://ffmpeg.org/doxygen/7.0/group__lavfi.html#gaaad7850fb5fe26d35e5d371ca75b79e1
 func (g *FilterGraph) SendCommand(target, cmd, args string, f FilterCommandFlags) (response string, err error) {
 	targetc := C.CString(target)
 	defer C.free(unsafe.Pointer(targetc))

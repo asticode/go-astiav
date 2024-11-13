@@ -1,3 +1,7 @@
+# v0.25.0
+
+- `CodecParameters`.`CodecType` and `CodecParameters`.`SetCodecType` have been removed, use `CodecParameters`.`MediaType` and `CodecParameters`.`SetMediaType` instead
+
 # v0.24.0
 
 - use `FilterGraph`.`NewBuffersinkFilterContext` and `FilterGraph`.`NewBuffersrcFilterContext` instead of `FilterGraph`.`NewFilterContext` when creating `buffersink` and `buffersrc` filter contexts and use `BuffersinkFilterContext`.`GetFrame` and `BuffersrcFilterContext`.`AddFrame` to manipulate them. Use `BuffersinkFilterContext`.`FilterContext` and `BuffersrcFilterContext`.`FilterContext` in `FilterInOut`.`SetFilterContext`.

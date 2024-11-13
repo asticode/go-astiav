@@ -7,7 +7,7 @@ import (
 	"unsafe"
 )
 
-// https://github.com/FFmpeg/FFmpeg/blob/n5.0/libavutil/frame.h#L223
+// https://ffmpeg.org/doxygen/7.0/structAVFrameSideData.html
 type FrameSideData struct {
 	c *C.AVFrameSideData
 }
@@ -19,6 +19,7 @@ func newFrameSideDataFromC(c *C.AVFrameSideData) *FrameSideData {
 	return &FrameSideData{c: c}
 }
 
+// https://ffmpeg.org/doxygen/7.0/structAVFrameSideData.html#a76937ad48652a5a0cc4bff65fc6c886e
 func (d *FrameSideData) Data() []byte {
 	return bytesFromC(func(size *C.size_t) *C.uint8_t {
 		*size = d.c.size
@@ -26,10 +27,12 @@ func (d *FrameSideData) Data() []byte {
 	})
 }
 
+// https://ffmpeg.org/doxygen/7.0/structAVFrameSideData.html#a76937ad48652a5a0cc4bff65fc6c886e
 func (d *FrameSideData) SetData(b []byte) {
 	C.memcpy(unsafe.Pointer(d.c.data), unsafe.Pointer(&b[0]), C.size_t(math.Min(float64(len(b)), float64(d.c.size))))
 }
 
+// https://ffmpeg.org/doxygen/7.0/structAVFrameSideData.html#a07ff3499827c124591ff4bae6f68eec0
 func (d *FrameSideData) Type() FrameSideDataType {
 	return FrameSideDataType(d.c._type)
 }

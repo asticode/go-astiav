@@ -3,9 +3,9 @@ package astiav
 //#include <libavformat/avformat.h>
 import "C"
 
+// https://ffmpeg.org/doxygen/7.0/avformat_8h.html#a69e2c8bc119c0245ff6092f9db4d12ae
 type FormatContextFlag int64
 
-// https://github.com/FFmpeg/FFmpeg/blob/n5.0/libavformat/avformat.h#L1321
 const (
 	FormatContextFlagGenPts         = FormatContextFlag(C.AVFMT_FLAG_GENPTS)
 	FormatContextFlagIgnidx         = FormatContextFlag(C.AVFMT_FLAG_IGNIDX)

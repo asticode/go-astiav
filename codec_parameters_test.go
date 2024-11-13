@@ -76,8 +76,6 @@ func TestCodecParameters(t *testing.T) {
 	require.Equal(t, ColorRangeJpeg, cp6.ColorRange())
 	cp6.SetColorSpace(ColorSpaceBt709)
 	require.Equal(t, ColorSpaceBt709, cp6.ColorSpace())
-	cp6.SetCodecType(MediaTypeAudio)
-	require.Equal(t, MediaTypeAudio, cp6.CodecType())
 	cp6.SetFrameSize(1)
 	require.Equal(t, 1, cp6.FrameSize())
 	cp6.SetHeight(1)

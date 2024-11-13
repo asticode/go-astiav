@@ -7,7 +7,7 @@ import (
 	"unsafe"
 )
 
-// https://github.com/FFmpeg/FFmpeg/blob/n6.1.1/libavcodec/packet.h#L342
+// https://ffmpeg.org/doxygen/7.0/structAVPacketSideData.html
 type PacketSideData struct {
 	sd   **C.AVPacketSideData
 	size *C.int
@@ -20,6 +20,7 @@ func newPacketSideDataFromC(sd **C.AVPacketSideData, size *C.int) *PacketSideDat
 	}
 }
 
+// https://ffmpeg.org/doxygen/7.0/group__lavc__packet__side__data.html#gad208a666db035802403ea994912a83db
 func (d *PacketSideData) Add(t PacketSideDataType, b []byte) error {
 	if len(b) == 0 {
 		return nil
@@ -34,6 +35,7 @@ func (d *PacketSideData) Add(t PacketSideDataType, b []byte) error {
 	return nil
 }
 
+// https://ffmpeg.org/doxygen/7.0/group__lavc__packet__side__data.html#ga61a3a0fba92a308208c8ab957472d23c
 func (d *PacketSideData) Get(t PacketSideDataType) []byte {
 	return bytesFromC(func(size *C.size_t) *C.uint8_t {
 		if d.sd == nil || d.size == nil {

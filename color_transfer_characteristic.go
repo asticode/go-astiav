@@ -3,7 +3,7 @@ package astiav
 //#include <libavutil/pixfmt.h>
 import "C"
 
-// https://github.com/FFmpeg/FFmpeg/blob/n5.0/libavutil/pixfmt.h#L494
+// https://ffmpeg.org/doxygen/7.0/pixfmt_8h.html#ad4791ea14975f098b649db7fcd731ce6
 type ColorTransferCharacteristic C.enum_AVColorTransferCharacteristic
 
 const (

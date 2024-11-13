@@ -6,7 +6,7 @@ import (
 	"unsafe"
 )
 
-// https://github.com/FFmpeg/FFmpeg/blob/n5.0/libavutil/channel_layout.h#L90
+// https://ffmpeg.org/doxygen/7.0/group__lavu__audio__channels.html#ga855bb7dede67971e95bd09d8fcca7293
 var (
 	ChannelLayoutMono              = newChannelLayoutFromC(C.astiavChannelLayoutMono)
 	ChannelLayoutStereo            = newChannelLayoutFromC(C.astiavChannelLayoutStereo)
@@ -46,6 +46,7 @@ var (
 	ChannelLayout7Point1TopBack    = newChannelLayoutFromC(C.astiavChannelLayout7Point1TopBack)
 )
 
+// https://ffmpeg.org/doxygen/7.0/structAVChannelLayout.html
 type ChannelLayout struct {
 	c *C.AVChannelLayout
 }
@@ -54,6 +55,7 @@ func newChannelLayoutFromC(c *C.AVChannelLayout) ChannelLayout {
 	return ChannelLayout{c: c}
 }
 
+// https://ffmpeg.org/doxygen/7.0/structAVChannelLayout.html#adfd3f460a8ea1575baa32852d9248d3c
 func (l ChannelLayout) Channels() int {
 	if l.c == nil {
 		return 0
@@ -70,6 +72,7 @@ func (l ChannelLayout) String() string {
 	return string(b[:n])
 }
 
+// https://ffmpeg.org/doxygen/7.0/group__lavu__audio__channels.html#gacc7d7d1a280248aafb8f9196c9d4e24f
 func (l ChannelLayout) Describe(b []byte) (int, error) {
 	if l.c == nil {
 		return 0, nil
@@ -84,6 +87,7 @@ func (l ChannelLayout) Describe(b []byte) (int, error) {
 	return int(ret), nil
 }
 
+// https://ffmpeg.org/doxygen/7.0/group__lavu__audio__channels.html#gad15a6bf80ee8551ee4a4789d970ccbea
 func (l ChannelLayout) Valid() bool {
 	if l.c == nil {
 		return false
@@ -91,6 +95,7 @@ func (l ChannelLayout) Valid() bool {
 	return C.av_channel_layout_check(l.c) > 0
 }
 
+// https://ffmpeg.org/doxygen/7.0/group__lavu__audio__channels.html#ga5da99475fc07b778522974a2e0a1f58c
 func (l ChannelLayout) Compare(l2 ChannelLayout) (equal bool, err error) {
 	if l.c == nil || l2.c == nil {
 		return l.c == nil && l2.c == nil, nil
@@ -107,6 +112,7 @@ func (l ChannelLayout) Equal(l2 ChannelLayout) bool {
 	return v
 }
 
+// https://ffmpeg.org/doxygen/7.0/group__lavu__audio__channels.html#gad36be43b2a1b14b66492b8025b82f886
 func (l ChannelLayout) copy(dst *C.AVChannelLayout) error {
 	return newError(C.av_channel_layout_copy(dst, l.c))
 }

@@ -3,7 +3,7 @@ package astiav
 //#include <libavutil/pixfmt.h>
 import "C"
 
-// https://github.com/FFmpeg/FFmpeg/blob/n5.0/libavutil/pixfmt.h#L616
+// https://ffmpeg.org/doxygen/7.0/pixfmt_8h.html#a1f86ed1b6a420faccacf77c98db6c1ff
 type ChromaLocation C.enum_AVChromaLocation
 
 const (

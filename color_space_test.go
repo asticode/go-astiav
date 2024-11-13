@@ -7,5 +7,6 @@ import (
 )
 
 func TestColorSpace(t *testing.T) {
+	require.Equal(t, "bt709", ColorSpaceBt709.Name())
 	require.Equal(t, "bt709", ColorSpaceBt709.String())
 }

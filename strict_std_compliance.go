@@ -3,9 +3,9 @@ package astiav
 //#include <libavcodec/avcodec.h>
 import "C"
 
+// https://ffmpeg.org/doxygen/7.0/defs_8h.html#a96808e3862c53c7edb4ace1b2f3e544f
 type StrictStdCompliance int
 
-// https://github.com/FFmpeg/FFmpeg/blob/n5.0/libavcodec/avcodec.h#L1281
 const (
 	StrictStdComplianceVeryStrict   = StrictStdCompliance(C.FF_COMPLIANCE_VERY_STRICT)
 	StrictStdComplianceStrict       = StrictStdCompliance(C.FF_COMPLIANCE_STRICT)

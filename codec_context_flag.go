@@ -3,9 +3,9 @@ package astiav
 //#include <libavcodec/avcodec.h>
 import "C"
 
+// https://ffmpeg.org/doxygen/7.0/group__lavc__core.html#gaa52d62f5dbfc4529388f0454ae671359
 type CodecContextFlag int64
 
-// https://github.com/FFmpeg/FFmpeg/blob/n5.0/libavcodec/avcodec.h#L206
 const (
 	CodecContextFlagUnaligned     = CodecContextFlag(C.AV_CODEC_FLAG_UNALIGNED)
 	CodecContextFlagQscale        = CodecContextFlag(C.AV_CODEC_FLAG_QSCALE)
@@ -28,7 +28,7 @@ const (
 
 type CodecContextFlag2 int64
 
-// https://github.com/FFmpeg/FFmpeg/blob/n5.0/libavcodec/avcodec.h#L287
+// https://ffmpeg.org/doxygen/7.0/group__lavc__core.html#ga1a6a486e686ab6c581ffffcb88cb31b3
 const (
 	CodecFlag2Fast        = CodecContextFlag2(C.AV_CODEC_FLAG2_FAST)
 	CodecFlag2NoOutput    = CodecContextFlag2(C.AV_CODEC_FLAG2_NO_OUTPUT)

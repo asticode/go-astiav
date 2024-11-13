@@ -3,9 +3,9 @@ package astiav
 //#include <libavformat/avformat.h>
 import "C"
 
+// https://ffmpeg.org/doxygen/7.0/avformat_8h.html#a752cce390d480521919aa5d8be24ac0b
 type IOFormatFlag int64
 
-// https://github.com/FFmpeg/FFmpeg/blob/n5.0/libavformat/avformat.h#L464
 const (
 	IOFormatFlagNofile       = IOFormatFlag(C.AVFMT_NOFILE)
 	IOFormatFlagNeednumber   = IOFormatFlag(C.AVFMT_NEEDNUMBER)

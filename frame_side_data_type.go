@@ -3,7 +3,7 @@ package astiav
 //#include <libavutil/frame.h>
 import "C"
 
-// https://github.com/FFmpeg/FFmpeg/blob/n5.0/libavutil/frame.h#L48
+// https://ffmpeg.org/doxygen/7.0/group__lavu__frame.html#gae01fa7e427274293aacdf2adc17076bc
 type FrameSideDataType C.enum_AVFrameSideDataType
 
 const (

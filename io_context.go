@@ -11,7 +11,7 @@ import (
 	"unsafe"
 )
 
-// https://github.com/FFmpeg/FFmpeg/blob/n5.0/libavformat/avio.h#L161
+// https://ffmpeg.org/doxygen/7.0/structAVIOContext.html
 type IOContext struct {
 	c         *C.AVIOContext
 	handlerID unsafe.Pointer
@@ -34,6 +34,7 @@ type IOContextSeekFunc func(offset int64, whence int) (n int64, err error)
 
 type IOContextWriteFunc func(b []byte) (n int, err error)
 
+// https://ffmpeg.org/doxygen/7.0/avio_8h.html#a50c588d3c44707784f3afde39e1c181c
 func AllocIOContext(bufferSize int, writable bool, readFunc IOContextReadFunc, seekFunc IOContextSeekFunc, writeFunc IOContextWriteFunc) (ic *IOContext, err error) {
 	// Invalid buffer size
 	if bufferSize <= 0 {
@@ -107,6 +108,7 @@ func AllocIOContext(bufferSize int, writable bool, readFunc IOContextReadFunc, s
 	return
 }
 
+// https://ffmpeg.org/doxygen/7.0/avio_8c.html#ab1b99c5b70aa59f15ab7cd4cbb40381e
 func OpenIOContext(filename string, flags IOContextFlags) (*IOContext, error) {
 	cfi := C.CString(filename)
 	defer C.free(unsafe.Pointer(cfi))
@@ -121,6 +123,7 @@ func (ic *IOContext) Class() *Class {
 	return newClassFromC(unsafe.Pointer(ic.c))
 }
 
+// https://ffmpeg.org/doxygen/7.0/avio_8c.html#ae118a1f37f1e48617609ead9910aac15
 func (ic *IOContext) Close() error {
 	if ic.c != nil {
 		// Make sure to clone the classer before freeing the object since
@@ -138,6 +141,7 @@ func (ic *IOContext) Close() error {
 	return nil
 }
 
+// https://ffmpeg.org/doxygen/7.0/avio_8h.html#ad1baf8cd6711f05a45d0339cafe2d21d
 func (ic *IOContext) Free() {
 	if ic.c != nil {
 		if ic.c.buffer != nil {
@@ -160,6 +164,7 @@ func (ic *IOContext) Free() {
 	return
 }
 
+// https://ffmpeg.org/doxygen/7.0/avio_8h.html#a53843d2cbe6282d994fcf59c03d59294
 func (ic *IOContext) Read(b []byte) (n int, err error) {
 	// Nothing to read
 	if b == nil || len(b) <= 0 {
@@ -189,6 +194,7 @@ func (ic *IOContext) Read(b []byte) (n int, err error) {
 	return
 }
 
+// https://ffmpeg.org/doxygen/7.0/avio_8h.html#a03e23bf0144030961c34e803c71f614f
 func (ic *IOContext) Seek(offset int64, whence int) (int64, error) {
 	ret := C.avio_seek(ic.c, C.int64_t(offset), C.int(whence))
 	if err := newError(C.int(ret)); err != nil {
@@ -197,6 +203,7 @@ func (ic *IOContext) Seek(offset int64, whence int) (int64, error) {
 	return int64(ret), nil
 }
 
+// https://ffmpeg.org/doxygen/7.0/avio_8h.html#acc3626afc6aa3964b75d02811457164e
 func (ic *IOContext) Write(b []byte) {
 	// Nothing to write
 	if b == nil || len(b) <= 0 {
@@ -207,6 +214,7 @@ func (ic *IOContext) Write(b []byte) {
 	C.avio_write(ic.c, (*C.uchar)(unsafe.Pointer(&b[0])), C.int(len(b)))
 }
 
+// https://ffmpeg.org/doxygen/7.0/avio_8h.html#ad88b866a118c17c95663f7782b2e8946
 func (ic *IOContext) Flush() {
 	C.avio_flush(ic.c)
 }

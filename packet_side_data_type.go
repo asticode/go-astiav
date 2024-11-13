@@ -3,7 +3,7 @@ package astiav
 //#include <libavcodec/avcodec.h>
 import "C"
 
-// https://github.com/FFmpeg/FFmpeg/blob/n5.0/libavcodec/packet.h#L40
+// https://ffmpeg.org/doxygen/7.0/group__lavc__packet__side__data.html#ga9a80bfcacc586b483a973272800edb97
 type PacketSideDataType C.enum_AVPacketSideDataType
 
 const (
@@ -37,6 +37,7 @@ const (
 	PacketSideDataTypeWebvttSettings           = PacketSideDataType(C.AV_PKT_DATA_WEBVTT_SETTINGS)
 )
 
+// https://ffmpeg.org/doxygen/7.0/group__lavc__packet__side__data.html#ga78c05e43a5d021eb10e63b28a541bce3
 func (t PacketSideDataType) Name() string {
 	return C.GoString(C.av_packet_side_data_name((C.enum_AVPacketSideDataType)(t)))
 }

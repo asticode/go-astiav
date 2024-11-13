@@ -4,9 +4,9 @@ package astiav
 //#include <errno.h>
 import "C"
 
+// https://ffmpeg.org/doxygen/7.0/group__lavu__error.html#ga586e134e9dad8f57a218b2cd8734b601
 type Error int
 
-// https://github.com/FFmpeg/FFmpeg/blob/n5.0/libavutil/error.h#L51
 const (
 	ErrBsfNotFound      = Error(C.AVERROR_BSF_NOT_FOUND)
 	ErrBufferTooSmall   = Error(C.AVERROR_BUFFER_TOO_SMALL)
@@ -51,6 +51,7 @@ func newError(ret C.int) error {
 	return Error(i)
 }
 
+// https://ffmpeg.org/doxygen/7.0/group__lavu__error.html#ga5792b4a2d18d7d9cb0efbcfc335dce24
 func (e Error) Error() string {
 	s, _ := stringFromC(255, func(buf *C.char, size C.size_t) error {
 		return newError(C.av_strerror(C.int(e), buf, size))

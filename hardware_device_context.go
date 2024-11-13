@@ -7,11 +7,12 @@ import (
 	"unsafe"
 )
 
-// https://github.com/FFmpeg/FFmpeg/blob/n5.0/libavutil/hwcontext.h#L61
+// https://ffmpeg.org/doxygen/7.0/structAVHWDeviceContext.html
 type HardwareDeviceContext struct {
 	c *C.AVBufferRef
 }
 
+// https://ffmpeg.org/doxygen/7.0/hwcontext_8c.html#a21fbd088225e4e25c4d9a01b3f5e8c51
 func CreateHardwareDeviceContext(t HardwareDeviceType, device string, options *Dictionary, flags int) (*HardwareDeviceContext, error) {
 	hdc := HardwareDeviceContext{}
 	deviceC := (*C.char)(nil)

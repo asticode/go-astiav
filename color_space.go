@@ -4,7 +4,7 @@ package astiav
 //#include <libavutil/pixfmt.h>
 import "C"
 
-// https://github.com/FFmpeg/FFmpeg/blob/n5.0/libavutil/pixfmt.h#L523
+// https://ffmpeg.org/doxygen/7.0/pixfmt_8h.html#aff71a069509a1ad3ff54d53a1c894c85
 type ColorSpace C.enum_AVColorSpace
 
 const (
@@ -27,6 +27,11 @@ const (
 	ColorSpaceNb               = ColorSpace(C.AVCOL_SPC_NB)
 )
 
-func (s ColorSpace) String() string {
+// https://ffmpeg.org/doxygen/7.0/pixdesc_8c.html#a7a5b3f4d128f0a0112b4a91f75055339
+func (s ColorSpace) Name() string {
 	return C.GoString(C.av_color_space_name(C.enum_AVColorSpace(s)))
+}
+
+func (s ColorSpace) String() string {
+	return s.Name()
 }
