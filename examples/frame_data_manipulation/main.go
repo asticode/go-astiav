@@ -28,7 +28,7 @@ func main() {
 
 	*/
 
-	// Alloc frame
+	// Allocate frame
 	audioFrame := astiav.AllocFrame()
 	defer audioFrame.Free()
 
@@ -38,13 +38,13 @@ func main() {
 	audioFrame.SetSampleFormat(astiav.SampleFormatFlt)
 	audioFrame.SetSampleRate(48000)
 
-	// Alloc buffer
+	// Allocate buffer
 	align := 0
 	if err := audioFrame.AllocBuffer(align); err != nil {
 		log.Fatal(fmt.Errorf("main: allocating buffer failed: %w", err))
 	}
 
-	// Alloc samples
+	// Allocate samples
 	if err := audioFrame.AllocSamples(align); err != nil {
 		log.Fatal(fmt.Errorf("main: allocating image failed: %w", err))
 	}
@@ -71,7 +71,7 @@ func main() {
 
 	*/
 
-	// Alloc frame
+	// Allocate frame
 	videoFrame := astiav.AllocFrame()
 	defer videoFrame.Free()
 
@@ -80,13 +80,13 @@ func main() {
 	videoFrame.SetPixelFormat(astiav.PixelFormatRgba)
 	videoFrame.SetWidth(256)
 
-	// Alloc buffer
+	// Allocate buffer
 	align = 1
 	if err := videoFrame.AllocBuffer(align); err != nil {
 		log.Fatal(fmt.Errorf("main: allocating buffer failed: %w", err))
 	}
 
-	// Alloc image
+	// Allocate image
 	if err := videoFrame.AllocImage(align); err != nil {
 		log.Fatal(fmt.Errorf("main: allocating image failed: %w", err))
 	}

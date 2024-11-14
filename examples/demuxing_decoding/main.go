@@ -42,15 +42,15 @@ func main() {
 		return
 	}
 
-	// Alloc packet
+	// Allocate packet
 	pkt := astiav.AllocPacket()
 	defer pkt.Free()
 
-	// Alloc frame
+	// Allocate frame
 	f := astiav.AllocFrame()
 	defer f.Free()
 
-	// Alloc input format context
+	// Allocate input format context
 	inputFormatContext := astiav.AllocFormatContext()
 	if inputFormatContext == nil {
 		log.Fatal(errors.New("main: input format context is nil"))
@@ -85,7 +85,7 @@ func main() {
 			log.Fatal(errors.New("main: codec is nil"))
 		}
 
-		// Alloc codec context
+		// Allocate codec context
 		if s.decCodecContext = astiav.AllocCodecContext(s.decCodec); s.decCodecContext == nil {
 			log.Fatal(errors.New("main: codec context is nil"))
 		}
@@ -105,39 +105,57 @@ func main() {
 		streams[is.Index()] = s
 	}
 
-	// Loop through packets
+	// Loop
 	for {
-		// Read frame
-		if err := inputFormatContext.ReadFrame(pkt); err != nil {
-			if errors.Is(err, astiav.ErrEof) {
-				break
+		// We use a closure to ease unreferencing the packet
+		if stop := func() bool {
+			// Read frame
+			if err := inputFormatContext.ReadFrame(pkt); err != nil {
+				if errors.Is(err, astiav.ErrEof) {
+					return true
+				}
+				log.Fatal(fmt.Errorf("main: reading frame failed: %w", err))
 			}
-			log.Fatal(fmt.Errorf("main: reading frame failed: %w", err))
-		}
 
-		// Get stream
-		s, ok := streams[pkt.StreamIndex()]
-		if !ok {
-			continue
-		}
+			// Make sure to unreference the packet
+			defer pkt.Unref()
 
-		// Send packet
-		if err := s.decCodecContext.SendPacket(pkt); err != nil {
-			log.Fatal(fmt.Errorf("main: sending packet failed: %w", err))
-		}
+			// Get stream
+			s, ok := streams[pkt.StreamIndex()]
+			if !ok {
+				return false
+			}
 
-		// Loop
-		for {
-			// Receive frame
-			if err := s.decCodecContext.ReceiveFrame(f); err != nil {
-				if errors.Is(err, astiav.ErrEof) || errors.Is(err, astiav.ErrEagain) {
+			// Send packet
+			if err := s.decCodecContext.SendPacket(pkt); err != nil {
+				log.Fatal(fmt.Errorf("main: sending packet failed: %w", err))
+			}
+
+			// Loop
+			for {
+				// We use a closure to ease unreferencing the frame
+				if stop := func() bool {
+					// Receive frame
+					if err := s.decCodecContext.ReceiveFrame(f); err != nil {
+						if errors.Is(err, astiav.ErrEof) || errors.Is(err, astiav.ErrEagain) {
+							return true
+						}
+						log.Fatal(fmt.Errorf("main: receiving frame failed: %w", err))
+					}
+
+					// Make sure to unreference the frame
+					defer f.Unref()
+
+					// Log
+					log.Printf("new %s frame: stream %d - pts: %d", s.inputStream.CodecParameters().MediaType(), pkt.StreamIndex(), f.Pts())
+					return false
+				}(); stop {
 					break
 				}
-				log.Fatal(fmt.Errorf("main: receiving frame failed: %w", err))
 			}
-
-			// Log
-			log.Printf("new %s frame: stream %d - pts: %d", s.inputStream.CodecParameters().MediaType(), pkt.StreamIndex(), f.Pts())
+			return false
+		}(); stop {
+			break
 		}
 	}
 

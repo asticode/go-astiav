@@ -53,19 +53,19 @@ func main() {
 		log.Fatal(errors.New("main: hardware device not found"))
 	}
 
-	// Alloc packet
+	// Allocate packet
 	pkt := astiav.AllocPacket()
 	defer pkt.Free()
 
-	// Alloc hardware frame
+	// Allocate hardware frame
 	hardwareFrame := astiav.AllocFrame()
 	defer hardwareFrame.Free()
 
-	// Alloc software frame
+	// Allocate software frame
 	softwareFrame := astiav.AllocFrame()
 	defer softwareFrame.Free()
 
-	// Alloc input format context
+	// Allocate input format context
 	inputFormatContext := astiav.AllocFormatContext()
 	if inputFormatContext == nil {
 		log.Fatal(errors.New("main: input format context is nil"))
@@ -106,7 +106,7 @@ func main() {
 			log.Fatal(errors.New("main: codec is nil"))
 		}
 
-		// Alloc codec context
+		// Allocate codec context
 		if s.decCodecContext = astiav.AllocCodecContext(s.decCodec); s.decCodecContext == nil {
 			log.Fatal(errors.New("main: codec context is nil"))
 		}
@@ -160,55 +160,76 @@ func main() {
 
 	// Loop through packets
 	for {
-		// Read frame
-		if err := inputFormatContext.ReadFrame(pkt); err != nil {
-			if errors.Is(err, astiav.ErrEof) {
-				break
+		// We use a closure to ease unreferencing the packet
+		if stop := func() bool {
+			// Read frame
+			if err := inputFormatContext.ReadFrame(pkt); err != nil {
+				if errors.Is(err, astiav.ErrEof) {
+					return true
+				}
+				log.Fatal(fmt.Errorf("main: reading frame failed: %w", err))
 			}
-			log.Fatal(fmt.Errorf("main: reading frame failed: %w", err))
-		}
 
-		// Get stream
-		s, ok := streams[pkt.StreamIndex()]
-		if !ok {
-			continue
-		}
+			// Make sure to unreference the packet
+			defer pkt.Unref()
 
-		// Send packet
-		if err := s.decCodecContext.SendPacket(pkt); err != nil {
-			log.Fatal(fmt.Errorf("main: sending packet failed: %w", err))
-		}
+			// Get stream
+			s, ok := streams[pkt.StreamIndex()]
+			if !ok {
+				return false
+			}
 
-		// Loop
-		for {
-			// Receive frame
-			if err := s.decCodecContext.ReceiveFrame(hardwareFrame); err != nil {
-				if errors.Is(err, astiav.ErrEof) || errors.Is(err, astiav.ErrEagain) {
+			// Send packet
+			if err := s.decCodecContext.SendPacket(pkt); err != nil {
+				log.Fatal(fmt.Errorf("main: sending packet failed: %w", err))
+			}
+
+			// Loop
+			for {
+				// We use a closure to ease unreferencing frames
+				if stop := func() bool {
+					// Receive frame
+					if err := s.decCodecContext.ReceiveFrame(hardwareFrame); err != nil {
+						if errors.Is(err, astiav.ErrEof) || errors.Is(err, astiav.ErrEagain) {
+							return true
+						}
+						log.Fatal(fmt.Errorf("main: receiving frame failed: %w", err))
+					}
+
+					// Make sure to unreference hardware frame
+					defer hardwareFrame.Unref()
+
+					// Get final frame
+					var finalFrame *astiav.Frame
+					if hardwareFrame.PixelFormat() == s.hardwarePixelFormat {
+						// Transfer hardware data
+						if err := hardwareFrame.TransferHardwareData(softwareFrame); err != nil {
+							log.Fatal(fmt.Errorf("main: transferring hardware data failed: %w", err))
+						}
+
+						// Make sure to unreference software frame
+						defer softwareFrame.Unref()
+
+						// Update pts
+						softwareFrame.SetPts(hardwareFrame.Pts())
+
+						// Update final frame
+						finalFrame = softwareFrame
+					} else {
+						// Update final frame
+						finalFrame = hardwareFrame
+					}
+
+					// Do something with decoded frame
+					log.Printf("new frame: stream %d - pts: %d - transferred: %v", pkt.StreamIndex(), finalFrame.Pts(), hardwareFrame.PixelFormat() == s.hardwarePixelFormat)
+					return false
+				}(); stop {
 					break
 				}
-				log.Fatal(fmt.Errorf("main: receiving frame failed: %w", err))
 			}
-
-			// Get final frame
-			var finalFrame *astiav.Frame
-			if hardwareFrame.PixelFormat() == s.hardwarePixelFormat {
-				// Transfer hardware data
-				if err := hardwareFrame.TransferHardwareData(softwareFrame); err != nil {
-					log.Fatal(fmt.Errorf("main: transferring hardware data failed: %w", err))
-				}
-
-				// Update pts
-				softwareFrame.SetPts(hardwareFrame.Pts())
-
-				// Update final frame
-				finalFrame = softwareFrame
-			} else {
-				// Update final frame
-				finalFrame = hardwareFrame
-			}
-
-			// Do something with decoded frame
-			log.Printf("new frame: stream %d - pts: %d - transferred: %v", pkt.StreamIndex(), finalFrame.Pts(), hardwareFrame.PixelFormat() == s.hardwarePixelFormat)
+			return false
+		}(); stop {
+			break
 		}
 	}
 

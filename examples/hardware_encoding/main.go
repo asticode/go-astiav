@@ -156,15 +156,24 @@ func main() {
 
 	// Loop
 	for {
-		// Receive packet
-		if err = encCodecContext.ReceivePacket(pkt); err != nil {
-			if errors.Is(err, astiav.ErrEof) || errors.Is(err, astiav.ErrEagain) {
-				break
+		// We use a closure to ease unreferencing the packet
+		if stop := func() bool {
+			// Receive packet
+			if err = encCodecContext.ReceivePacket(pkt); err != nil {
+				if errors.Is(err, astiav.ErrEof) || errors.Is(err, astiav.ErrEagain) {
+					return true
+				}
+				log.Fatal(fmt.Errorf("main: receiving packet failed: %w", err))
 			}
-			log.Fatal(fmt.Errorf("main: receiving packet failed: %w", err))
-		}
 
-		// Log
-		log.Println("new packet")
+			// Make sure to unreference packet
+			defer pkt.Unref()
+
+			// Log
+			log.Println("new packet")
+			return false
+		}(); stop {
+			break
+		}
 	}
 }

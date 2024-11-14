@@ -79,48 +79,66 @@ func main() {
 		log.Fatal(fmt.Errorf("main: initializing filters failed: %w", err))
 	}
 
-	// Alloc packet
+	// Allocate packet
 	pkt := astiav.AllocPacket()
 	c.Add(pkt.Free)
 
 	// Loop through packets
 	for {
-		// Read frame
-		if err := inputFormatContext.ReadFrame(pkt); err != nil {
-			if errors.Is(err, astiav.ErrEof) {
-				break
+		// We use a closure to ease unreferencing the packet
+		if stop := func() bool {
+			// Read frame
+			if err := inputFormatContext.ReadFrame(pkt); err != nil {
+				if errors.Is(err, astiav.ErrEof) {
+					return true
+				}
+				log.Fatal(fmt.Errorf("main: reading frame failed: %w", err))
 			}
-			log.Fatal(fmt.Errorf("main: reading frame failed: %w", err))
-		}
 
-		// Get stream
-		s, ok := streams[pkt.StreamIndex()]
-		if !ok {
-			continue
-		}
+			// Make sure to unreference the packet
+			defer pkt.Unref()
 
-		// Update packet
-		pkt.RescaleTs(s.inputStream.TimeBase(), s.decCodecContext.TimeBase())
+			// Get stream
+			s, ok := streams[pkt.StreamIndex()]
+			if !ok {
+				return false
+			}
 
-		// Send packet
-		if err := s.decCodecContext.SendPacket(pkt); err != nil {
-			log.Fatal(fmt.Errorf("main: sending packet failed: %w", err))
-		}
+			// Update packet
+			pkt.RescaleTs(s.inputStream.TimeBase(), s.decCodecContext.TimeBase())
 
-		// Loop
-		for {
-			// Receive frame
-			if err := s.decCodecContext.ReceiveFrame(s.decFrame); err != nil {
-				if errors.Is(err, astiav.ErrEof) || errors.Is(err, astiav.ErrEagain) {
+			// Send packet
+			if err := s.decCodecContext.SendPacket(pkt); err != nil {
+				log.Fatal(fmt.Errorf("main: sending packet failed: %w", err))
+			}
+
+			// Loop
+			for {
+				// We use a closure to ease unreferencing the frame
+				if stop := func() bool {
+					// Receive frame
+					if err := s.decCodecContext.ReceiveFrame(s.decFrame); err != nil {
+						if errors.Is(err, astiav.ErrEof) || errors.Is(err, astiav.ErrEagain) {
+							return true
+						}
+						log.Fatal(fmt.Errorf("main: receiving frame failed: %w", err))
+					}
+
+					// Make sure to unreference the frame
+					defer s.decFrame.Unref()
+
+					// Filter, encode and write frame
+					if err := filterEncodeWriteFrame(s.decFrame, s); err != nil {
+						log.Fatal(fmt.Errorf("main: filtering, encoding and writing frame failed: %w", err))
+					}
+					return false
+				}(); stop {
 					break
 				}
-				log.Fatal(fmt.Errorf("main: receiving frame failed: %w", err))
 			}
-
-			// Filter, encode and write frame
-			if err := filterEncodeWriteFrame(s.decFrame, s); err != nil {
-				log.Fatal(fmt.Errorf("main: filtering, encoding and writing frame failed: %w", err))
-			}
+			return false
+		}(); stop {
+			break
 		}
 	}
 
@@ -147,7 +165,7 @@ func main() {
 }
 
 func openInputFile() (err error) {
-	// Alloc input format context
+	// Allocate input format context
 	if inputFormatContext = astiav.AllocFormatContext(); inputFormatContext == nil {
 		err = errors.New("main: input format context is nil")
 		return
@@ -184,7 +202,7 @@ func openInputFile() (err error) {
 			return
 		}
 
-		// Alloc codec context
+		// Allocate codec context
 		if s.decCodecContext = astiav.AllocCodecContext(s.decCodec); s.decCodecContext == nil {
 			err = errors.New("main: codec context is nil")
 			return
@@ -208,7 +226,7 @@ func openInputFile() (err error) {
 			return
 		}
 
-		// Alloc frame
+		// Allocate frame
 		s.decFrame = astiav.AllocFrame()
 		c.Add(s.decFrame.Free)
 
@@ -219,7 +237,7 @@ func openInputFile() (err error) {
 }
 
 func openOutputFile() (err error) {
-	// Alloc output format context
+	// Allocate output format context
 	if outputFormatContext, err = astiav.AllocOutputFormatContext(nil, "", *output); err != nil {
 		err = fmt.Errorf("main: allocating output format context failed: %w", err)
 		return
@@ -255,7 +273,7 @@ func openOutputFile() (err error) {
 			return
 		}
 
-		// Alloc codec context
+		// Allocate codec context
 		if s.encCodecContext = astiav.AllocCodecContext(s.encCodec); s.encCodecContext == nil {
 			err = errors.New("main: codec context is nil")
 			return
@@ -334,14 +352,14 @@ func openOutputFile() (err error) {
 func initFilters() (err error) {
 	// Loop through output streams
 	for _, s := range streams {
-		// Alloc graph
+		// Allocate graph
 		if s.filterGraph = astiav.AllocFilterGraph(); s.filterGraph == nil {
 			err = errors.New("main: graph is nil")
 			return
 		}
 		c.Add(s.filterGraph.Free)
 
-		// Alloc outputs
+		// Allocate outputs
 		outputs := astiav.AllocFilterInOut()
 		if outputs == nil {
 			err = errors.New("main: outputs is nil")
@@ -349,7 +367,7 @@ func initFilters() (err error) {
 		}
 		c.Add(outputs.Free)
 
-		// Alloc inputs
+		// Allocate inputs
 		inputs := astiav.AllocFilterInOut()
 		if inputs == nil {
 			err = errors.New("main: inputs is nil")
@@ -428,11 +446,11 @@ func initFilters() (err error) {
 			return
 		}
 
-		// Alloc frame
+		// Allocate frame
 		s.filterFrame = astiav.AllocFrame()
 		c.Add(s.filterFrame.Free)
 
-		// Alloc packet
+		// Allocate packet
 		s.encPkt = astiav.AllocPacket()
 		c.Add(s.encPkt.Free)
 	}
@@ -448,35 +466,37 @@ func filterEncodeWriteFrame(f *astiav.Frame, s *stream) (err error) {
 
 	// Loop
 	for {
-		// Unref frame
-		s.filterFrame.Unref()
-
-		// Get frame
-		if err = s.buffersinkContext.GetFrame(s.filterFrame, astiav.NewBuffersinkFlags()); err != nil {
-			if errors.Is(err, astiav.ErrEof) || errors.Is(err, astiav.ErrEagain) {
-				err = nil
-				break
+		// We use a closure to unreference the frame
+		if stop, err := func() (bool, error) {
+			// Get frame
+			if err := s.buffersinkContext.GetFrame(s.filterFrame, astiav.NewBuffersinkFlags()); err != nil {
+				if errors.Is(err, astiav.ErrEof) || errors.Is(err, astiav.ErrEagain) {
+					return true, nil
+				}
+				return false, fmt.Errorf("main: getting frame failed: %w", err)
 			}
-			err = fmt.Errorf("main: getting frame failed: %w", err)
-			return
-		}
 
-		// Reset picture type
-		s.filterFrame.SetPictureType(astiav.PictureTypeNone)
+			// Make sure to unreference the frame
+			defer s.filterFrame.Unref()
 
-		// Encode and write frame
-		if err = encodeWriteFrame(s.filterFrame, s); err != nil {
-			err = fmt.Errorf("main: encoding and writing frame failed: %w", err)
-			return
+			// Reset picture type
+			s.filterFrame.SetPictureType(astiav.PictureTypeNone)
+
+			// Encode and write frame
+			if err := encodeWriteFrame(s.filterFrame, s); err != nil {
+				return false, fmt.Errorf("main: encoding and writing frame failed: %w", err)
+			}
+			return false, nil
+		}(); err != nil {
+			return err
+		} else if stop {
+			break
 		}
 	}
 	return
 }
 
 func encodeWriteFrame(f *astiav.Frame, s *stream) (err error) {
-	// Unref packet
-	s.encPkt.Unref()
-
 	// Send frame
 	if err = s.encCodecContext.SendFrame(f); err != nil {
 		err = fmt.Errorf("main: sending frame failed: %w", err)
@@ -485,24 +505,32 @@ func encodeWriteFrame(f *astiav.Frame, s *stream) (err error) {
 
 	// Loop
 	for {
-		// Receive packet
-		if err = s.encCodecContext.ReceivePacket(s.encPkt); err != nil {
-			if errors.Is(err, astiav.ErrEof) || errors.Is(err, astiav.ErrEagain) {
-				err = nil
-				break
+		// We use a closure to ease unreferencing the packet
+		if stop, err := func() (bool, error) {
+			// Receive packet
+			if err := s.encCodecContext.ReceivePacket(s.encPkt); err != nil {
+				if errors.Is(err, astiav.ErrEof) || errors.Is(err, astiav.ErrEagain) {
+					return true, nil
+				}
+				return false, fmt.Errorf("main: receiving packet failed: %w", err)
 			}
-			err = fmt.Errorf("main: receiving packet failed: %w", err)
-			return
-		}
 
-		// Update pkt
-		s.encPkt.SetStreamIndex(s.outputStream.Index())
-		s.encPkt.RescaleTs(s.encCodecContext.TimeBase(), s.outputStream.TimeBase())
+			// Make sure to unreference packet
+			defer s.encPkt.Unref()
 
-		// Write frame
-		if err = outputFormatContext.WriteInterleavedFrame(s.encPkt); err != nil {
-			err = fmt.Errorf("main: writing frame failed: %w", err)
-			return
+			// Update pkt
+			s.encPkt.SetStreamIndex(s.outputStream.Index())
+			s.encPkt.RescaleTs(s.encCodecContext.TimeBase(), s.outputStream.TimeBase())
+
+			// Write frame
+			if err := outputFormatContext.WriteInterleavedFrame(s.encPkt); err != nil {
+				return false, fmt.Errorf("main: writing frame failed: %w", err)
+			}
+			return false, nil
+		}(); err != nil {
+			return err
+		} else if stop {
+			break
 		}
 	}
 	return

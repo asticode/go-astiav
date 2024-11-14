@@ -42,7 +42,7 @@ func AllocIOContext(bufferSize int, writable bool, readFunc IOContextReadFunc, s
 		return
 	}
 
-	// Alloc buffer
+	// Allocate buffer
 	buffer := C.av_malloc(C.size_t(bufferSize))
 	if buffer == nil {
 		err = errors.New("astiav: allocating buffer failed")
@@ -88,7 +88,7 @@ func AllocIOContext(bufferSize int, writable bool, readFunc IOContextReadFunc, s
 		wf = C.int(1)
 	}
 
-	// Alloc io context
+	// Allocate io context
 	cic := C.avio_alloc_context((*C.uchar)(buffer), C.int(bufferSize), wf, handlerID, cReadFunc, cWriteFunc, cSeekFunc)
 	if cic == nil {
 		err = errors.New("astiav: allocating io context failed: %w")
@@ -171,7 +171,7 @@ func (ic *IOContext) Read(b []byte) (n int, err error) {
 		return
 	}
 
-	// Alloc buffer
+	// Allocate buffer
 	buf := C.av_malloc(C.size_t(len(b)))
 	if buf == nil {
 		err = errors.New("astiav: allocating buffer failed")

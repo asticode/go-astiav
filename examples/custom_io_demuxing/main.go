@@ -37,11 +37,11 @@ func main() {
 		return
 	}
 
-	// Alloc packet
+	// Allocate packet
 	pkt := astiav.AllocPacket()
 	defer pkt.Free()
 
-	// Alloc input format context
+	// Allocate input format context
 	inputFormatContext := astiav.AllocFormatContext()
 	if inputFormatContext == nil {
 		log.Fatal(errors.New("main: input format context is nil"))
@@ -55,7 +55,7 @@ func main() {
 	}
 	defer f.Close()
 
-	// Alloc io context
+	// Allocate io context
 	ioContext, err := astiav.AllocIOContext(
 		4096,
 		false,
@@ -88,16 +88,25 @@ func main() {
 
 	// Loop through packets
 	for {
-		// Read frame
-		if err := inputFormatContext.ReadFrame(pkt); err != nil {
-			if errors.Is(err, astiav.ErrEof) {
-				break
+		// We use a closure to ease unreferencing the packet
+		if stop := func() bool {
+			// Read frame
+			if err := inputFormatContext.ReadFrame(pkt); err != nil {
+				if errors.Is(err, astiav.ErrEof) {
+					return true
+				}
+				log.Fatal(fmt.Errorf("main: reading frame failed: %w", err))
 			}
-			log.Fatal(fmt.Errorf("main: reading frame failed: %w", err))
-		}
 
-		// Do something with the packet
-		log.Printf("new packet: stream %d - pts: %d", pkt.StreamIndex(), pkt.Pts())
+			// Make sure to unreference the packet
+			defer pkt.Unref()
+
+			// Do something with the packet
+			log.Printf("new packet: stream %d - pts: %d", pkt.StreamIndex(), pkt.Pts())
+			return false
+		}(); stop {
+			break
+		}
 	}
 
 	// Success

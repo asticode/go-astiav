@@ -37,11 +37,11 @@ func main() {
 		return
 	}
 
-	// Alloc packet
+	// Allocate packet
 	pkt := astiav.AllocPacket()
 	defer pkt.Free()
 
-	// Alloc input format context
+	// Allocate input format context
 	inputFormatContext := astiav.AllocFormatContext()
 	if inputFormatContext == nil {
 		log.Fatal(errors.New("main: input format context is nil"))
@@ -59,7 +59,7 @@ func main() {
 		log.Fatal(fmt.Errorf("main: finding stream info failed: %w", err))
 	}
 
-	// Alloc output format context
+	// Allocate output format context
 	outputFormatContext, err := astiav.AllocOutputFormatContext(nil, "", *output)
 	if err != nil {
 		log.Fatal(fmt.Errorf("main: allocating output format context failed: %w", err))
@@ -120,36 +120,43 @@ func main() {
 
 	// Loop through packets
 	for {
-		// Read frame
-		if err = inputFormatContext.ReadFrame(pkt); err != nil {
-			if errors.Is(err, astiav.ErrEof) {
-				break
+		// We use a closure to ease unreferencing packet
+		if stop := func() bool {
+			// Read frame
+			if err = inputFormatContext.ReadFrame(pkt); err != nil {
+				if errors.Is(err, astiav.ErrEof) {
+					return true
+				}
+				log.Fatal(fmt.Errorf("main: reading frame failed: %w", err))
 			}
-			log.Fatal(fmt.Errorf("main: reading frame failed: %w", err))
-		}
 
-		// Get input stream
-		inputStream, ok := inputStreams[pkt.StreamIndex()]
-		if !ok {
-			pkt.Unref()
-			continue
-		}
+			// Make sure to unreference packet
+			defer pkt.Unref()
 
-		// Get output stream
-		outputStream, ok := outputStreams[pkt.StreamIndex()]
-		if !ok {
-			pkt.Unref()
-			continue
-		}
+			// Get input stream
+			inputStream, ok := inputStreams[pkt.StreamIndex()]
+			if !ok {
+				return false
+			}
 
-		// Update packet
-		pkt.SetStreamIndex(outputStream.Index())
-		pkt.RescaleTs(inputStream.TimeBase(), outputStream.TimeBase())
-		pkt.SetPos(-1)
+			// Get output stream
+			outputStream, ok := outputStreams[pkt.StreamIndex()]
+			if !ok {
+				return false
+			}
 
-		// Write frame
-		if err = outputFormatContext.WriteInterleavedFrame(pkt); err != nil {
-			log.Fatal(fmt.Errorf("main: writing interleaved frame failed: %w", err))
+			// Update packet
+			pkt.SetStreamIndex(outputStream.Index())
+			pkt.RescaleTs(inputStream.TimeBase(), outputStream.TimeBase())
+			pkt.SetPos(-1)
+
+			// Write frame
+			if err = outputFormatContext.WriteInterleavedFrame(pkt); err != nil {
+				log.Fatal(fmt.Errorf("main: writing interleaved frame failed: %w", err))
+			}
+			return false
+		}(); stop {
+			break
 		}
 	}
 

@@ -42,11 +42,11 @@ func main() {
 		return
 	}
 
-	// Alloc packet
+	// Allocate packet
 	pkt := astiav.AllocPacket()
 	defer pkt.Free()
 
-	// Alloc input format context
+	// Allocate input format context
 	inputFormatContext := astiav.AllocFormatContext()
 	if inputFormatContext == nil {
 		log.Fatal(errors.New("main: input format context is nil"))
@@ -76,7 +76,7 @@ func main() {
 		// Create stream
 		s := &stream{}
 
-		// Alloc packet
+		// Allocate packet
 		s.bitStreamPkt = astiav.AllocPacket()
 		defer s.bitStreamPkt.Free()
 
@@ -86,7 +86,7 @@ func main() {
 			log.Fatal(errors.New("main: bit stream filter is nil"))
 		}
 
-		// Alloc bit stream filter context
+		// Allocate bit stream filter context
 		var err error
 		if s.bitStreamFilterContext, err = astiav.AllocBitStreamFilterContext(bsf); err != nil {
 			log.Fatal(fmt.Errorf("main: allocating bit stream filter context failed: %w", err))
@@ -112,23 +112,32 @@ func main() {
 
 	// Loop through packets
 	for {
-		// Read frame
-		if err := inputFormatContext.ReadFrame(pkt); err != nil {
-			if errors.Is(err, astiav.ErrEof) {
-				break
+		// We use a closure to ease unreferencing the packet
+		if stop := func() bool {
+			// Read frame
+			if err := inputFormatContext.ReadFrame(pkt); err != nil {
+				if errors.Is(err, astiav.ErrEof) {
+					return true
+				}
+				log.Fatal(fmt.Errorf("main: reading frame failed: %w", err))
 			}
-			log.Fatal(fmt.Errorf("main: reading frame failed: %w", err))
-		}
 
-		// Get stream
-		s, ok := streams[pkt.StreamIndex()]
-		if !ok {
-			continue
-		}
+			// Make sure to unreference the packet
+			defer pkt.Unref()
 
-		// Filter bit stream
-		if err := filterBitStream(pkt, s); err != nil {
-			log.Fatal(fmt.Errorf("main: filtering bit stream failed: %w", err))
+			// Get stream
+			s, ok := streams[pkt.StreamIndex()]
+			if !ok {
+				return false
+			}
+
+			// Filter bit stream
+			if err := filterBitStream(pkt, s); err != nil {
+				log.Fatal(fmt.Errorf("main: filtering bit stream failed: %w", err))
+			}
+			return false
+		}(); stop {
+			break
 		}
 	}
 
@@ -152,19 +161,27 @@ func filterBitStream(pkt *astiav.Packet, s *stream) error {
 
 	// Loop
 	for {
-		// Receive packet
-		if err := s.bitStreamFilterContext.ReceivePacket(s.bitStreamPkt); err != nil {
-			if errors.Is(err, astiav.ErrEof) || errors.Is(err, astiav.ErrEagain) {
-				break
+		// We use a closure to ease unreferencing the packet
+		if stop, err := func() (bool, error) {
+			// Receive packet
+			if err := s.bitStreamFilterContext.ReceivePacket(s.bitStreamPkt); err != nil {
+				if errors.Is(err, astiav.ErrEof) || errors.Is(err, astiav.ErrEagain) {
+					return true, nil
+				}
+				return false, fmt.Errorf("main: receiving packet failed: %w", err)
 			}
-			return fmt.Errorf("main: receiving packet failed: %w", err)
+
+			// Make sure to unreference the packet
+			defer s.bitStreamPkt.Unref()
+
+			// Do something with packet
+			log.Printf("new filtered packet: stream %d - pts: %d", s.bitStreamPkt.StreamIndex(), s.bitStreamPkt.Pts())
+			return false, nil
+		}(); err != nil {
+			return err
+		} else if stop {
+			break
 		}
-
-		// Do something with packet
-		log.Printf("new filtered packet: stream %d - pts: %d", s.bitStreamPkt.StreamIndex(), s.bitStreamPkt.Pts())
-
-		// Unref packet
-		s.bitStreamPkt.Unref()
 	}
 	return nil
 }
