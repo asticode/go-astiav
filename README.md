@@ -36,6 +36,45 @@ Examples are located in the [examples](examples) directory and mirror as much as
 
 *Tip: you can use the video sample located in the `testdata` directory for your tests*
 
+# Patterns
+
+*NB: errors are not checked below for readibility purposes, however you should!*
+
+First off, all use cases are different and it's impossible to provide patterns that work in every situation. That's why `ffmpeg`'s doc or source code should be your ultimate source of truth regarding how to use this library. That's why all methods of this library have been documented with a link referencing the documentation of the C function they use.
+
+However it's possible to give rules of thumb and patterns that fit most use cases and can kickstart most people. Here's a few of them:
+
+## When to call `Alloc()`, `.Unref()` and `.Free()`
+
+Let's take the `FormatContext.ReadFrame()` pattern as an example. The pattern is similar with frames.
+
+```go
+// You can allocate the packet once and reuse the same object in the for loop below
+pkt := astiav.AllocPacket()
+
+// However, once you're done using the packet, you need to make sure to free it
+defer pkt.Free()
+
+// Loop
+for {
+    // We'll use a closure to ease unreferencing the packet
+    func() {
+        // Read frame using the same packet every time
+        formatContext.ReadFrame(pkt)
+
+        // However make sure to unreference the packet once you're done with what 
+        // have been "injected" by the .ReadFrame() method
+        defer pkt.Unref()
+
+        // Here you can do whatever you feel like with your packet
+    }()
+}
+```
+
+# Breaking changes
+
+You can see the list of breaking changes [here](BREAKING_CHANGES.md).
+
 # Install ffmpeg from source
 
 If you don't know how to install `ffmpeg`, you can use the following to install it from source:
@@ -76,12 +115,8 @@ Then once you clone this repository, follow along the build instructions above.
 
 > **Notes:**
 > For `pkg-config` use `pkgconfiglite` from choco.
-> Remember to set `CGO` and `PKG_CONFIG` env vars properly to point to the folder where ffmpeg was built. 
+> Remember to set `CGO` and `PKG_CONFIG` env vars properly to point to the folder where ffmpeg was built.
 
 # Why astiav?
 
 After maintaining for several years the most starred [fork](https://github.com/asticode/goav) of [goav](https://github.com/giorgisio/goav), I've decided to write from scratch my own C bindings to fix most of the problems I still encountered using `goav`.
-
-# Breaking changes
-
-You can see the list of breaking changes [here](BREAKING_CHANGES.md).
