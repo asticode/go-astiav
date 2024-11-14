@@ -25,6 +25,7 @@ Examples are located in the [examples](examples) directory and mirror as much as
 |---|---|---|
 |BitStream Filtering|[see](examples/bit_stream_filtering/main.go)|X
 |Custom IO Demuxing|[see](examples/custom_io_demuxing/main.go)|[see](https://github.com/FFmpeg/FFmpeg/blob/n7.0/doc/examples/avio_reading.c)
+|Custom IO Muxing|[see](examples/custom_io_muxing/main.go)|X
 |Demuxing/Decoding|[see](examples/demuxing_decoding/main.go)|[see](https://github.com/FFmpeg/FFmpeg/blob/n7.0/doc/examples/demuxing_decoding.c)
 |Filtering|[see](examples/filtering/main.go)|[see](https://github.com/FFmpeg/FFmpeg/blob/n7.0/doc/examples/filtering_video.c)
 |Frame data manipulation|[see](examples/frame_data_manipulation/main.go)|X
