@@ -307,7 +307,7 @@ func openOutputFile() (err error) {
 		}
 
 		// Update flags
-		if s.decCodecContext.Flags().Has(astiav.CodecContextFlagGlobalHeader) {
+		if outputFormatContext.OutputFormat().Flags().Has(astiav.IOFormatFlagGlobalheader) {
 			s.encCodecContext.SetFlags(s.encCodecContext.Flags().Add(astiav.CodecContextFlagGlobalHeader))
 		}
 
