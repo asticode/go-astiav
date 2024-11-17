@@ -265,7 +265,7 @@ func openOutputFile() (err error) {
 		}
 
 		// Get codec id
-		codecID := astiav.CodecIDMpeg4
+		codecID := astiav.CodecIDH264
 		if s.decCodecContext.MediaType() == astiav.MediaTypeAudio {
 			codecID = astiav.CodecIDAac
 		}
