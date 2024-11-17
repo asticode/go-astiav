@@ -226,6 +226,9 @@ func openInputFile() (err error) {
 			return
 		}
 
+		// Set time base
+		s.decCodecContext.SetTimeBase(is.TimeBase())
+
 		// Allocate frame
 		s.decFrame = astiav.AllocFrame()
 		c.Add(s.decFrame.Free)
@@ -302,7 +305,7 @@ func openOutputFile() (err error) {
 				s.encCodecContext.SetPixelFormat(s.decCodecContext.PixelFormat())
 			}
 			s.encCodecContext.SetSampleAspectRatio(s.decCodecContext.SampleAspectRatio())
-			s.encCodecContext.SetTimeBase(s.decCodecContext.Framerate().Invert())
+			s.encCodecContext.SetTimeBase(s.decCodecContext.TimeBase())
 			s.encCodecContext.SetWidth(s.decCodecContext.Width())
 		}
 
