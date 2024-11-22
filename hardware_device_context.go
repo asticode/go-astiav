@@ -29,3 +29,9 @@ func CreateHardwareDeviceContext(t HardwareDeviceType, device string, options *D
 	}
 	return &hdc, nil
 }
+
+func (hdc *HardwareDeviceContext) Free() {
+	if hdc.c != nil {
+		C.av_buffer_unref(&hdc.c)
+	}
+}

@@ -23,6 +23,12 @@ func AllocHardwareFrameContext(hdc *HardwareDeviceContext) *HardwareFrameContext
 	return newHardwareFrameContextFromC(C.av_hwframe_ctx_alloc(hdc.c))
 }
 
+func (hfc *HardwareFrameContext) Free() {
+	if hfc.c != nil {
+		C.av_buffer_unref(&hfc.c)
+	}
+}
+
 func (hfc *HardwareFrameContext) data() *C.AVHWFramesContext {
 	return (*C.AVHWFramesContext)(unsafe.Pointer((hfc.c.data)))
 }

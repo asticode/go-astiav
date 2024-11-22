@@ -53,6 +53,7 @@ func main() {
 	if err != nil {
 		log.Fatal(fmt.Errorf("main: creating hardware device context failed: %w", err))
 	}
+	defer hardwareDeviceContext.Free()
 
 	// Find encoder codec
 	encCodec := astiav.FindEncoderByName(*encoderCodecName)
@@ -85,6 +86,7 @@ func main() {
 	if hardwareFrameContext == nil {
 		log.Fatal("main: hardware frame context is nil")
 	}
+	defer hardwareFrameContext.Free()
 
 	// Get software pixel format
 	softwarePixelFormat := astiav.FindPixelFormatByName(*softwarePixelFormatName)

@@ -136,6 +136,7 @@ func main() {
 		if s.hardwareDeviceContext, err = astiav.CreateHardwareDeviceContext(hardwareDeviceType, *hardwareDeviceName, nil, 0); err != nil {
 			log.Fatal(fmt.Errorf("main: creating hardware device context failed: %w", err))
 		}
+		defer s.hardwareDeviceContext.Free()
 
 		// Update decoder context
 		s.decCodecContext.SetHardwareDeviceContext(s.hardwareDeviceContext)
