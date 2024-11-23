@@ -4,6 +4,7 @@ package astiav
 //#include <libavformat/avformat.h>
 import "C"
 import (
+	"fmt"
 	"math"
 	"unsafe"
 )
@@ -344,4 +345,22 @@ func (fc *FormatContext) SDPCreate() (string, error) {
 		fccs := []*C.AVFormatContext{fc.c}
 		return newError(C.av_sdp_create(&fccs[0], C.int(len(fccs)), buf, C.int(size)))
 	})
+}
+
+// https://ffmpeg.org/doxygen/7.0/avformat_8c.html#a8d4609a8f685ad894c1503ffd1b610b4
+func (fc *FormatContext) FindBestStream(mt MediaType, wantedStreamIndex, relatedStreamIndex int) (*Stream, *Codec, error) {
+	// Find best stream
+	var cCodec *C.AVCodec
+	ret := C.av_find_best_stream(fc.c, C.enum_AVMediaType(mt), C.int(wantedStreamIndex), C.int(relatedStreamIndex), &cCodec, 0)
+	if err := newError(ret); err != nil {
+		return nil, nil, err
+	}
+
+	// Loop through streams
+	for _, s := range fc.Streams() {
+		if s.Index() == int(ret) {
+			return s, newCodecFromC(cCodec), nil
+		}
+	}
+	return nil, nil, fmt.Errorf("astiav: no stream with index %d", ret)
 }

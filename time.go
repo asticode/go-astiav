@@ -20,3 +20,26 @@ var (
 func RelativeTime() int64 {
 	return int64(C.av_gettime_relative())
 }
+
+type CompareTimestampsResult uint8
+
+const (
+	CompareTimestampsResultUndefined CompareTimestampsResult = iota
+	CompareTimestampsResultAEqualB
+	CompareTimestampsResultABeforeB
+	CompareTimestampsResultAAfterB
+)
+
+// https://ffmpeg.org/doxygen/7.0/group__lavu__math.html#ga151744358fff630942b926e67e67c415
+func CompareTimestamps(a, b int64, timeBaseA, timeBaseB Rational) CompareTimestampsResult {
+	switch C.av_compare_ts(C.int64_t(a), timeBaseA.c, C.int64_t(b), timeBaseB.c) {
+	case C.int(-1):
+		return CompareTimestampsResultABeforeB
+	case C.int(0):
+		return CompareTimestampsResultAEqualB
+	case C.int(1):
+		return CompareTimestampsResultAAfterB
+	default:
+		return CompareTimestampsResultUndefined
+	}
+}
