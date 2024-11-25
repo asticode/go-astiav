@@ -390,6 +390,10 @@ func (cc *CodecContext) SetHardwareFrameContext(hfc *HardwareFrameContext) {
 	}
 }
 
+func (cc *CodecContext) HardwareFrameContext() *HardwareFrameContext{
+	return newHardwareFrameContextFromC(cc.c.hw_frames_ctx)
+}
+
 // https://ffmpeg.org/doxygen/7.0/structAVCodecContext.html#ad2f772bd948d8f3be4d674a3a52ee00e
 func (cc *CodecContext) ExtraHardwareFrames() int {
 	return int(cc.c.extra_hw_frames)
