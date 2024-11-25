@@ -364,3 +364,15 @@ func (fc *FormatContext) FindBestStream(mt MediaType, wantedStreamIndex, related
 	}
 	return nil, nil, fmt.Errorf("astiav: no stream with index %d", ret)
 }
+
+// https://ffmpeg.org/doxygen/7.0/group__lavf__misc.html#gae2645941f2dc779c307eb6314fd39f10
+// prints detailed information about the input or output format, such as
+// duration, bitrate, streams, container, programs, metadata, side data, codec and time base.
+func (fc *FormatContext) DumpFormat(index int32, url string, isOutput int32) {
+	urlc := (*C.char)(nil)
+	if len(url) > 0 {
+		urlc = C.CString(url)
+		defer C.free(unsafe.Pointer(urlc))
+	}
+	C.av_dump_format(fc.c, C.int(index), urlc, C.int(isOutput))
+}
