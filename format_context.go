@@ -366,11 +366,11 @@ func (fc *FormatContext) FindBestStream(mt MediaType, wantedStreamIndex, related
 }
 
 // https://ffmpeg.org/doxygen/7.0/group__lavf__misc.html#gae2645941f2dc779c307eb6314fd39f10
-func (fc *FormatContext) DumpFormat(index int32, url string, isOutput int32) {
+func (fc *FormatContext) Dump(streamIndex int, url string, isOutput bool) {
 	curl := (*C.char)(nil)
 	if len(url) > 0 {
 		curl = C.CString(url)
 		defer C.free(unsafe.Pointer(curl))
 	}
-	C.av_dump_format(fc.c, C.int(index), curl, C.int(isOutput))
+	C.av_dump_format(fc.c, C.int(streamIndex), curl, C.int(isOutput))
 }
