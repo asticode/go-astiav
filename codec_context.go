@@ -380,6 +380,11 @@ func (cc *CodecContext) SetHardwareDeviceContext(hdc *HardwareDeviceContext) {
 }
 
 // https://ffmpeg.org/doxygen/7.0/structAVCodecContext.html#a3bac44bb0b016ab838780cc19ac277d6
+func (cc *CodecContext) HardwareFrameContext() *HardwareFrameContext {
+	return newHardwareFrameContextFromC(cc.c.hw_frames_ctx)
+}
+
+// https://ffmpeg.org/doxygen/7.0/structAVCodecContext.html#a3bac44bb0b016ab838780cc19ac277d6
 func (cc *CodecContext) SetHardwareFrameContext(hfc *HardwareFrameContext) {
 	if cc.hfc != nil {
 		C.av_buffer_unref(&cc.hfc.c)
@@ -388,10 +393,6 @@ func (cc *CodecContext) SetHardwareFrameContext(hfc *HardwareFrameContext) {
 	if cc.hfc != nil {
 		cc.c.hw_frames_ctx = C.av_buffer_ref(cc.hfc.c)
 	}
-}
-
-func (cc *CodecContext) HardwareFrameContext() *HardwareFrameContext{
-	return newHardwareFrameContextFromC(cc.c.hw_frames_ctx)
 }
 
 // https://ffmpeg.org/doxygen/7.0/structAVCodecContext.html#ad2f772bd948d8f3be4d674a3a52ee00e
