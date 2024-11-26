@@ -372,5 +372,9 @@ func (fc *FormatContext) Dump(streamIndex int, url string, isOutput bool) {
 		curl = C.CString(url)
 		defer C.free(unsafe.Pointer(curl))
 	}
-	C.av_dump_format(fc.c, C.int(streamIndex), curl, C.int(isOutput))
+	cisOutput := 0
+	if isOutput {
+		cisOutput = 1
+	}
+	C.av_dump_format(fc.c, C.int(streamIndex), curl, C.int(cisOutput))
 }

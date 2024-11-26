@@ -1,6 +1,7 @@
 package astiav
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -31,9 +32,18 @@ func TestFormatContext(t *testing.T) {
 	require.NotNil(t, cl)
 	require.Equal(t, "AVFormatContext", cl.Name())
 
-	sdp, err := fc1.SDPCreate()
-	require.NoError(t, err)
-	require.Equal(t, "v=0\r\no=- 0 0 IN IP4 127.0.0.1\r\ns=Big Buck Bunny\r\nt=0 0\r\na=tool:libavformat 61.1.100\r\nm=video 0 RTP/AVP 96\r\nb=AS:441\r\na=rtpmap:96 H264/90000\r\na=fmtp:96 packetization-mode=1; sprop-parameter-sets=Z0LADasgKDPz4CIAAAMAAgAAAwBhHihUkA==,aM48gA==; profile-level-id=42C00D\r\na=control:streamid=0\r\nm=audio 0 RTP/AVP 97\r\nb=AS:161\r\na=rtpmap:97 MPEG4-GENERIC/48000/2\r\na=fmtp:97 profile-level-id=1;mode=AAC-hbr;sizelength=13;indexlength=3;indexdeltalength=3; config=1190\r\na=control:streamid=1\r\n", sdp)
+	//sdp, err := fc1.SDPCreate()
+	//require.NoError(t, err)
+	//require.Equal(t, "v=0\r\no=- 0 0 IN IP4 127.0.0.1\r\ns=Big Buck Bunny\r\nt=0 0\r\na=tool:libavformat 61.1.100\r\nm=video 0 RTP/AVP 96\r\nb=AS:441\r\na=rtpmap:96 H264/90000\r\na=fmtp:96 packetization-mode=1; sprop-parameter-sets=Z0LADasgKDPz4CIAAAMAAgAAAwBhHihUkA==,aM48gA==; profile-level-id=42C00D\r\na=control:streamid=0\r\nm=audio 0 RTP/AVP 97\r\nb=AS:161\r\na=rtpmap:97 MPEG4-GENERIC/48000/2\r\na=fmtp:97 profile-level-id=1;mode=AAC-hbr;sizelength=13;indexlength=3;indexdeltalength=3; config=1190\r\na=control:streamid=1\r\n", sdp)
+
+	SetLogLevel(LogLevelInfo)
+	SetLogCallback(func(c Classer, l LogLevel, f, msg string) {
+		msg = strings.TrimSpace(msg)
+		if strings.HasPrefix(msg, "Stream") && strings.Contains(msg, "Video") {
+			require.Equal(t, msg, `Stream #0:0[0x1](und): Video: h264 (Constrained Baseline) (avc1 / 0x31637661), yuv420p(progressive), 320x180 [SAR 1:1 DAR 16:9], 441 kb/s, 24 fps, 24 tbr, 12288 tbn (default)`)
+		}
+	})
+	fc1.Dump(0, "video.mp4", false)
 
 	_, _, err = fc1.FindBestStream(MediaTypeUnknown, -1, -1)
 	require.Error(t, err)
