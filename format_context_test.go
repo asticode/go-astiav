@@ -1,7 +1,6 @@
 package astiav
 
 import (
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -37,13 +36,11 @@ func TestFormatContext(t *testing.T) {
 	require.Equal(t, "v=0\r\no=- 0 0 IN IP4 127.0.0.1\r\ns=Big Buck Bunny\r\nt=0 0\r\na=tool:libavformat 61.1.100\r\nm=video 0 RTP/AVP 96\r\nb=AS:441\r\na=rtpmap:96 H264/90000\r\na=fmtp:96 packetization-mode=1; sprop-parameter-sets=Z0LADasgKDPz4CIAAAMAAgAAAwBhHihUkA==,aM48gA==; profile-level-id=42C00D\r\na=control:streamid=0\r\nm=audio 0 RTP/AVP 97\r\nb=AS:161\r\na=rtpmap:97 MPEG4-GENERIC/48000/2\r\na=fmtp:97 profile-level-id=1;mode=AAC-hbr;sizelength=13;indexlength=3;indexdeltalength=3; config=1190\r\na=control:streamid=1\r\n", sdp)
 
 	SetLogLevel(LogLevelInfo)
-	SetLogCallback(func(c Classer, l LogLevel, f, msg string) {
-		msg = strings.TrimSpace(msg)
-		if strings.HasPrefix(msg, "Stream") && strings.Contains(msg, "Video") {
-			require.Equal(t, msg, `Stream #0:0[0x1](und): Video: h264 (Constrained Baseline) (avc1 / 0x31637661), yuv420p(progressive), 320x180 [SAR 1:1 DAR 16:9], 441 kb/s, 24 fps, 24 tbr, 12288 tbn (default)`)
-		}
-	})
+	var dump string
+	SetLogCallback(func(c Classer, l LogLevel, f, msg string) { dump += msg })
 	fc1.Dump(0, "video.mp4", false)
+	require.Equal(t, "Input #0, mov,mp4,m4a,3gp,3g2,mj2, from 'video.mp4':\n  Metadata:\n    major_brand     : isom\n    minor_version   : 512\n    compatible_brands: isomiso2avc1mp41\n    title           : Big Buck Bunny\n    artist          : Blender Foundation\n    composer        : Blender Foundation\n    date            : 2008\n    encoder         : Lavf58.12.100\n  Duration: 00:00:05.01, start: 0.000000, bitrate: 607 kb/s\n  Stream #0:0[0x1](und): Video: h264 (Extended) (avc1 / 0x31637661), yuv420p(progressive), 320x180 [SAR 1:1 DAR 16:9], 441 kb/s, 24 fps, 24 tbr, 12288 tbn (default)\n      Metadata:\n        handler_name    : VideoHandler\n        vendor_id       : [0][0][0][0]\n  Stream #0:1[0x2](und): Audio: aac (LC) (mp4a / 0x6134706D), 48000 Hz, stereo, fltp, 161 kb/s (default)\n      Metadata:\n        handler_name    : SoundHandler\n        vendor_id       : [0][0][0][0]\n", dump)
+	ResetLogCallback()
 
 	_, _, err = fc1.FindBestStream(MediaTypeUnknown, -1, -1)
 	require.Error(t, err)
