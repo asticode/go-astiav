@@ -16,10 +16,10 @@ var (
 
 var (
 	af             *astiav.AudioFifo
+	decodedFrame   *astiav.Frame
 	finalFrame     *astiav.Frame
 	resampledFrame *astiav.Frame
 	src            *astiav.SoftwareResampleContext
-	decodedFrame   *astiav.Frame
 )
 
 func main() {
@@ -135,8 +135,8 @@ func main() {
 		log.Fatal(fmt.Errorf("main: allocating samples failed: %w", err))
 	}
 
-	// Do this only if you want to make sure final frames have an exact constant number of samples
-	// In that case we use an audio FIFO
+	// For the sake of the example we use an audio FIFO to ensure final frames have an exact constant
+	// number of samples except for the last one. However this is optional and it depends on your use case
 	finalFrame = astiav.AllocFrame()
 	defer finalFrame.Free()
 	finalFrame.SetChannelLayout(resampledFrame.ChannelLayout())
