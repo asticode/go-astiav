@@ -44,7 +44,7 @@ func (hfc *HardwareFrameContext) SetHeight(height int) {
 }
 
 // https://ffmpeg.org/doxygen/7.0/structAVHWFramesContext.html#a045bc1713932804f6ceef170a5578e0e
-func (hfc *HardwareFrameContext) SetPixelFormat(format PixelFormat) {
+func (hfc *HardwareFrameContext) SetHardwarePixelFormat(format PixelFormat) {
 	hfc.data().format = C.enum_AVPixelFormat(format)
 }
 

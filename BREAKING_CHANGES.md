@@ -1,6 +1,7 @@
 # v0.25.0
 
 - `CodecParameters`.`CodecType` and `CodecParameters`.`SetCodecType` have been removed, use `CodecParameters`.`MediaType` and `CodecParameters`.`SetMediaType` instead
+- `HardwareFrameContext`.`SetPixelFormat` has been replaced with `HardwareFrameContext`.`SetHardwarePixelFormat`
 
 # v0.24.0
 

@@ -95,7 +95,7 @@ func main() {
 	}
 
 	// Set hardware frame content
-	hardwareFrameContext.SetPixelFormat(hardwarePixelFormat)
+	hardwareFrameContext.SetHardwarePixelFormat(hardwarePixelFormat)
 	hardwareFrameContext.SetSoftwarePixelFormat(softwarePixelFormat)
 	hardwareFrameContext.SetWidth(*width)
 	hardwareFrameContext.SetHeight(*height)

@@ -10,9 +10,6 @@ import (
 // https://ffmpeg.org/doxygen/7.0/structAVCodecContext.html
 type CodecContext struct {
 	c *C.AVCodecContext
-	// We need to store this to unref it properly
-	hdc *HardwareDeviceContext
-	hfc *HardwareFrameContext
 }
 
 func newCodecContextFromC(c *C.AVCodecContext) *CodecContext {
@@ -37,15 +34,13 @@ func AllocCodecContext(c *Codec) *CodecContext {
 
 // https://ffmpeg.org/doxygen/7.0/group__lavc__core.html#gaf869d0829ed607cec3a4a02a1c7026b3
 func (cc *CodecContext) Free() {
-	if cc.hdc != nil {
-		C.av_buffer_unref(&cc.hdc.c)
-		cc.hdc = nil
-	}
-	if cc.hfc != nil {
-		C.av_buffer_unref(&cc.hfc.c)
-		cc.hfc = nil
-	}
 	if cc.c != nil {
+		if cc.c.hw_device_ctx != nil {
+			C.av_buffer_unref(&cc.c.hw_device_ctx)
+		}
+		if cc.c.hw_frames_ctx != nil {
+			C.av_buffer_unref(&cc.c.hw_frames_ctx)
+		}
 		// Make sure to clone the classer before freeing the object since
 		// the C free method may reset the pointer
 		c := newClonedClasser(cc)
@@ -370,12 +365,13 @@ func (cc *CodecContext) FromCodecParameters(cp *CodecParameters) error {
 
 // https://ffmpeg.org/doxygen/7.0/structAVCodecContext.html#acf8113e490f9e7b57465e65af9c0c75c
 func (cc *CodecContext) SetHardwareDeviceContext(hdc *HardwareDeviceContext) {
-	if cc.hdc != nil {
-		C.av_buffer_unref(&cc.hdc.c)
+	if cc.c.hw_device_ctx != nil {
+		C.av_buffer_unref(&cc.c.hw_device_ctx)
 	}
-	cc.hdc = hdc
-	if cc.hdc != nil {
-		cc.c.hw_device_ctx = C.av_buffer_ref(cc.hdc.c)
+	if hdc != nil {
+		cc.c.hw_device_ctx = C.av_buffer_ref(hdc.c)
+	} else {
+		cc.c.hw_device_ctx = nil
 	}
 }
 
@@ -386,12 +382,13 @@ func (cc *CodecContext) HardwareFrameContext() *HardwareFrameContext {
 
 // https://ffmpeg.org/doxygen/7.0/structAVCodecContext.html#a3bac44bb0b016ab838780cc19ac277d6
 func (cc *CodecContext) SetHardwareFrameContext(hfc *HardwareFrameContext) {
-	if cc.hfc != nil {
-		C.av_buffer_unref(&cc.hfc.c)
+	if cc.c.hw_frames_ctx != nil {
+		C.av_buffer_unref(&cc.c.hw_frames_ctx)
 	}
-	cc.hfc = hfc
-	if cc.hfc != nil {
-		cc.c.hw_frames_ctx = C.av_buffer_ref(cc.hfc.c)
+	if hfc != nil {
+		cc.c.hw_frames_ctx = C.av_buffer_ref(hfc.c)
+	} else {
+		cc.c.hw_frames_ctx = nil
 	}
 }
 
