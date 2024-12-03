@@ -53,10 +53,11 @@ func TestClassers(t *testing.T) {
 	defer os.RemoveAll(path)
 	ic2, err := AllocIOContext(1, true, nil, nil, nil)
 	require.NoError(t, err)
+	src := AllocSoftwareResampleContext()
 	ssc, err := CreateSoftwareScaleContext(1, 1, PixelFormatRgba, 2, 2, PixelFormatRgba, NewSoftwareScaleContextFlags())
 	require.NoError(t, err)
 
-	require.Equal(t, cl+12, len(classers.p))
+	require.Equal(t, cl+13, len(classers.p))
 	v, ok := classers.get(unsafe.Pointer(f1.c))
 	require.True(t, ok)
 	require.Equal(t, f1, v)
@@ -70,6 +71,7 @@ func TestClassers(t *testing.T) {
 	fmc2.CloseInput()
 	require.NoError(t, ic1.Close())
 	ic2.Free()
+	src.Free()
 	ssc.Free()
 	require.Equal(t, cl, len(classers.p))
 }

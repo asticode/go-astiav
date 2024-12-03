@@ -92,7 +92,10 @@ func main() {
 		}
 
 		// Create stream
-		s := &stream{inputStream: is}
+		s := &stream{
+			inputStream:         is,
+			hardwarePixelFormat: astiav.PixelFormatNone,
+		}
 
 		// Find decoder
 		if *decoderCodecName != "" {
