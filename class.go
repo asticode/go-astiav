@@ -1,13 +1,11 @@
 package astiav
 
-import "C"
-import "unsafe"
-
 //#include "class.h"
 import "C"
 import (
 	"fmt"
 	"sync"
+	"unsafe"
 )
 
 // https://ffmpeg.org/doxygen/7.0/structAVClass.html
