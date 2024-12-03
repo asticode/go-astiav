@@ -128,6 +128,7 @@ func (bfc *BuffersinkFilterContext) Width() int {
 
 type BuffersrcFilterContext struct {
 	fc *FilterContext
+	bp *BuffersrcParameters
 }
 
 func newBuffersrcFilterContext(fc *FilterContext) *BuffersrcFilterContext {
@@ -145,4 +146,45 @@ func (bfc *BuffersrcFilterContext) AddFrame(f *Frame, fs BuffersrcFlags) error {
 
 func (bfc *BuffersrcFilterContext) FilterContext() *FilterContext {
 	return bfc.fc
+}
+
+func (bfc *BuffersrcFilterContext) BuffersrcParameters() *BuffersrcParameters {
+	return newBuffersrcParametersFromC(bfc.bp.p)
+}
+
+// https://ffmpeg.org/doxygen/7.0/group__lavfi__buffersrc.html#ga398cd2a84f8b4a588197ab9d90135048
+func (bfc *BuffersrcFilterContext) SetBuffersrcParameters(bp *BuffersrcParameters) error {
+	if bp != nil {
+		bfc.bp = bp
+	}
+	return newError(C.av_buffersrc_parameters_set(bfc.fc.c, bfc.bp.p))
+}
+
+// https://ffmpeg.org/doxygen/7.0/structAVBufferSrcParameters.html
+type BuffersrcParameters struct {
+	p   *C.AVBufferSrcParameters
+	hfc *HardwareFrameContext
+}
+
+// https://ffmpeg.org/doxygen/7.0/group__lavfi__buffersrc.html#gaae82d4f8a69757ce01421dd3167861a5
+func AllocBuffersrcParameters() *BuffersrcParameters {
+	return newBuffersrcParametersFromC(C.av_buffersrc_parameters_alloc())
+}
+
+func newBuffersrcParametersFromC(p *C.AVBufferSrcParameters) *BuffersrcParameters {
+	if p == nil {
+		return nil
+	}
+	return &BuffersrcParameters{p: p}
+}
+
+func (bp *BuffersrcParameters) HardwareFrameContext() *HardwareFrameContext {
+	return newHardwareFrameContextFromC(bp.p.hw_frames_ctx)
+}
+
+func (bp *BuffersrcParameters) SetHardwareFrameContext(hfc *HardwareFrameContext) {
+	bp.hfc = hfc
+	if bp.hfc != nil {
+		bp.p.hw_frames_ctx = C.av_buffer_ref(bp.hfc.c)
+	}
 }
