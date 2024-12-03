@@ -3,7 +3,6 @@ package astiav
 import "C"
 import "unsafe"
 
-//#cgo pkg-config: libavcodec libavdevice libavfilter libavformat libavutil libpostproc libswresample libswscale
 //#include "class.h"
 import "C"
 import (
