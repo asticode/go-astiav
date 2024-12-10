@@ -114,6 +114,15 @@ func TestIOFormatFlags(t *testing.T) {
 	require.False(t, fs.Has(IOFormatFlag(2)))
 }
 
+func TestOptionSearchFlags(t *testing.T) {
+	fs := NewOptionSearchFlags(OptionSearchFlag(1))
+	require.True(t, fs.Has(OptionSearchFlag(1)))
+	fs = fs.Add(OptionSearchFlag(2))
+	require.True(t, fs.Has(OptionSearchFlag(2)))
+	fs = fs.Del(OptionSearchFlag(2))
+	require.False(t, fs.Has(OptionSearchFlag(2)))
+}
+
 func TestPacketFlags(t *testing.T) {
 	fs := NewPacketFlags(PacketFlag(1))
 	require.True(t, fs.Has(PacketFlag(1)))

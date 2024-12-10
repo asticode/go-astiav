@@ -35,6 +35,7 @@ func TestCodecContext(t *testing.T) {
 	require.Equal(t, Level(13), cc1.Level())
 	require.Equal(t, MediaTypeVideo, cc1.MediaType())
 	require.Equal(t, PixelFormatYuv420P, cc1.PixelFormat())
+	require.NotNil(t, cc1.PrivateData())
 	require.Equal(t, ProfileH264ConstrainedBaseline, cc1.Profile())
 	require.Equal(t, NewRational(1, 1), cc1.SampleAspectRatio())
 	require.Equal(t, StrictStdComplianceNormal, cc1.StrictStdCompliance())

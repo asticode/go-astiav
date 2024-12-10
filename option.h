@@ -1,0 +1,1 @@
+int astiavOptionGet(void *obj, const char *name, const char **value, int flags);
