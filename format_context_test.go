@@ -24,6 +24,7 @@ func TestFormatContext(t *testing.T) {
 	require.Equal(t, IOContextFlags(0), fc1.IOFlags())
 	require.Equal(t, int64(0), fc1.MaxAnalyzeDuration())
 	require.Equal(t, "isom", fc1.Metadata().Get("major_brand", nil, NewDictionaryFlags()).Value())
+	require.NotNil(t, fc1.PrivateData())
 	require.Equal(t, int64(0), fc1.StartTime())
 	require.Equal(t, 2, fc1.NbStreams())
 	require.Len(t, fc1.Streams(), 2)

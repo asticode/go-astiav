@@ -26,6 +26,7 @@ var list = []listItem{
 	{Name: "FormatEvent"},
 	{Name: "IOContext"},
 	{Name: "IOFormat"},
+	{Name: "OptionSearch"},
 	{Name: "Packet"},
 	{Name: "Seek"},
 	{Name: "SoftwareScaleContext"},

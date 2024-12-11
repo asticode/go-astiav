@@ -210,6 +210,11 @@ func (cc *CodecContext) SetPixelFormat(pixFmt PixelFormat) {
 	cc.c.pix_fmt = C.enum_AVPixelFormat(pixFmt)
 }
 
+// https://ffmpeg.org/doxygen/7.0/structAVCodecContext.html#af3379123060ad8cc9c321c29af4f8360
+func (cc *CodecContext) PrivateData() *PrivateData {
+	return newPrivateDataFromC(cc.c.priv_data)
+}
+
 // https://ffmpeg.org/doxygen/7.0/structAVCodecContext.html#a7abe7095de73df98df4895bf9e25fc6b
 func (cc *CodecContext) Profile() Profile {
 	return Profile(cc.c.profile)

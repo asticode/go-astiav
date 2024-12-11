@@ -245,6 +245,26 @@ func (fs IOFormatFlags) Del(f IOFormatFlag) IOFormatFlags {
 
 func (fs IOFormatFlags) Has(f IOFormatFlag) bool { return astikit.BitFlags(fs).Has(uint64(f)) }
 
+type OptionSearchFlags astikit.BitFlags
+
+func NewOptionSearchFlags(fs ...OptionSearchFlag) OptionSearchFlags {
+	o := OptionSearchFlags(0)
+	for _, f := range fs {
+		o = o.Add(f)
+	}
+	return o
+}
+
+func (fs OptionSearchFlags) Add(f OptionSearchFlag) OptionSearchFlags {
+	return OptionSearchFlags(astikit.BitFlags(fs).Add(uint64(f)))
+}
+
+func (fs OptionSearchFlags) Del(f OptionSearchFlag) OptionSearchFlags {
+	return OptionSearchFlags(astikit.BitFlags(fs).Del(uint64(f)))
+}
+
+func (fs OptionSearchFlags) Has(f OptionSearchFlag) bool { return astikit.BitFlags(fs).Has(uint64(f)) }
+
 type PacketFlags astikit.BitFlags
 
 func NewPacketFlags(fs ...PacketFlag) PacketFlags {

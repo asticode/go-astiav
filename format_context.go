@@ -186,6 +186,11 @@ func (fc *FormatContext) SetPb(i *IOContext) {
 	fc.c.pb = i.c
 }
 
+// https://ffmpeg.org/doxygen/7.0/structAVFormatContext.html#ac4c0777e54085af2f3f1b27130e2b21b
+func (fc *FormatContext) PrivateData() *PrivateData {
+	return newPrivateDataFromC(fc.c.priv_data)
+}
+
 // https://ffmpeg.org/doxygen/7.0/structAVFormatContext.html#a2590129e00adfa726ab2033a10e905e9
 func (fc *FormatContext) StartTime() int64 {
 	return int64(fc.c.start_time)
