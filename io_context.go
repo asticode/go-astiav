@@ -108,19 +108,8 @@ func AllocIOContext(bufferSize int, writable bool, readFunc IOContextReadFunc, s
 	return
 }
 
-// https://ffmpeg.org/doxygen/7.0/avio_8c.html#ab1b99c5b70aa59f15ab7cd4cbb40381e
-func OpenIOContext(filename string, flags IOContextFlags) (*IOContext, error) {
-	cfi := C.CString(filename)
-	defer C.free(unsafe.Pointer(cfi))
-	var c *C.AVIOContext
-	if err := newError(C.avio_open(&c, cfi, C.int(flags))); err != nil {
-		return nil, err
-	}
-	return newIOContextFromC(c), nil
-}
-
 // https://ffmpeg.org/doxygen/7.0/avio_8c.html#ae8589aae955d16ca228b6b9d66ced33d
-func OpenIOContextWithDictionary(filename string, flags IOContextFlags, d *Dictionary) (*IOContext, error) {
+func OpenIOContext(filename string, flags IOContextFlags, d *Dictionary) (*IOContext, error) {
 	cfi := C.CString(filename)
 	defer C.free(unsafe.Pointer(cfi))
 	var dc **C.AVDictionary

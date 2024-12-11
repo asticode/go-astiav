@@ -56,7 +56,9 @@ func TestIOContext(t *testing.T) {
 
 func TestOpenIOContext(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "iocontext.txt")
-	c, err := OpenIOContext(path, NewIOContextFlags(IOContextFlagWrite))
+	d := NewDictionary()
+	_ = d.Set("k", "v", 0)
+	c, err := OpenIOContext(path, NewIOContextFlags(IOContextFlagWrite), d)
 	require.NoError(t, err)
 	cl := c.Class()
 	require.NotNil(t, cl)
@@ -67,15 +69,6 @@ func TestOpenIOContext(t *testing.T) {
 	b, err := os.ReadFile(path)
 	require.NoError(t, err)
 	require.Equal(t, "test", string(b))
-
-	d := NewDictionary()
-	_ = d.Set("k", "v", 0)
-	cd, err := OpenIOContextWithDictionary(path, NewIOContextFlags(IOContextFlagRead), d)
-	require.NoError(t, err)
-	cdl := cd.Class()
-	require.NotNil(t, cdl)
-	require.Equal(t, "AVIOContext", cdl.Name())
-
 	err = os.Remove(path)
 	require.NoError(t, err)
 }
