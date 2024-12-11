@@ -102,10 +102,12 @@ func (fc *FormatContext) SetFlags(f FormatContextFlags) {
 }
 
 // https://ffmpeg.org/doxygen/7.0/structAVFormatContext.html#a5b37acfe4024d92ee510064e80920b40
-func (fc *FormatContext) SetInterruptCallback() IOInterrupter {
-	i := newDefaultIOInterrupter()
-	fc.c.interrupt_callback = i.c
-	return i
+func (fc *FormatContext) SetIOInterrupter(i *IOInterrupter) {
+	if i == nil {
+		fc.c.interrupt_callback = C.AVIOInterruptCB{}
+	} else {
+		fc.c.interrupt_callback = i.c
+	}
 }
 
 // https://ffmpeg.org/doxygen/7.0/structAVFormatContext.html#a6c01f25ef062e0398b0b55dd337246ed
