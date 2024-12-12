@@ -7,6 +7,23 @@ import (
 	"unsafe"
 )
 
+// https://www.ffmpeg.org/doxygen/7.0/structAVOption.html
+type Option struct {
+	c *C.AVOption
+}
+
+func newOptionFromC(c *C.AVOption) *Option {
+	if c == nil {
+		return nil
+	}
+	return &Option{c: c}
+}
+
+// https://www.ffmpeg.org/doxygen/7.0/structAVOption.html#a87e81c6e58d6a94d97a98ad15a4e507c
+func (o *Option) Name() string {
+	return C.GoString(o.c.name)
+}
+
 type Options struct {
 	c unsafe.Pointer
 }
@@ -18,19 +35,15 @@ func newOptionsFromC(c unsafe.Pointer) *Options {
 	return &Options{c: c}
 }
 
-type Option struct {
-	Name string
-}
-
 // https://www.ffmpeg.org/doxygen/7.0/group__opt__mng.html#gabc75970cd87d1bf47a4ff449470e9225
-func (os *Options) List() (list []Option) {
+func (os *Options) List() (list []*Option) {
 	var prev *C.AVOption
 	for {
 		o := C.av_opt_next(os.c, prev)
 		if o == nil {
 			return
 		}
-		list = append(list, Option{Name: C.GoString(o.name)})
+		list = append(list, newOptionFromC(o))
 		prev = o
 	}
 }
