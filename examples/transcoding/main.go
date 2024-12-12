@@ -334,7 +334,7 @@ func openOutputFile() (err error) {
 	if !outputFormatContext.OutputFormat().Flags().Has(astiav.IOFormatFlagNofile) {
 		// Open io context
 		var ioContext *astiav.IOContext
-		if ioContext, err = astiav.OpenIOContext(*output, astiav.NewIOContextFlags(astiav.IOContextFlagWrite)); err != nil {
+		if ioContext, err = astiav.OpenIOContext(*output, astiav.NewIOContextFlags(astiav.IOContextFlagWrite), nil, nil); err != nil {
 			err = fmt.Errorf("main: opening io context failed: %w", err)
 			return
 		}
