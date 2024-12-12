@@ -6,11 +6,11 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestDefaultIOInterrupter(t *testing.T) {
-	ii := newDefaultIOInterrupter()
-	require.Equal(t, 0, int(ii.i))
+func TestIOInterrupter(t *testing.T) {
+	ii := NewIOInterrupter()
+	require.False(t, ii.Interrupted())
 	ii.Interrupt()
-	require.Equal(t, 1, int(ii.i))
+	require.True(t, ii.Interrupted())
 	ii.Resume()
-	require.Equal(t, 0, int(ii.i))
+	require.False(t, ii.Interrupted())
 }
