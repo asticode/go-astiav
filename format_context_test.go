@@ -61,7 +61,7 @@ func TestFormatContext(t *testing.T) {
 	fc3 := AllocFormatContext()
 	require.NotNil(t, fc3)
 	defer fc3.Free()
-	io, err := OpenIOContext("testdata/video.mp4", NewIOContextFlags(IOContextFlagRead), nil)
+	io, err := OpenIOContext("testdata/video.mp4", NewIOContextFlags(IOContextFlagRead), nil, nil)
 	require.NoError(t, err)
 	defer io.Close() //nolint:errcheck
 	fc3.SetPb(io)
@@ -130,7 +130,7 @@ func TestFormatContext(t *testing.T) {
 		require.NotNil(t, os)
 		require.NoError(t, is.CodecParameters().Copy(os.CodecParameters()))
 	}
-	ic, err := OpenIOContext(outputPath, NewIOContextFlags(IOContextFlagWrite), nil)
+	ic, err := OpenIOContext(outputPath, NewIOContextFlags(IOContextFlagWrite), nil, nil)
 	require.NoError(t, err)
 	fc7.SetPb(ic)
 	require.NoError(t, fc7.WriteHeader(nil))

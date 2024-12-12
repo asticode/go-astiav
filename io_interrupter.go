@@ -6,6 +6,11 @@ import "C"
 type IOInterrupter interface {
 	Interrupt()
 	Resume()
+	CB() *IOInterrupterCB
+}
+
+type IOInterrupterCB struct {
+	c C.AVIOInterruptCB
 }
 
 type defaultIOInterrupter struct {
@@ -25,4 +30,8 @@ func (i *defaultIOInterrupter) Interrupt() {
 
 func (i *defaultIOInterrupter) Resume() {
 	i.i = 0
+}
+
+func (i *defaultIOInterrupter) CB() *IOInterrupterCB {
+	return &IOInterrupterCB{c: i.c}
 }

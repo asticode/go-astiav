@@ -48,7 +48,7 @@ func TestClassers(t *testing.T) {
 	fmc2 := AllocFormatContext()
 	require.NoError(t, fmc2.OpenInput("testdata/video.mp4", nil, nil))
 	path := filepath.Join(t.TempDir(), "iocontext.txt")
-	ic1, err := OpenIOContext(path, NewIOContextFlags(IOContextFlagWrite), nil)
+	ic1, err := OpenIOContext(path, NewIOContextFlags(IOContextFlagWrite), nil, nil)
 	require.NoError(t, err)
 	defer os.RemoveAll(path)
 	ic2, err := AllocIOContext(1, true, nil, nil, nil)

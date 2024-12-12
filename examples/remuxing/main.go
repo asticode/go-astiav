@@ -103,7 +103,7 @@ func main() {
 	// If this is a file, we need to use an io context
 	if !outputFormatContext.OutputFormat().Flags().Has(astiav.IOFormatFlagNofile) {
 		// Open io context
-		ioContext, err := astiav.OpenIOContext(*output, astiav.NewIOContextFlags(astiav.IOContextFlagWrite), nil)
+		ioContext, err := astiav.OpenIOContext(*output, astiav.NewIOContextFlags(astiav.IOContextFlagWrite), nil, nil)
 		if err != nil {
 			log.Fatal(fmt.Errorf("main: opening io context failed: %w", err))
 		}

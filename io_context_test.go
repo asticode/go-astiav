@@ -56,9 +56,7 @@ func TestIOContext(t *testing.T) {
 
 func TestOpenIOContext(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "iocontext.txt")
-	d := NewDictionary()
-	_ = d.Set("k", "v", 0)
-	c, err := OpenIOContext(path, NewIOContextFlags(IOContextFlagWrite), d)
+	c, err := OpenIOContext(path, NewIOContextFlags(IOContextFlagWrite), nil, nil)
 	require.NoError(t, err)
 	cl := c.Class()
 	require.NotNil(t, cl)

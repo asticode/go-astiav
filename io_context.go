@@ -109,15 +109,19 @@ func AllocIOContext(bufferSize int, writable bool, readFunc IOContextReadFunc, s
 }
 
 // https://ffmpeg.org/doxygen/7.0/avio_8c.html#ae8589aae955d16ca228b6b9d66ced33d
-func OpenIOContext(filename string, flags IOContextFlags, d *Dictionary) (*IOContext, error) {
+func OpenIOContext(filename string, flags IOContextFlags, cb *IOInterrupterCB, d *Dictionary) (*IOContext, error) {
 	cfi := C.CString(filename)
 	defer C.free(unsafe.Pointer(cfi))
 	var dc **C.AVDictionary
 	if d != nil {
 		dc = &d.c
 	}
+	var cii *C.AVIOInterruptCB = nil
+	if cb != nil {
+		cii = &cb.c
+	}
 	var c *C.AVIOContext
-	if err := newError(C.avio_open2(&c, cfi, C.int(flags), nil, dc)); err != nil {
+	if err := newError(C.avio_open2(&c, cfi, C.int(flags), cii, dc)); err != nil {
 		return nil, err
 	}
 	return newIOContextFromC(c), nil
