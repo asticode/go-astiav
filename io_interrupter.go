@@ -3,35 +3,25 @@ package astiav
 //#include "io_interrupter.h"
 import "C"
 
-type IOInterrupter interface {
-	Interrupt()
-	Resume()
-	CB() *IOInterrupterCB
-}
-
-type IOInterrupterCB struct {
-	c C.AVIOInterruptCB
-}
-
-type defaultIOInterrupter struct {
+type IOInterrupter struct {
 	c C.AVIOInterruptCB
 	i C.int
 }
 
-func newDefaultIOInterrupter() *defaultIOInterrupter {
-	i := &defaultIOInterrupter{}
+func NewIOInterrupter() *IOInterrupter {
+	i := &IOInterrupter{}
 	i.c = C.astiavNewInterruptCallback(&i.i)
 	return i
 }
 
-func (i *defaultIOInterrupter) Interrupt() {
+func (i *IOInterrupter) Interrupt() {
 	i.i = 1
 }
 
-func (i *defaultIOInterrupter) Resume() {
-	i.i = 0
+func (i *IOInterrupter) Interrupted() bool {
+	return i.i == 1
 }
 
-func (i *defaultIOInterrupter) CB() *IOInterrupterCB {
-	return &IOInterrupterCB{c: i.c}
+func (i *IOInterrupter) Resume() {
+	i.i = 0
 }
