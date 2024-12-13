@@ -77,8 +77,12 @@ func (p *Program) SetDiscard(d Discard) {
 }
 
 // https://ffmpeg.org/doxygen/7.0/structAVProgram.html#a7967d41af4812ed61a28762e988c7a02
-func (p *Program) StreamIndex() uint {
-	return uint(C.uint(*p.c.stream_index))
+func (p *Program) StreamIndex() *uint {
+	if p.c.stream_index == nil {
+		return nil
+	}
+	u := uint(C.uint(*p.c.stream_index))
+	return &u
 }
 
 // https://ffmpeg.org/doxygen/7.0/structAVProgram.html#ae9dab38d4694e3da9cba0f882f4e43d3
