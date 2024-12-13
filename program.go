@@ -96,6 +96,11 @@ func (p *Program) ProgramNum() int {
 	return int(p.c.program_num)
 }
 
+// https://ffmpeg.org/doxygen/7.0/structAVProgram.html#a4c1539ea3c98da979b95a59a3ea163cb
+func (p *Program) SetProgramNum(n int) {
+	p.c.program_num = C.int(n)
+}
+
 // https://ffmpeg.org/doxygen/7.0/structAVProgram.html#a02011963a63c291c6dc6d4eefa56cd69
 func (p *Program) PmtPid() int {
 	return int(p.c.pmt_pid)

@@ -25,6 +25,8 @@ func TestProgram(t *testing.T) {
 
 	p.SetFlags(1)
 	require.Equal(t, 1, p.Flags())
+	p.SetProgramNum(101)
+	require.Equal(t, 101, p.ProgramNum())
 	p.SetDiscard(DiscardAll)
 	require.Equal(t, DiscardAll, p.Discard())
 	d := NewDictionary()
