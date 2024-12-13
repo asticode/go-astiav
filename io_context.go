@@ -118,7 +118,7 @@ func OpenIOContext(filename string, flags IOContextFlags, ii *IOInterrupter, d *
 	}
 	var cii *C.AVIOInterruptCB = nil
 	if ii != nil {
-		cii = &ii.c
+		cii = ii.c
 	}
 	var c *C.AVIOContext
 	if err := newError(C.avio_open2(&c, cfi, C.int(flags), cii, dc)); err != nil {
@@ -137,14 +137,15 @@ func (ic *IOContext) Close() error {
 		// Make sure to clone the classer before freeing the object since
 		// the C free method may reset the pointer
 		c := newClonedClasser(ic)
-		if err := newError(C.avio_closep(&ic.c)); err != nil {
-			return err
-		}
+		// Error is returned when closing the url but pointer has been freed at this point
+		// therefore we must make sure classers are cleaned up properly even on error
+		err := newError(C.avio_closep(&ic.c))
 		// Make sure to remove from classers after freeing the object since
 		// the C free method may use methods needing the classer
-		if c != nil {
+		if c != nil && ic.c == nil {
 			classers.del(c)
 		}
+		return err
 	}
 	return nil
 }

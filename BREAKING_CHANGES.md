@@ -1,3 +1,7 @@
+# v0.27.0
+
+- make sure to call the `IOInterrupter`.`Free` method after using `NewIOInterrupter`
+
 # v0.25.0
 
 - `CodecParameters`.`CodecType` and `CodecParameters`.`SetCodecType` have been removed, use `CodecParameters`.`MediaType` and `CodecParameters`.`SetMediaType` instead
