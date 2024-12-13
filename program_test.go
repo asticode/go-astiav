@@ -22,4 +22,13 @@ func TestProgram(t *testing.T) {
 	ss := p.Streams()
 	require.Equal(t, 1, len(ss))
 	require.Equal(t, s.ID(), ss[0].ID())
+
+	p.SetFlags(1)
+	require.Equal(t, 1, p.Flags())
+	p.SetDiscard(DiscardAll)
+	require.Equal(t, DiscardAll, p.Discard())
+	d := NewDictionary()
+	_ = d.Set("service_name", "test_service_name", 0)
+	p.SetMetadata(d)
+	require.Equal(t, p.Metadata().Get("service_name", nil, 0).Value(), "test_service_name")
 }
