@@ -92,12 +92,12 @@ func (p *Program) SetMetadata(d *Dictionary) {
 }
 
 // https://ffmpeg.org/doxygen/7.0/structAVProgram.html#a4c1539ea3c98da979b95a59a3ea163cb
-func (p *Program) ProgramNum() int {
+func (p *Program) ProgramNumber() int {
 	return int(p.c.program_num)
 }
 
 // https://ffmpeg.org/doxygen/7.0/structAVProgram.html#a4c1539ea3c98da979b95a59a3ea163cb
-func (p *Program) SetProgramNum(n int) {
+func (p *Program) SetProgramNumber(n int) {
 	p.c.program_num = C.int(n)
 }
 
