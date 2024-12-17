@@ -455,13 +455,3 @@ func goAstiavCodecContextGetFormat(cc *C.AVCodecContext, pfsCPtr *C.enum_AVPixel
 	// Callback
 	return C.enum_AVPixelFormat(c(pfs))
 }
-
-// https://ffmpeg.org/doxygen/7.0/structAVCodecContext.html#a3e5334a611a3e2a6a653805bb9e2d4d4
-func (cc *CodecContext) MaxBFrames() int {
-	return int(cc.c.max_b_frames)
-}
-
-// https://ffmpeg.org/doxygen/7.0/structAVCodecContext.html#a3e5334a611a3e2a6a653805bb9e2d4d4
-func (cc *CodecContext) SetMaxBFrames(n int) {
-	cc.c.max_b_frames = C.int(n)
-}

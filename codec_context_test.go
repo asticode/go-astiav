@@ -101,7 +101,6 @@ func TestCodecContext(t *testing.T) {
 	cc4.SetTimeBase(NewRational(15, 1))
 	cc4.SetWidth(16)
 	cc4.SetExtraHardwareFrames(4)
-	cc4.SetMaxBFrames(1)
 	require.Equal(t, int64(1), cc4.BitRate())
 	require.True(t, cc4.ChannelLayout().Equal(ChannelLayout21))
 	require.Equal(t, NewCodecContextFlags(4), cc4.Flags())
@@ -122,7 +121,6 @@ func TestCodecContext(t *testing.T) {
 	require.Equal(t, NewRational(15, 1), cc4.TimeBase())
 	require.Equal(t, 16, cc4.Width())
 	require.Equal(t, 4, cc4.ExtraHardwareFrames())
-	require.Equal(t, 1, cc4.MaxBFrames())
 
 	cc5 := AllocCodecContext(nil)
 	require.NotNil(t, cc5)
