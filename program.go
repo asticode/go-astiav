@@ -95,21 +95,6 @@ func (p *Program) SetProgramNumber(n int) {
 	p.c.program_num = C.int(n)
 }
 
-// https://ffmpeg.org/doxygen/7.0/structAVProgram.html#a02011963a63c291c6dc6d4eefa56cd69
-func (p *Program) PmtPid() int {
-	return int(p.c.pmt_pid)
-}
-
-// https://ffmpeg.org/doxygen/7.0/structAVProgram.html#a7e026323df87e84a72ec5e5c8ce341a5
-func (p *Program) PcrPid() int {
-	return int(p.c.pcr_pid)
-}
-
-// https://ffmpeg.org/doxygen/7.0/structAVProgram.html#acac8164436263b310d867ec650a2ea58
-func (p *Program) PmtVersion() int {
-	return int(p.c.pmt_version)
-}
-
 // https://ffmpeg.org/doxygen/7.0/structAVProgram.html#a2276db4d51695120664d527f20b7c532
 func (p *Program) StartTime() int64 {
 	return int64(p.c.start_time)
