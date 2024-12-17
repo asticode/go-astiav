@@ -56,11 +56,6 @@ func (p *Program) Streams() (ss []*Stream) {
 	return
 }
 
-// https://ffmpeg.org/doxygen/7.0/structAVProgram.html#a8c87564167b87f54be9171778d51fe49
-func (p *Program) Flags() int {
-	return int(p.c.flags)
-}
-
 // https://ffmpeg.org/doxygen/7.0/structAVProgram.html#a9c7a07c08a1f960aaa49f3f47633af5c
 func (p *Program) Discard() Discard {
 	return Discard(p.c.discard)

@@ -14,7 +14,6 @@ func TestProgram(t *testing.T) {
 	require.Equal(t, 1, p.ID())
 	p.SetID(2)
 	require.Equal(t, 2, p.ID())
-	require.Equal(t, 0, p.Flags())
 	p.SetDiscard(DiscardAll)
 	require.Equal(t, DiscardAll, p.Discard())
 	require.Nil(t, p.StreamIndex(), nil)
