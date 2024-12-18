@@ -106,7 +106,7 @@ func (fc *FormatContext) SetIOInterrupter(i *IOInterrupter) {
 	if i == nil {
 		fc.c.interrupt_callback = C.AVIOInterruptCB{}
 	} else {
-		fc.c.interrupt_callback = i.c
+		fc.c.interrupt_callback = *i.c
 	}
 }
 

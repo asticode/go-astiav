@@ -66,22 +66,6 @@ func (p *Program) SetDiscard(d Discard) {
 	p.c.discard = int32(d)
 }
 
-// https://ffmpeg.org/doxygen/7.0/structAVProgram.html#a7967d41af4812ed61a28762e988c7a02
-func (p *Program) StreamIndex() *uint {
-	if p.c.stream_index == nil {
-		return nil
-	}
-	u := uint(C.uint(*p.c.stream_index))
-	return &u
-}
-
-// https://ffmpeg.org/doxygen/7.0/structAVProgram.html#a7967d41af4812ed61a28762e988c7a02
-func (p *Program) SetStreamIndex(n uint) {
-	if p.c.stream_index != nil {
-		*p.c.stream_index = C.uint(n)
-	}
-}
-
 // https://ffmpeg.org/doxygen/7.0/structAVProgram.html#ae9dab38d4694e3da9cba0f882f4e43d3
 func (p *Program) Metadata() *Dictionary {
 	return newDictionaryFromC(p.c.metadata)

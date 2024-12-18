@@ -1,10 +1,12 @@
 package astiav
 
 //#include "io_interrupter.h"
+//#include <stdlib.h>
 import "C"
+import "unsafe"
 
 type IOInterrupter struct {
-	c C.AVIOInterruptCB
+	c *C.AVIOInterruptCB
 	i C.int
 }
 
@@ -12,6 +14,10 @@ func NewIOInterrupter() *IOInterrupter {
 	i := &IOInterrupter{}
 	i.c = C.astiavNewInterruptCallback(&i.i)
 	return i
+}
+
+func (i *IOInterrupter) Free() {
+	C.free(unsafe.Pointer(i.c))
 }
 
 func (i *IOInterrupter) Interrupt() {
