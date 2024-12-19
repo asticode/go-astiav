@@ -455,3 +455,43 @@ func goAstiavCodecContextGetFormat(cc *C.AVCodecContext, pfsCPtr *C.enum_AVPixel
 	// Callback
 	return C.enum_AVPixelFormat(c(pfs))
 }
+
+// https://ffmpeg.org/doxygen/7.0/structAVCodecContext.html#a3e5334a611a3e2a6a653805bb9e2d4d4
+func (cc *CodecContext) MaxBFrames() int {
+	return int(cc.c.max_b_frames)
+}
+
+// https://ffmpeg.org/doxygen/7.0/structAVCodecContext.html#a3e5334a611a3e2a6a653805bb9e2d4d4
+func (cc *CodecContext) SetMaxBFrames(n int) {
+	cc.c.max_b_frames = C.int(n)
+}
+
+// https://ffmpeg.org/doxygen/7.0/structAVCodecContext.html#aa2b5582f1a360534310b686cc3f7c668
+func (cc *CodecContext) RateControlMaxRate() int64 {
+	return int64(cc.c.rc_max_rate)
+}
+
+// https://ffmpeg.org/doxygen/7.0/structAVCodecContext.html#aa2b5582f1a360534310b686cc3f7c668
+func (cc *CodecContext) SetRateControlMaxRate(n int64) {
+	cc.c.rc_max_rate = C.int64_t(n)
+}
+
+// https://ffmpeg.org/doxygen/7.0/structAVCodecContext.html#ac265c70b89e87455ec05eb2978def81b
+func (cc *CodecContext) RateControlMinRate() int64 {
+	return int64(cc.c.rc_min_rate)
+}
+
+// https://ffmpeg.org/doxygen/7.0/structAVCodecContext.html#ac265c70b89e87455ec05eb2978def81b
+func (cc *CodecContext) SetRateControlMinRate(n int64) {
+	cc.c.rc_min_rate = C.int64_t(n)
+}
+
+// https://ffmpeg.org/doxygen/7.0/structAVCodecContext.html#a15000607a7e2371162348bb35b0184c1
+func (cc *CodecContext) RateControlBufferSize() int {
+	return int(cc.c.rc_buffer_size)
+}
+
+// https://ffmpeg.org/doxygen/7.0/structAVCodecContext.html#a15000607a7e2371162348bb35b0184c1
+func (cc *CodecContext) SetRateControlBufferSize(n int) {
+	cc.c.rc_buffer_size = C.int(n)
+}
