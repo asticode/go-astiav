@@ -36,6 +36,16 @@ func (s *Stream) CodecParameters() *CodecParameters {
 	return newCodecParametersFromC(s.c.codecpar)
 }
 
+// https://ffmpeg.org/doxygen/7.0/structAVStream.html#a492fcecc45dbbd8da51edd0124e9dd30
+func (s *Stream) Discard() Discard {
+	return Discard(s.c.discard)
+}
+
+// https://ffmpeg.org/doxygen/7.0/structAVStream.html#a492fcecc45dbbd8da51edd0124e9dd30
+func (s *Stream) SetDiscard(d Discard) {
+	s.c.discard = C.enum_AVDiscard(d)
+}
+
 // https://ffmpeg.org/doxygen/7.0/structAVStream.html#a4e04af7a5a4d8298649850df798dd0bc
 func (s *Stream) Duration() int64 {
 	return int64(s.c.duration)

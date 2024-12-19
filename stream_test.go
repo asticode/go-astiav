@@ -38,6 +38,8 @@ func TestStream(t *testing.T) {
 
 	s1.SetAvgFrameRate(NewRational(2, 1))
 	require.Equal(t, NewRational(2, 1), s1.AvgFrameRate())
+	s1.SetDiscard(DiscardAll)
+	require.Equal(t, DiscardAll, s1.Discard())
 	s1.SetID(2)
 	require.Equal(t, 2, s1.ID())
 	s1.SetIndex(1)

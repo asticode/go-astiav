@@ -63,7 +63,7 @@ func (p *Program) Discard() Discard {
 
 // https://ffmpeg.org/doxygen/7.0/structAVProgram.html#a9c7a07c08a1f960aaa49f3f47633af5c
 func (p *Program) SetDiscard(d Discard) {
-	p.c.discard = int32(d)
+	p.c.discard = C.enum_AVDiscard(d)
 }
 
 // https://ffmpeg.org/doxygen/7.0/structAVProgram.html#ae9dab38d4694e3da9cba0f882f4e43d3
