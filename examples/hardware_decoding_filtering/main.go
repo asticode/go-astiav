@@ -5,7 +5,6 @@ import (
 	"flag"
 	"fmt"
 	"log"
-	"strconv"
 	"strings"
 
 	"github.com/asticode/go-astiav"
@@ -294,28 +293,34 @@ func initFilter() (err error) {
 	}
 
 	// Create filter contexts
-	if buffersrcContext, err = filterGraph.NewBuffersrcFilterContext(buffersrc, "in", astiav.FilterArgs{
-		"pix_fmt":      strconv.Itoa(int(decCodecContext.PixelFormat())),
-		"pixel_aspect": decCodecContext.SampleAspectRatio().String(),
-		"time_base":    inputStream.TimeBase().String(),
-		"video_size":   strconv.Itoa(decCodecContext.Width()) + "x" + strconv.Itoa(decCodecContext.Height()),
-	}); err != nil {
+	if buffersrcContext, err = filterGraph.NewBuffersrcFilterContext(buffersrc, "in"); err != nil {
 		err = fmt.Errorf("main: creating buffersrc context failed: %w", err)
 		return
 	}
-	if buffersinkContext, err = filterGraph.NewBuffersinkFilterContext(buffersink, "in", nil); err != nil {
+	if buffersinkContext, err = filterGraph.NewBuffersinkFilterContext(buffersink, "in"); err != nil {
 		err = fmt.Errorf("main: creating buffersink context failed: %w", err)
 		return
 	}
 
-	// Create buffersrc parameters
-	bfcp := astiav.AllocBuffersrcFilterContextParameters()
-	defer bfcp.Free()
-	bfcp.SetHardwareFrameContext(decCodecContext.HardwareFrameContext())
+	// Create buffersrc context parameters
+	buffersrcContextParameters := astiav.AllocBuffersrcFilterContextParameters()
+	defer buffersrcContextParameters.Free()
+	buffersrcContextParameters.SetHardwareFrameContext(decCodecContext.HardwareFrameContext())
+	buffersrcContextParameters.SetHeight(decCodecContext.Height())
+	buffersrcContextParameters.SetPixelFormat(decCodecContext.PixelFormat())
+	buffersrcContextParameters.SetSampleAspectRatio(decCodecContext.SampleAspectRatio())
+	buffersrcContextParameters.SetTimeBase(inputStream.TimeBase())
+	buffersrcContextParameters.SetWidth(decCodecContext.Width())
 
-	// Set buffersrc parameters
-	if err = buffersrcContext.SetParameters(bfcp); err != nil {
-		err = fmt.Errorf("main: setting buffersrc parameters failed: %w", err)
+	// Set buffersrc context parameters
+	if err = buffersrcContext.SetParameters(buffersrcContextParameters); err != nil {
+		err = fmt.Errorf("main: setting buffersrc context parameters failed: %w", err)
+		return
+	}
+
+	// Initialize buffersrc context
+	if err = buffersrcContext.Initialize(); err != nil {
+		err = fmt.Errorf("main: initializing buffersrc context failed: %w", err)
 		return
 	}
 

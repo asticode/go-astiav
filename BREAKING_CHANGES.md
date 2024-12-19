@@ -1,3 +1,8 @@
+# v0.29.0
+
+- `NewFilterContext` has been removed, use `NewBuffersinkFilterContext` or `NewBuffersrcFilterContext` instead 
+- `args` has been removed from `NewBuffersinkFilterContext` and `NewBuffersrcFilterContext`. Instead, after calling `NewBuffersrcFilterContext`, you need to use `BuffersrcFilterContext`.`SetParameters` then `BuffersrcFilterContext`.`Initialize`. You don't need to use anything else after calling `NewBuffersinkFilterContext`
+
 # v0.27.0
 
 - make sure to call the `IOInterrupter`.`Free` method after using `NewIOInterrupter`

@@ -24,6 +24,11 @@ func (bfc *BuffersrcFilterContext) FilterContext() *FilterContext {
 	return bfc.fc
 }
 
+// https://ffmpeg.org/doxygen/7.0/group__lavfi.html#ga8c15af28902395399fe455f6f8236848
+func (bfc *BuffersrcFilterContext) Initialize() error {
+	return newError(C.avfilter_init_dict(bfc.fc.c, nil))
+}
+
 // https://ffmpeg.org/doxygen/7.0/group__lavfi__buffersrc.html#ga398cd2a84f8b4a588197ab9d90135048
 func (bfc *BuffersrcFilterContext) SetParameters(bfcp *BuffersrcFilterContextParameters) error {
 	return newError(C.av_buffersrc_parameters_set(bfc.fc.c, bfcp.c))

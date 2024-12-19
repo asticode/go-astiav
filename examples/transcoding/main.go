@@ -5,7 +5,6 @@ import (
 	"flag"
 	"fmt"
 	"log"
-	"strconv"
 	"strings"
 
 	"github.com/asticode/go-astiav"
@@ -378,29 +377,29 @@ func initFilters() (err error) {
 		}
 		c.Add(inputs.Free)
 
+		// Create buffersrc context parameters
+		buffersrcContextParameters := astiav.AllocBuffersrcFilterContextParameters()
+		defer buffersrcContextParameters.Free()
+
 		// Switch on media type
-		var args astiav.FilterArgs
 		var buffersrc, buffersink *astiav.Filter
 		var content string
 		switch s.decCodecContext.MediaType() {
 		case astiav.MediaTypeAudio:
-			args = astiav.FilterArgs{
-				"channel_layout": s.decCodecContext.ChannelLayout().String(),
-				"sample_fmt":     s.decCodecContext.SampleFormat().Name(),
-				"sample_rate":    strconv.Itoa(s.decCodecContext.SampleRate()),
-				"time_base":      s.decCodecContext.TimeBase().String(),
-			}
 			buffersrc = astiav.FindFilterByName("abuffer")
+			buffersrcContextParameters.SetChannelLayout(s.decCodecContext.ChannelLayout())
+			buffersrcContextParameters.SetSampleFormat(s.decCodecContext.SampleFormat())
+			buffersrcContextParameters.SetSampleRate(s.decCodecContext.SampleRate())
+			buffersrcContextParameters.SetTimeBase(s.decCodecContext.TimeBase())
 			buffersink = astiav.FindFilterByName("abuffersink")
 			content = fmt.Sprintf("aformat=sample_fmts=%s:channel_layouts=%s", s.encCodecContext.SampleFormat().Name(), s.encCodecContext.ChannelLayout().String())
 		default:
-			args = astiav.FilterArgs{
-				"pix_fmt":      strconv.Itoa(int(s.decCodecContext.PixelFormat())),
-				"pixel_aspect": s.decCodecContext.SampleAspectRatio().String(),
-				"time_base":    s.inputStream.TimeBase().String(),
-				"video_size":   strconv.Itoa(s.decCodecContext.Width()) + "x" + strconv.Itoa(s.decCodecContext.Height()),
-			}
 			buffersrc = astiav.FindFilterByName("buffer")
+			buffersrcContextParameters.SetHeight(s.decCodecContext.Height())
+			buffersrcContextParameters.SetPixelFormat(s.decCodecContext.PixelFormat())
+			buffersrcContextParameters.SetSampleAspectRatio(s.decCodecContext.SampleAspectRatio())
+			buffersrcContextParameters.SetTimeBase(s.inputStream.TimeBase())
+			buffersrcContextParameters.SetWidth(s.decCodecContext.Width())
 			buffersink = astiav.FindFilterByName("buffersink")
 			content = fmt.Sprintf("format=pix_fmts=%s", s.encCodecContext.PixelFormat().Name())
 		}
@@ -416,12 +415,24 @@ func initFilters() (err error) {
 		}
 
 		// Create filter contexts
-		if s.buffersrcContext, err = s.filterGraph.NewBuffersrcFilterContext(buffersrc, "in", args); err != nil {
+		if s.buffersrcContext, err = s.filterGraph.NewBuffersrcFilterContext(buffersrc, "in"); err != nil {
 			err = fmt.Errorf("main: creating buffersrc context failed: %w", err)
 			return
 		}
-		if s.buffersinkContext, err = s.filterGraph.NewBuffersinkFilterContext(buffersink, "out", nil); err != nil {
+		if s.buffersinkContext, err = s.filterGraph.NewBuffersinkFilterContext(buffersink, "out"); err != nil {
 			err = fmt.Errorf("main: creating buffersink context failed: %w", err)
+			return
+		}
+
+		// Set buffersrc context parameters
+		if err = s.buffersrcContext.SetParameters(buffersrcContextParameters); err != nil {
+			err = fmt.Errorf("main: setting buffersrc context parameters failed: %w", err)
+			return
+		}
+
+		// Initialize buffersrc context
+		if err = s.buffersrcContext.Initialize(); err != nil {
+			err = fmt.Errorf("main: initializing buffersrc context failed: %w", err)
 			return
 		}
 

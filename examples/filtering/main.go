@@ -5,7 +5,6 @@ import (
 	"flag"
 	"fmt"
 	"log"
-	"strconv"
 	"strings"
 
 	"github.com/asticode/go-astiav"
@@ -250,17 +249,33 @@ func initFilter() (err error) {
 	}
 
 	// Create filter contexts
-	if s.buffersrcContext, err = s.filterGraph.NewBuffersrcFilterContext(buffersrc, "in", astiav.FilterArgs{
-		"pix_fmt":      strconv.Itoa(int(s.decCodecContext.PixelFormat())),
-		"pixel_aspect": s.decCodecContext.SampleAspectRatio().String(),
-		"time_base":    s.inputStream.TimeBase().String(),
-		"video_size":   strconv.Itoa(s.decCodecContext.Width()) + "x" + strconv.Itoa(s.decCodecContext.Height()),
-	}); err != nil {
+	if s.buffersrcContext, err = s.filterGraph.NewBuffersrcFilterContext(buffersrc, "in"); err != nil {
 		err = fmt.Errorf("main: creating buffersrc context failed: %w", err)
 		return
 	}
-	if s.buffersinkContext, err = s.filterGraph.NewBuffersinkFilterContext(buffersink, "in", nil); err != nil {
+	if s.buffersinkContext, err = s.filterGraph.NewBuffersinkFilterContext(buffersink, "in"); err != nil {
 		err = fmt.Errorf("main: creating buffersink context failed: %w", err)
+		return
+	}
+
+	// Create buffersrc context parameters
+	buffersrcContextParameters := astiav.AllocBuffersrcFilterContextParameters()
+	defer buffersrcContextParameters.Free()
+	buffersrcContextParameters.SetHeight(s.decCodecContext.Height())
+	buffersrcContextParameters.SetPixelFormat(s.decCodecContext.PixelFormat())
+	buffersrcContextParameters.SetSampleAspectRatio(s.decCodecContext.SampleAspectRatio())
+	buffersrcContextParameters.SetTimeBase(s.inputStream.TimeBase())
+	buffersrcContextParameters.SetWidth(s.decCodecContext.Width())
+
+	// Set buffersrc context parameters
+	if err = s.buffersrcContext.SetParameters(buffersrcContextParameters); err != nil {
+		err = fmt.Errorf("main: setting buffersrc context parameters failed: %w", err)
+		return
+	}
+
+	// Initialize buffersrc context
+	if err = s.buffersrcContext.Initialize(); err != nil {
+		err = fmt.Errorf("main: initializing buffersrc context failed: %w", err)
 		return
 	}
 

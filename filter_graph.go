@@ -3,7 +3,7 @@ package astiav
 //#include <libavfilter/avfilter.h>
 import "C"
 import (
-	"strings"
+	"errors"
 	"unsafe"
 )
 
@@ -84,47 +84,29 @@ func (g *FilterGraph) SetThreadType(t ThreadType) {
 	g.c.thread_type = C.int(t)
 }
 
-type FilterArgs map[string]string
-
-func (args FilterArgs) String() string {
-	var ss []string
-	for k, v := range args {
-		ss = append(ss, k+"="+v)
-	}
-	return strings.Join(ss, ":")
-}
-
 // https://ffmpeg.org/doxygen/7.0/group__lavfi.html#gac0788a9ab6966dba9318b5d5c7524fea
-func (g *FilterGraph) NewFilterContext(f *Filter, name string, args FilterArgs) (*FilterContext, error) {
-	ca := (*C.char)(nil)
-	if len(args) > 0 {
-		ca = C.CString(args.String())
-		defer C.free(unsafe.Pointer(ca))
-	}
-	cn := C.CString(name)
-	defer C.free(unsafe.Pointer(cn))
+func (g *FilterGraph) NewBuffersinkFilterContext(f *Filter, name string) (*BuffersinkFilterContext, error) {
+	cname := C.CString(name)
+	defer C.free(unsafe.Pointer(cname))
 	var c *C.AVFilterContext
-	if err := newError(C.avfilter_graph_create_filter(&c, f.c, cn, ca, nil, g.c)); err != nil {
+	if err := newError(C.avfilter_graph_create_filter(&c, f.c, cname, nil, nil, g.c)); err != nil {
 		return nil, err
 	}
 	fc := newFilterContext(c)
 	g.fcs = append(g.fcs, fc)
-	return fc, nil
-}
-
-func (g *FilterGraph) NewBuffersinkFilterContext(f *Filter, name string, args FilterArgs) (*BuffersinkFilterContext, error) {
-	fc, err := g.NewFilterContext(f, name, args)
-	if err != nil {
-		return nil, err
-	}
 	return newBuffersinkFilterContext(fc), nil
 }
 
-func (g *FilterGraph) NewBuffersrcFilterContext(f *Filter, name string, args FilterArgs) (*BuffersrcFilterContext, error) {
-	fc, err := g.NewFilterContext(f, name, args)
-	if err != nil {
-		return nil, err
+// https://ffmpeg.org/doxygen/7.0/group__lavfi.html#gaa9af17ecf4c5c87307b57cf08411088b
+func (g *FilterGraph) NewBuffersrcFilterContext(f *Filter, name string) (*BuffersrcFilterContext, error) {
+	cname := C.CString(name)
+	defer C.free(unsafe.Pointer(cname))
+	c := C.avfilter_graph_alloc_filter(g.c, f.c, cname)
+	if c == nil {
+		return nil, errors.New("astiav: allocating filter context failed")
 	}
+	fc := newFilterContext(c)
+	g.fcs = append(g.fcs, fc)
 	return newBuffersrcFilterContext(fc), nil
 }
 

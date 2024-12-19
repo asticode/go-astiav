@@ -5,7 +5,6 @@ package astiav
 
 import (
 	"fmt"
-	"strconv"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -49,13 +48,24 @@ func TestFilterGraph(t *testing.T) {
 	type buffersrc struct {
 		name string
 	}
+	type buffersrcParameters struct {
+		channelLayout     ChannelLayout
+		height            int
+		mediaType         MediaType
+		pixelFormat       PixelFormat
+		sampleAspectRatio Rational
+		sampleFormat      SampleFormat
+		sampleRate        int
+		timeBase          Rational
+		width             int
+	}
 	type graph struct {
 		buffersink buffersink
 		buffersrc  buffersrc
 		commands   []command
 		content    string
 		s          string
-		sources    []FilterArgs
+		sources    []buffersrcParameters
 	}
 	for _, v := range []graph{
 		{
@@ -89,13 +99,14 @@ func TestFilterGraph(t *testing.T) {
 			},
 			content: "[input_1]scale=4x8,settb=1/4,fps=fps=4/1,format=pix_fmts=yuv420p,setsar=2/1",
 			s:       "                                                   +--------------+\nParsed_setsar_4:default--[4x8 2:1 yuv420p]--default|  filter_out  |\n                                                   | (buffersink) |\n                                                   +--------------+\n\n+-------------+\n| filter_in_1 |default--[2x4 1:2 rgba]--Parsed_scale_0:default\n|  (buffer)   |\n+-------------+\n\n                                            +----------------+\nfilter_in_1:default--[2x4 1:2 rgba]--default| Parsed_scale_0 |default--[4x8 1:2 yuv420p]--Parsed_settb_1:default\n                                            |    (scale)     |\n                                            +----------------+\n\n                                                  +----------------+\nParsed_scale_0:default--[4x8 1:2 yuv420p]--default| Parsed_settb_1 |default--[4x8 1:2 yuv420p]--Parsed_fps_2:default\n                                                  |    (settb)     |\n                                                  +----------------+\n\n                                                  +--------------+\nParsed_settb_1:default--[4x8 1:2 yuv420p]--default| Parsed_fps_2 |default--[4x8 1:2 yuv420p]--Parsed_format_3:default\n                                                  |    (fps)     |\n                                                  +--------------+\n\n                                                +-----------------+\nParsed_fps_2:default--[4x8 1:2 yuv420p]--default| Parsed_format_3 |default--[4x8 1:2 yuv420p]--Parsed_setsar_4:default\n                                                |    (format)     |\n                                                +-----------------+\n\n                                                   +-----------------+\nParsed_format_3:default--[4x8 1:2 yuv420p]--default| Parsed_setsar_4 |default--[4x8 2:1 yuv420p]--filter_out:default\n                                                   |    (setsar)     |\n                                                   +-----------------+\n\n",
-			sources: []FilterArgs{
+			sources: []buffersrcParameters{
 				{
-					"height":    "4",
-					"pix_fmt":   strconv.Itoa(int(PixelFormatRgba)),
-					"sar":       "1/2",
-					"time_base": "1/2",
-					"width":     "2",
+					height:            4,
+					mediaType:         MediaTypeVideo,
+					pixelFormat:       PixelFormatRgba,
+					sampleAspectRatio: NewRational(1, 2),
+					timeBase:          NewRational(1, 2),
+					width:             2,
 				},
 			},
 		},
@@ -111,12 +122,13 @@ func TestFilterGraph(t *testing.T) {
 			buffersrc: buffersrc{name: "abuffer"},
 			content:   "[input_1]aformat=sample_fmts=s16:channel_layouts=stereo:sample_rates=3,asettb=1/4",
 			s:         "                                                  +---------------+\nParsed_asettb_1:default--[3Hz s16:stereo]--default|  filter_out   |\n                                                  | (abuffersink) |\n                                                  +---------------+\n\n+-------------+\n| filter_in_1 |default--[2Hz fltp:mono]--auto_aresample_0:default\n|  (abuffer)  |\n+-------------+\n\n                                                   +------------------+\nauto_aresample_0:default--[3Hz s16:stereo]--default| Parsed_aformat_0 |default--[3Hz s16:stereo]--Parsed_asettb_1:default\n                                                   |    (aformat)     |\n                                                   +------------------+\n\n                                                   +-----------------+\nParsed_aformat_0:default--[3Hz s16:stereo]--default| Parsed_asettb_1 |default--[3Hz s16:stereo]--filter_out:default\n                                                   |    (asettb)     |\n                                                   +-----------------+\n\n                                             +------------------+\nfilter_in_1:default--[2Hz fltp:mono]--default| auto_aresample_0 |default--[3Hz s16:stereo]--Parsed_aformat_0:default\n                                             |   (aresample)    |\n                                             +------------------+\n\n",
-			sources: []FilterArgs{
+			sources: []buffersrcParameters{
 				{
-					"channel_layout": ChannelLayoutMono.String(),
-					"sample_fmt":     strconv.Itoa(int(SampleFormatFltp)),
-					"sample_rate":    "2",
-					"time_base":      "1/2",
+					channelLayout: ChannelLayoutMono,
+					mediaType:     MediaTypeAudio,
+					sampleFormat:  SampleFormatFltp,
+					sampleRate:    2,
+					timeBase:      NewRational(1, 2),
 				},
 			},
 		},
@@ -130,7 +142,7 @@ func TestFilterGraph(t *testing.T) {
 		buffersink := FindFilterByName(v.buffersink.name)
 		require.NotNil(t, buffersink)
 
-		buffersinkContext, err := fg.NewBuffersinkFilterContext(buffersink, "filter_out", nil)
+		buffersinkContext, err := fg.NewBuffersinkFilterContext(buffersink, "filter_out")
 		require.NoError(t, err)
 		cl = buffersinkContext.FilterContext().Class()
 		require.NotNil(t, cl)
@@ -152,8 +164,25 @@ func TestFilterGraph(t *testing.T) {
 
 		var buffersrcContexts []*BuffersrcFilterContext
 		for idx, src := range v.sources {
-			buffersrcContext, err := fg.NewBuffersrcFilterContext(buffersrc, fmt.Sprintf("filter_in_%d", idx+1), src)
+			buffersrcContext, err := fg.NewBuffersrcFilterContext(buffersrc, fmt.Sprintf("filter_in_%d", idx+1))
 			require.NoError(t, err)
+			buffersrcContextParameters := AllocBuffersrcFilterContextParameters()
+			defer buffersrcContextParameters.Free()
+			switch src.mediaType {
+			case MediaTypeAudio:
+				buffersrcContextParameters.SetChannelLayout(src.channelLayout)
+				buffersrcContextParameters.SetSampleFormat(src.sampleFormat)
+				buffersrcContextParameters.SetSampleRate(src.sampleRate)
+				buffersrcContextParameters.SetTimeBase(src.timeBase)
+			default:
+				buffersrcContextParameters.SetHeight(src.height)
+				buffersrcContextParameters.SetPixelFormat(src.pixelFormat)
+				buffersrcContextParameters.SetSampleAspectRatio(src.sampleAspectRatio)
+				buffersrcContextParameters.SetTimeBase(src.timeBase)
+				buffersrcContextParameters.SetWidth(src.width)
+			}
+			buffersrcContext.SetParameters(buffersrcContextParameters)
+			require.NoError(t, buffersrcContext.Initialize())
 			buffersrcContexts = append(buffersrcContexts, buffersrcContext)
 
 			o := AllocFilterInOut()
