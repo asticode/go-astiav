@@ -87,6 +87,11 @@ func (f *Frame) Data() *FrameData {
 	return newFrameData(newFrameDataFrame(f))
 }
 
+// https://ffmpeg.org/doxygen/7.0/structAVFrame.html#a29493fbfabaa21432c360a090426aa8e
+func (f *Frame) HardwareFramesContext() *HardwareFramesContext {
+	return newHardwareFramesContextFromC(f.c.hw_frames_ctx)
+}
+
 // https://ffmpeg.org/doxygen/7.0/structAVFrame.html#a3f89733f429c98ba5bc64373fb0a3f13
 func (f *Frame) Height() int {
 	return int(f.c.height)
