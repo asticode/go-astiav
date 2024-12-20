@@ -1,3 +1,7 @@
+# v0.30.0
+
+- `HardwareFrameContext` has been renamed to `HardwareFramesContext`
+
 # v0.29.0
 
 - `NewFilterContext` has been removed, use `NewBuffersinkFilterContext` or `NewBuffersrcFilterContext` instead 
