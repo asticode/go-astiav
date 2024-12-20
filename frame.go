@@ -37,7 +37,7 @@ func (f *Frame) AllocBuffer(align int) error {
 }
 
 // https://ffmpeg.org/doxygen/7.0/hwcontext_8c.html#adfa5aaa3a4f69b163ea30cadc6d663dc
-func (f *Frame) AllocHardwareBuffer(hfc *HardwareFrameContext) error {
+func (f *Frame) AllocHardwareBuffer(hfc *HardwareFramesContext) error {
 	return newError(C.av_hwframe_get_buffer(hfc.c, f.c, 0))
 }
 

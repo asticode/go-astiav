@@ -81,12 +81,12 @@ func main() {
 	encCodecContext.SetFramerate(encCodecContext.TimeBase().Invert())
 	encCodecContext.SetPixelFormat(hardwarePixelFormat)
 
-	// Alloc hardware frame context
-	hardwareFrameContext := astiav.AllocHardwareFrameContext(hardwareDeviceContext)
-	if hardwareFrameContext == nil {
-		log.Fatal("main: hardware frame context is nil")
+	// Alloc hardware frames context
+	hardwareFramesContext := astiav.AllocHardwareFramesContext(hardwareDeviceContext)
+	if hardwareFramesContext == nil {
+		log.Fatal("main: hardware frames context is nil")
 	}
-	defer hardwareFrameContext.Free()
+	defer hardwareFramesContext.Free()
 
 	// Get software pixel format
 	softwarePixelFormat := astiav.FindPixelFormatByName(*softwarePixelFormatName)
@@ -95,19 +95,19 @@ func main() {
 	}
 
 	// Set hardware frame content
-	hardwareFrameContext.SetHardwarePixelFormat(hardwarePixelFormat)
-	hardwareFrameContext.SetSoftwarePixelFormat(softwarePixelFormat)
-	hardwareFrameContext.SetWidth(*width)
-	hardwareFrameContext.SetHeight(*height)
-	hardwareFrameContext.SetInitialPoolSize(20)
+	hardwareFramesContext.SetHardwarePixelFormat(hardwarePixelFormat)
+	hardwareFramesContext.SetSoftwarePixelFormat(softwarePixelFormat)
+	hardwareFramesContext.SetWidth(*width)
+	hardwareFramesContext.SetHeight(*height)
+	hardwareFramesContext.SetInitialPoolSize(20)
 
 	// Initialize hardware frame context
-	if err := hardwareFrameContext.Initialize(); err != nil {
+	if err := hardwareFramesContext.Initialize(); err != nil {
 		log.Fatal(fmt.Errorf("main: initializing hardware frame context failed: %w", err))
 	}
 
 	// Update encoder codec context hardware frame context
-	encCodecContext.SetHardwareFrameContext(hardwareFrameContext)
+	encCodecContext.SetHardwareFramesContext(hardwareFramesContext)
 
 	// Open codec context
 	if err := encCodecContext.Open(encCodec, nil); err != nil {
@@ -138,7 +138,7 @@ func main() {
 	defer hardwareFrame.Free()
 
 	// Alloc hardware frame buffer
-	if err := hardwareFrame.AllocHardwareBuffer(hardwareFrameContext); err != nil {
+	if err := hardwareFrame.AllocHardwareBuffer(hardwareFramesContext); err != nil {
 		log.Fatal(fmt.Errorf("main: allocating hardware buffer failed: %w", err))
 	}
 

@@ -72,7 +72,7 @@ func (bfcp *BuffersrcFilterContextParameters) SetFramerate(f Rational) {
 }
 
 // https://ffmpeg.org/doxygen/7.0/structAVBufferSrcParameters.html#a86c49b4202433037c9e2b0b6ae541534
-func (bfcp *BuffersrcFilterContextParameters) SetHardwareFrameContext(hfc *HardwareFrameContext) {
+func (bfcp *BuffersrcFilterContextParameters) SetHardwareFramesContext(hfc *HardwareFramesContext) {
 	if bfcp.c.hw_frames_ctx != nil {
 		C.av_buffer_unref(&bfcp.c.hw_frames_ctx)
 	}

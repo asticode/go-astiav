@@ -17,6 +17,8 @@ Its main goals are to:
 - [x] provide the GO version of [ffmpeg examples](https://github.com/FFmpeg/FFmpeg/tree/n7.0/doc/examples)
 - [x] be fully tested
 
+:warning: breaking changes will be introduced in `go-astiav` **without** using the `v2` golang pattern. You can see the list of breaking changes [here](BREAKING_CHANGES.md).
+
 # Examples
 
 Examples are located in the [examples](examples) directory and mirror as much as possible the [ffmpeg examples](https://github.com/FFmpeg/FFmpeg/tree/n7.0/doc/examples).
@@ -72,10 +74,6 @@ for {
     }()
 }
 ```
-
-# Breaking changes
-
-You can see the list of breaking changes [here](BREAKING_CHANGES.md).
 
 # Install ffmpeg from source
 

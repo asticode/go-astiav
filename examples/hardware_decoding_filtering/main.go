@@ -305,7 +305,7 @@ func initFilter() (err error) {
 	// Create buffersrc context parameters
 	buffersrcContextParameters := astiav.AllocBuffersrcFilterContextParameters()
 	defer buffersrcContextParameters.Free()
-	buffersrcContextParameters.SetHardwareFrameContext(decCodecContext.HardwareFrameContext())
+	buffersrcContextParameters.SetHardwareFramesContext(decCodecContext.HardwareFramesContext())
 	buffersrcContextParameters.SetHeight(decCodecContext.Height())
 	buffersrcContextParameters.SetPixelFormat(decCodecContext.PixelFormat())
 	buffersrcContextParameters.SetSampleAspectRatio(decCodecContext.SampleAspectRatio())
