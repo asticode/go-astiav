@@ -93,3 +93,8 @@ func (bsfc *BitStreamFilterContext) SetInputTimeBase(r Rational) {
 func (bsfc *BitStreamFilterContext) InputCodecParameters() *CodecParameters {
 	return newCodecParametersFromC(bsfc.c.par_in)
 }
+
+// https://ffmpeg.org/doxygen/7.0/structAVBSFContext.html#ab58f8c37eec197e0f30d17d60959a60d
+func (bsfc *BitStreamFilterContext) OutputCodecParameters() *CodecParameters {
+	return newCodecParametersFromC(bsfc.c.par_out)
+}

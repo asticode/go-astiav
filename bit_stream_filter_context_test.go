@@ -29,7 +29,9 @@ func TestBitStreamFilterContext(t *testing.T) {
 	require.NoError(t, cp1.Copy(bsfc.InputCodecParameters()))
 	require.Equal(t, CodecIDH264, bsfc.InputCodecParameters().CodecID())
 
+	require.Equal(t, CodecIDNone, bsfc.OutputCodecParameters().CodecID())
 	require.NoError(t, bsfc.Initialize())
+	require.Equal(t, CodecIDH264, bsfc.OutputCodecParameters().CodecID())
 
 	// TODO Test SendPacket
 	// TODO Test ReceivePacket
