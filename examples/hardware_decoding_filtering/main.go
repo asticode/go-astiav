@@ -228,7 +228,7 @@ func main() {
 
 					// Make sure the filter is initialized
 					// We need to wait for the first frame to be decoded before initializing the filter
-					// since the decoder codec context doesn't have a valid hardware frame context until then
+					// since we need a valid hardware frames context
 					if filterGraph == nil {
 						if err := initFilter(); err != nil {
 							log.Fatal(fmt.Errorf("main: initializing filter failed: %w", err))
@@ -305,7 +305,7 @@ func initFilter() (err error) {
 	// Create buffersrc context parameters
 	buffersrcContextParameters := astiav.AllocBuffersrcFilterContextParameters()
 	defer buffersrcContextParameters.Free()
-	buffersrcContextParameters.SetHardwareFramesContext(decCodecContext.HardwareFramesContext())
+	buffersrcContextParameters.SetHardwareFramesContext(decodedHardwareFrame.HardwareFramesContext())
 	buffersrcContextParameters.SetHeight(decCodecContext.Height())
 	buffersrcContextParameters.SetPixelFormat(decCodecContext.PixelFormat())
 	buffersrcContextParameters.SetSampleAspectRatio(decCodecContext.SampleAspectRatio())
