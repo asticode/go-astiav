@@ -125,6 +125,26 @@ func (fs DictionaryFlags) Del(f DictionaryFlag) DictionaryFlags {
 
 func (fs DictionaryFlags) Has(f DictionaryFlag) bool { return astikit.BitFlags(fs).Has(uint64(f)) }
 
+type FilterFlags astikit.BitFlags
+
+func NewFilterFlags(fs ...FilterFlag) FilterFlags {
+	o := FilterFlags(0)
+	for _, f := range fs {
+		o = o.Add(f)
+	}
+	return o
+}
+
+func (fs FilterFlags) Add(f FilterFlag) FilterFlags {
+	return FilterFlags(astikit.BitFlags(fs).Add(uint64(f)))
+}
+
+func (fs FilterFlags) Del(f FilterFlag) FilterFlags {
+	return FilterFlags(astikit.BitFlags(fs).Del(uint64(f)))
+}
+
+func (fs FilterFlags) Has(f FilterFlag) bool { return astikit.BitFlags(fs).Has(uint64(f)) }
+
 type FilterCommandFlags astikit.BitFlags
 
 func NewFilterCommandFlags(fs ...FilterCommandFlag) FilterCommandFlags {

@@ -25,6 +25,11 @@ func FindFilterByName(n string) *Filter {
 	return newFilterFromC(C.avfilter_get_by_name(cn))
 }
 
+// https://ffmpeg.org/doxygen/7.0/structAVFilter.html#a632c76418742ad4f4dccbd4db40badd0
+func (f *Filter) Flags() FilterFlags {
+	return FilterFlags(f.c.flags)
+}
+
 // https://ffmpeg.org/doxygen/7.0/structAVFilter.html#a28a4776f344f91055f42a4c2a1b15c0c
 func (f *Filter) Name() string {
 	return C.GoString(f.c.name)

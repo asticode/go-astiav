@@ -11,4 +11,5 @@ func TestFilter(t *testing.T) {
 	require.NotNil(t, f)
 	require.Equal(t, "format", f.Name())
 	require.Equal(t, "format", f.String())
+	require.True(t, f.Flags().Has(FilterFlagMetadataOnly))
 }
