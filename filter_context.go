@@ -39,15 +39,3 @@ func (fc *FilterContext) Free() {
 func (fc *FilterContext) Class() *Class {
 	return newClassFromC(unsafe.Pointer(fc.c))
 }
-
-// https://ffmpeg.org/doxygen/7.0/structAVFilterContext.html#addd946fbe5af506a2b19f9ad7cb97c35
-func (fc *FilterContext) SetHardwareDeviceContext(hdc *HardwareDeviceContext) {
-	if fc.c.hw_device_ctx != nil {
-		C.av_buffer_unref(&fc.c.hw_device_ctx)
-	}
-	if hdc != nil {
-		fc.c.hw_device_ctx = C.av_buffer_ref(hdc.c)
-	} else {
-		fc.c.hw_device_ctx = nil
-	}
-}

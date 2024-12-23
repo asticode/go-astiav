@@ -4,7 +4,6 @@ package astiav
 import "C"
 import (
 	"errors"
-	"math"
 	"unsafe"
 )
 
@@ -153,19 +152,5 @@ func (g *FilterGraph) SendCommand(target, cmd, args string, f FilterCommandFlags
 	response, err = stringFromC(255, func(buf *C.char, size C.size_t) error {
 		return newError(C.avfilter_graph_send_command(g.c, targetc, cmdc, argsc, buf, C.int(size), C.int(f)))
 	})
-	return
-}
-
-// https://ffmpeg.org/doxygen/7.0/structAVFilterGraph.html#a0ba5c820c760788ea5f8e40c476f9704
-func (g *FilterGraph) NbFilters() int {
-	return int(g.c.nb_filters)
-}
-
-// https://ffmpeg.org/doxygen/7.0/structAVFilterGraph.html#a1dafd3d239f7c2f5e3ac109578ef926d
-func (g *FilterGraph) Filters() (fs []*FilterContext) {
-	fcs := (*[(math.MaxInt32 - 1) / unsafe.Sizeof((*C.AVFilterContext)(nil))](*C.AVFilterContext))(unsafe.Pointer(g.c.filters))
-	for i := 0; i < g.NbFilters(); i++ {
-		fs = append(fs, newFilterContext(fcs[i]))
-	}
 	return
 }
