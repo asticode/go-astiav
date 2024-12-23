@@ -25,8 +25,12 @@ func (bfc *BuffersrcFilterContext) FilterContext() *FilterContext {
 }
 
 // https://ffmpeg.org/doxygen/7.0/group__lavfi.html#ga8c15af28902395399fe455f6f8236848
-func (bfc *BuffersrcFilterContext) Initialize() error {
-	return newError(C.avfilter_init_dict(bfc.fc.c, nil))
+func (bfc *BuffersrcFilterContext) Initialize(d *Dictionary) error {
+	var dc **C.AVDictionary
+	if d != nil {
+		dc = &d.c
+	}
+	return newError(C.avfilter_init_dict(bfc.fc.c, dc))
 }
 
 // https://ffmpeg.org/doxygen/7.0/group__lavfi__buffersrc.html#ga398cd2a84f8b4a588197ab9d90135048
