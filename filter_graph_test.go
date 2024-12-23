@@ -247,6 +247,43 @@ func TestFilterGraph(t *testing.T) {
 	require.Equal(t, 1, len(os))
 	require.Equal(t, MediaTypeAudio, os[0].MediaType())
 
+	fg3 := AllocFilterGraph()
+	require.NotNil(t, fg3)
+	defer fg3.Free()
+	outputs := AllocFilterInOut()
+	br := FindFilterByName("buffer")
+	brCtx, err := fg3.NewBuffersrcFilterContext(br, "in")
+	require.NoError(t, err)
+	brCtxParameters := AllocBuffersrcFilterContextParameters()
+	brCtxParameters.SetPixelFormat(PixelFormatYuv420P)
+	brCtxParameters.SetSampleAspectRatio(NewRational(1, 1))
+	brCtxParameters.SetWidth(1080)
+	brCtxParameters.SetHeight(720)
+	brCtxParameters.SetTimeBase(NewRational(1, 30))
+	err = brCtx.SetParameters(brCtxParameters)
+	require.NoError(t, err)
+	err = brCtx.Initialize(nil)
+	require.NoError(t, err)
+	outputs.SetName("in")
+	outputs.SetFilterContext(brCtx.FilterContext())
+	outputs.SetPadIdx(0)
+	outputs.SetNext(nil)
+	inputs := AllocFilterInOut()
+	bs := FindFilterByName("buffersink")
+	bsCtx, err := fg3.NewBuffersinkFilterContext(bs, "out")
+	require.NoError(t, err)
+	inputs.SetName("out")
+	inputs.SetFilterContext(bsCtx.FilterContext())
+	inputs.SetPadIdx(0)
+	inputs.SetNext(nil)
+	err = fg3.Parse("movie=filename=testdata/video.mp4[mv];[in][mv]overlay=x=100:y=100[ol];[ol]scale=w=1080:h=720[out]", outputs, inputs)
+	require.NoError(t, err)
+	var filterNames string
+	for _, filterContext := range fg3.Filters() {
+		filterNames += fmt.Sprintf("[%s]", filterContext.Class().ItemName())
+	}
+	require.Equal(t, "[in][out][Parsed_movie_0][Parsed_overlay_1][Parsed_scale_2]", filterNames)
+
 	// TODO Test BuffersrcAddFrame
 	// TODO Test BuffersinkGetFrame
 }
