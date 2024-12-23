@@ -46,7 +46,7 @@ func (fc *FilterContext) SetHardwareDeviceContext(hdc *HardwareDeviceContext) {
 		C.av_buffer_unref(&fc.c.hw_device_ctx)
 	}
 	if hdc != nil {
-		fc.c.hw_device_ctx = hdc.c
+		fc.c.hw_device_ctx = C.av_buffer_ref(hdc.c)
 	} else {
 		fc.c.hw_device_ctx = nil
 	}
