@@ -319,7 +319,7 @@ func initFilter() (err error) {
 	}
 
 	// Initialize buffersrc context
-	if err = buffersrcContext.Initialize(); err != nil {
+	if err = buffersrcContext.Initialize(nil); err != nil {
 		err = fmt.Errorf("main: initializing buffersrc context failed: %w", err)
 		return
 	}

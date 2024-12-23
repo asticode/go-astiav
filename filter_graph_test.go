@@ -182,7 +182,7 @@ func TestFilterGraph(t *testing.T) {
 				buffersrcContextParameters.SetWidth(src.width)
 			}
 			buffersrcContext.SetParameters(buffersrcContextParameters)
-			require.NoError(t, buffersrcContext.Initialize())
+			require.NoError(t, buffersrcContext.Initialize(nil))
 			buffersrcContexts = append(buffersrcContexts, buffersrcContext)
 
 			o := AllocFilterInOut()
