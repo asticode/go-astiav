@@ -39,3 +39,8 @@ func (fc *FilterContext) Free() {
 func (fc *FilterContext) Class() *Class {
 	return newClassFromC(unsafe.Pointer(fc.c))
 }
+
+// https://ffmpeg.org/doxygen/7.0/structAVFilterContext.html#a6eee53e57dddfa7cca1cade870c8a44e
+func (fc *FilterContext) Filter() *Filter {
+	return newFilterFromC(fc.c.filter)
+}
