@@ -195,6 +195,14 @@ func TestFilterGraph(t *testing.T) {
 			outputs = o
 		}
 
+		require.Equal(t, len(buffersrcContexts)+1, fg.NbFilters())
+		fs := fg.Filters()
+		require.Equal(t, len(buffersrcContexts)+1, len(fs))
+		require.Equal(t, buffersinkContext.FilterContext(), fs[0])
+		for idx, c := range fs[1:] {
+			require.Equal(t, buffersrcContexts[idx].FilterContext(), c)
+		}
+
 		require.NoError(t, fg.Parse(v.content, inputs, outputs))
 		require.NoError(t, fg.Configure())
 
