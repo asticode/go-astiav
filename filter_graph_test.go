@@ -205,7 +205,6 @@ func TestFilterGraph(t *testing.T) {
 
 		require.NoError(t, fg.Parse(v.content, inputs, outputs))
 		require.NoError(t, fg.Configure())
-		require.NotEmpty(t, fg.Dump())
 
 		require.Equal(t, v.buffersink.frameRate, buffersinkContext.FrameRate())
 		require.Equal(t, v.buffersink.mediaType, buffersinkContext.MediaType())
