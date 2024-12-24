@@ -20,6 +20,7 @@ var list = []listItem{
 	{Name: "CodecContext", Suffix: "2"},
 	{Name: "CodecHardwareConfigMethod"},
 	{Name: "Dictionary"},
+	{Name: "Filter"},
 	{Name: "FilterCommand"},
 	{Name: "FormatContext"},
 	{Name: "FormatContextCtx"},

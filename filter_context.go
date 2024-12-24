@@ -51,3 +51,8 @@ func (fc *FilterContext) SetHardwareDeviceContext(hdc *HardwareDeviceContext) {
 		fc.c.hw_device_ctx = nil
 	}
 }
+
+// https://ffmpeg.org/doxygen/7.0/structAVFilterContext.html#a6eee53e57dddfa7cca1cade870c8a44e
+func (fc *FilterContext) Filter() *Filter {
+	return newFilterFromC(fc.c.filter)
+}

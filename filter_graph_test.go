@@ -144,6 +144,7 @@ func TestFilterGraph(t *testing.T) {
 
 		buffersinkContext, err := fg.NewBuffersinkFilterContext(buffersink, "filter_out")
 		require.NoError(t, err)
+		require.Equal(t, buffersink, buffersinkContext.FilterContext().Filter())
 		cl = buffersinkContext.FilterContext().Class()
 		require.NotNil(t, cl)
 		require.Equal(t, "AVFilter", cl.Name())
