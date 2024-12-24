@@ -169,3 +169,8 @@ func (g *FilterGraph) Filters() (fs []*FilterContext) {
 	}
 	return
 }
+
+// https://ffmpeg.org/doxygen/7.0/group__lavfi.html#gadb442aca4e5a8c3ba740f6049f0a288b
+func (g *FilterGraph) Dump() string {
+	return C.GoString(C.avfilter_graph_dump(g.c, nil))
+}
