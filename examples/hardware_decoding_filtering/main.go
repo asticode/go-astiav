@@ -28,6 +28,7 @@ var (
 	decodedHardwareFrame  *astiav.Frame
 	filterGraph           *astiav.FilterGraph
 	filteredHardwareFrame *astiav.Frame
+	hardwareDeviceContext *astiav.HardwareDeviceContext
 	inputStream           *astiav.Stream
 	softwareFrame         *astiav.Frame
 )
@@ -94,7 +95,6 @@ func main() {
 	}
 
 	// Loop through streams
-	var hdc *astiav.HardwareDeviceContext
 	hardwarePixelFormat := astiav.PixelFormatNone
 	for _, is := range inputFormatContext.Streams() {
 		// Only process video
@@ -143,13 +143,13 @@ func main() {
 
 		// Create hardware device context
 		var err error
-		if hdc, err = astiav.CreateHardwareDeviceContext(hardwareDeviceType, *hardwareDeviceName, nil, 0); err != nil {
+		if hardwareDeviceContext, err = astiav.CreateHardwareDeviceContext(hardwareDeviceType, *hardwareDeviceName, nil, 0); err != nil {
 			log.Fatal(fmt.Errorf("main: creating hardware device context failed: %w", err))
 		}
-		c.Add(hdc.Free)
+		c.Add(hardwareDeviceContext.Free)
 
 		// Update decoder context
-		decCodecContext.SetHardwareDeviceContext(hdc)
+		decCodecContext.SetHardwareDeviceContext(hardwareDeviceContext)
 		decCodecContext.SetPixelFormatCallback(func(pfs []astiav.PixelFormat) astiav.PixelFormat {
 			for _, pf := range pfs {
 				if pf == hardwarePixelFormat {
@@ -335,6 +335,17 @@ func initFilter() (err error) {
 	inputs.SetFilterContext(buffersinkContext.FilterContext())
 	inputs.SetPadIdx(0)
 	inputs.SetNext(nil)
+
+	// Loop through filters
+	for _, f := range filterGraph.Filters() {
+		// Filter doesn't handle hardware devices
+		if !f.Filter().Flags().Has(astiav.FilterFlagHardwareDevice) {
+			continue
+		}
+
+		// Update hardware device context
+		f.SetHardwareDeviceContext(hardwareDeviceContext)
+	}
 
 	// Parse
 	if err = filterGraph.Parse(*filter, inputs, outputs); err != nil {
