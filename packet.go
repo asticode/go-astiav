@@ -120,6 +120,21 @@ func (p *Packet) Clone() *Packet {
 	return newPacketFromC(C.av_packet_clone(p.c))
 }
 
+// https://ffmpeg.org/doxygen/7.0/group__lavc__packet.html#gade00f67930f4e2a3401b67b701d5b3a2
+func (p *Packet) CopyProperties(src *Packet) error {
+	return newError(C.av_packet_copy_props(p.c, src.c))
+}
+
+// https://ffmpeg.org/doxygen/7.0/group__lavc__packet.html#ga8a6deff6c1809029037ffd760db3e0d4
+func (p *Packet) MakeDataReferenceCounted() error {
+	return newError(C.av_packet_make_refcounted(p.c))
+}
+
+// https://ffmpeg.org/doxygen/7.0/group__lavc__packet.html#gaaa304ffdab83984ac995d134e4298d4b
+func (p *Packet) MakeDataWritable() error {
+	return newError(C.av_packet_make_writable(p.c))
+}
+
 // https://ffmpeg.org/doxygen/7.0/group__lavc__packet.html#gadfa708660b85a56749c753124de2da7d
 func (p *Packet) AllocPayload(s int) error {
 	return newError(C.av_new_packet(p.c, C.int(s)))
