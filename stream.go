@@ -56,6 +56,11 @@ func (s *Stream) EventFlags() StreamEventFlags {
 	return StreamEventFlags(s.c.event_flags)
 }
 
+// https://ffmpeg.org/doxygen/7.0/structAVStream.html#ab76e176c2a1d1ff09ec9c0bb88dc25e9
+func (s *Stream) SetEventFlags(eventFlags StreamEventFlags) {
+	s.c.event_flags = C.int(eventFlags)
+}
+
 // https://ffmpeg.org/doxygen/7.0/structAVStream.html#a6873ed62f196c24e8bf282609231786f
 func (s *Stream) ID() int {
 	return int(s.c.id)
@@ -86,6 +91,16 @@ func (s *Stream) NbFrames() int64 {
 	return int64(s.c.nb_frames)
 }
 
+// https://ffmpeg.org/doxygen/7.0/structAVStream.html#a6cdb0c90a69899f4e1e54704bb654936
+func (s *Stream) PTSWrapBits() int {
+	return int(s.c.pts_wrap_bits)
+}
+
+// https://ffmpeg.org/doxygen/7.0/structAVStream.html#a6cdb0c90a69899f4e1e54704bb654936
+func (s *Stream) SetPTSWrapBits(bits int) {
+	s.c.pts_wrap_bits = C.int(bits)
+}
+
 // https://ffmpeg.org/doxygen/7.0/structAVStream.html#ad63fb11cc1415e278e09ddc676e8a1ad
 func (s *Stream) RFrameRate() Rational {
 	return newRationalFromC(s.c.r_frame_rate)
@@ -109,6 +124,11 @@ func (s *Stream) SetSampleAspectRatio(r Rational) {
 // https://ffmpeg.org/doxygen/7.0/structAVStream.html#a7c67ae70632c91df8b0f721658ec5377
 func (s *Stream) StartTime() int64 {
 	return int64(s.c.start_time)
+}
+
+// https://ffmpeg.org/doxygen/7.0/structAVStream.html#a7c67ae70632c91df8b0f721658ec5377
+func (s *Stream) SetStartTime(startTime int64) {
+	s.c.start_time = C.int64_t(startTime)
 }
 
 // https://ffmpeg.org/doxygen/7.0/structAVStream.html#a9db755451f14e2bf590d4b85d82b32e6
