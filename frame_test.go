@@ -55,11 +55,19 @@ func TestFrame(t *testing.T) {
 	defer f3.Free()
 	require.Equal(t, 180, f3.Height())
 
+	f33 := f3.Clone()
+	err = f3.Copy(f33)
+	require.NoError(t, err)
+	defer f33.Free()
+
 	err = f2.AllocBuffer(0)
 	require.NoError(t, err)
 	err = f3.Ref(f2)
 	require.NoError(t, err)
-	require.Equal(t, 2, f3.Height())
+	require.Contains(t, [][8]int{
+		{384, 192, 192, 0, 0, 0, 0, 0},
+		{320, 160, 160, 0, 0, 0, 0, 0},
+	}, f33.Linesize())
 
 	f3.MoveRef(f1)
 	require.Equal(t, 180, f3.Height())
