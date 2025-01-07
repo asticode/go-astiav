@@ -129,4 +129,20 @@ func TestFrame(t *testing.T) {
 	require.False(t, f6.IsWritable())
 	require.NoError(t, f6.MakeWritable())
 	require.True(t, f6.IsWritable())
+
+	f7 := AllocFrame()
+	require.NotNil(t, f7)
+	defer f7.Free()
+	align = 1
+	f7.SetHeight(f6.Height())
+	f7.SetPixelFormat(f6.PixelFormat())
+	f7.SetWidth(f6.Width())
+	require.NoError(t, f7.AllocBuffer(align))
+	require.NoError(t, f7.AllocImage(align))
+	require.NoError(t, f6.Copy(f7))
+	f6b, err := f6.Data().Bytes(align)
+	require.NoError(t, err)
+	f7b, err := f7.Data().Bytes(align)
+	require.NoError(t, err)
+	require.Equal(t, f6b, f7b)
 }

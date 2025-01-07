@@ -312,3 +312,8 @@ func (f *Frame) IsWritable() bool {
 func (f *Frame) MakeWritable() error {
 	return newError(C.av_frame_make_writable(f.c))
 }
+
+// https://ffmpeg.org/doxygen/7.0/group__lavu__frame.html#gaec4e92f6e1e75ffaf76e07586fb0c9ed
+func (f *Frame) Copy(dst *Frame) error {
+	return newError(C.av_frame_copy(dst.c, f.c))
+}
