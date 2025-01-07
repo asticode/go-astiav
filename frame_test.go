@@ -55,19 +55,11 @@ func TestFrame(t *testing.T) {
 	defer f3.Free()
 	require.Equal(t, 180, f3.Height())
 
-	f33 := f3.Clone()
-	err = f3.Copy(f33)
-	require.NoError(t, err)
-	defer f33.Free()
-
 	err = f2.AllocBuffer(0)
 	require.NoError(t, err)
 	err = f3.Ref(f2)
 	require.NoError(t, err)
-	require.Contains(t, [][8]int{
-		{384, 192, 192, 0, 0, 0, 0, 0},
-		{320, 160, 160, 0, 0, 0, 0, 0},
-	}, f33.Linesize())
+	require.Equal(t, 2, f3.Height())
 
 	f3.MoveRef(f1)
 	require.Equal(t, 180, f3.Height())
@@ -137,4 +129,20 @@ func TestFrame(t *testing.T) {
 	require.False(t, f6.IsWritable())
 	require.NoError(t, f6.MakeWritable())
 	require.True(t, f6.IsWritable())
+
+	f7 := AllocFrame()
+	require.NotNil(t, f7)
+	defer f7.Free()
+	align = 1
+	f7.SetHeight(f1.Height())
+	f7.SetPixelFormat(f1.PixelFormat())
+	f7.SetWidth(f1.Width())
+	require.NoError(t, f7.AllocBuffer(align))
+	require.NoError(t, f7.AllocImage(align))
+	require.NoError(t, f1.Copy(f7))
+	f1b, err := f1.Data().Bytes(align)
+	require.NoError(t, err)
+	f7b, err := f7.Data().Bytes(align)
+	require.NoError(t, err)
+	require.Equal(t, f1b, f7b)
 }
