@@ -85,4 +85,32 @@ func TestPacket(t *testing.T) {
 	b = []byte{}
 	require.NoError(t, pkt6.FromData(b))
 	require.Equal(t, b, pkt6.Data())
+
+	t.Run("CopyProperties", func(t *testing.T) {
+		pktCopy := AllocPacket()
+		require.NotNil(t, pktCopy)
+		defer pktCopy.Free()
+
+		require.NotEqual(t, pkt2.c.dts, pktCopy.c.dts)
+		err := pktCopy.CopyProperties(pkt2)
+		require.NoError(t, err)
+		// according to the documentation, all fields but "buf", "data", "size" should
+		// be copied, so let's check for example dts:
+		require.Equal(t, pkt2.c.dts, pktCopy.c.dts)
+	})
+
+	t.Run("MakeDataWritable", func(t *testing.T) {
+		pktClone := pkt2.Clone()
+		defer pktClone.Free()
+		err = pktClone.MakeDataWritable()
+		require.NoError(t, err)
+		require.True(t, isBufferWritable(pktClone.c.buf))
+	})
+
+	t.Run("MakeDataReferenceCounted", func(t *testing.T) {
+		pktClone := pkt2.Clone()
+		defer pktClone.Free()
+		err = pktClone.MakeDataReferenceCounted()
+		require.NoError(t, err)
+	})
 }
