@@ -6,7 +6,6 @@ package astiav
 //#include <libavutil/avutil.h>
 import "C"
 import (
-	"fmt"
 	"unsafe"
 )
 
@@ -149,9 +148,55 @@ func (dl *DeviceInfoList) Free() {
 // https://ffmpeg.org/doxygen/7.0/group__lavd.html#ga4bf9cc38ae904b9104fda1e4def71474
 func (fc *FormatContext) ListDevices() (*DeviceInfoList, error) {
 	var deviceList *C.AVDeviceInfoList
-	ret := C.avdevice_list_devices(fc.c, (**C.AVDeviceInfoList)(&deviceList))
-	if ret < 0 {
-		return nil, fmt.Errorf("failed to list devices: %v", ret)
+	err := newError(C.avdevice_list_devices(fc.c, &deviceList))
+	if err != nil {
+		return nil, err
 	}
-	return &DeviceInfoList{*deviceList}, nil
+	return &DeviceInfoList{deviceList}, nil
+}
+
+// https://ffmpeg.org/doxygen/7.0/group__lavd.html#gad15c05ace8090682b947211c76189388
+func ListInputSources(device *InputFormat, deviceName string, deviceOptions *Dictionary) (*DeviceInfoList, error) {
+	var dc *C.AVInputFormat
+	if device != nil {
+		dc = device.c
+	}
+	var dnc *C.char
+	if deviceName != "" {
+		dnc = C.CString(deviceName)
+		defer C.free(unsafe.Pointer(dnc))
+	}
+	var doc *C.AVDictionary
+	if deviceOptions != nil {
+		doc = deviceOptions.c
+	}
+	var deviceList *C.AVDeviceInfoList
+	err := newError(C.avdevice_list_input_sources(dc, dnc, doc, &deviceList))
+	if err != nil {
+		return nil, err
+	}
+	return &DeviceInfoList{deviceList}, nil
+}
+
+// https://ffmpeg.org/doxygen/7.0/group__lavd.html#gac38572c5ba27b5cf6d3943cb97233309
+func ListOutputSinks(device *OutputFormat, deviceName string, deviceOptions *Dictionary) (*DeviceInfoList, error) {
+	var dc *C.AVOutputFormat
+	if device != nil {
+		dc = device.c
+	}
+	var dnc *C.char
+	if deviceName != "" {
+		dnc = C.CString(deviceName)
+		defer C.free(unsafe.Pointer(dnc))
+	}
+	var doc *C.AVDictionary
+	if deviceOptions != nil {
+		doc = deviceOptions.c
+	}
+	var deviceList *C.AVDeviceInfoList
+	err := newError(C.avdevice_list_output_sinks(dc, dnc, doc, &deviceList))
+	if err != nil {
+		return nil, err
+	}
+	return &DeviceInfoList{deviceList}, nil
 }
