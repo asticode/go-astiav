@@ -70,6 +70,58 @@ func OutputVideoDeviceNext(d *OutputFormat) *OutputFormat {
 	return &OutputFormat{c: next}
 }
 
+func InputAudioDeviceList() (list []*InputFormat) {
+	var d *InputFormat
+	for {
+		d = InputAudioDeviceNext(d)
+		if d != nil {
+			list = append(list, d)
+		} else {
+			break
+		}
+	}
+	return list
+}
+
+func OutputAudioDeviceList() (list []*OutputFormat) {
+	var d *OutputFormat
+	for {
+		d = OutputAudioDeviceNext(d)
+		if d != nil {
+			list = append(list, d)
+		} else {
+			break
+		}
+	}
+	return list
+}
+
+func InputVideoDeviceList() (list []*InputFormat) {
+	var d *InputFormat
+	for {
+		d = InputVideoDeviceNext(d)
+		if d != nil {
+			list = append(list, d)
+		} else {
+			break
+		}
+	}
+	return list
+}
+
+func OutputVideoDeviceList() (list []*OutputFormat) {
+	var d *OutputFormat
+	for {
+		d = OutputVideoDeviceNext(d)
+		if d != nil {
+			list = append(list, d)
+		} else {
+			break
+		}
+	}
+	return list
+}
+
 // https://ffmpeg.org/doxygen/7.0/structAVDeviceInfo.html
 type DeviceInfo struct {
 	c *C.AVDeviceInfo
