@@ -7,8 +7,8 @@ import (
 	"log"
 	"strings"
 
-	"github.com/asticode/go-astiav"
-	"github.com/asticode/go-astikit"
+	"github.com/peakedshout/go-astiav"
+	"github.com/peakedshout/go-astikit"
 )
 
 var (

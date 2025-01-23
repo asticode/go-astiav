@@ -7,7 +7,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/asticode/go-astikit"
+	"github.com/peakedshout/go-astikit"
 )
 
 var globalHelper = newHelper()

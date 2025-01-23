@@ -6,7 +6,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/asticode/go-astiav"
+	"github.com/peakedshout/go-astiav"
 )
 
 func main() {
