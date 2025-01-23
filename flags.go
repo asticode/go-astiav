@@ -2,7 +2,7 @@
 package astiav
 
 import (
-	"github.com/peakedshout/go-astikit"
+	"github.com/asticode/go-astikit"
 )
 
 type BuffersinkFlags astikit.BitFlags
