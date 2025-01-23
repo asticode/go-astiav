@@ -8,7 +8,6 @@ import (
 	"log"
 	"strings"
 
-	"github.com/asticode/go-astikit"
 	"github.com/peakedshout/go-astiav"
 )
 
