@@ -31,7 +31,7 @@ func AllocFrame() *Frame {
 	return newFrameFromC(C.av_frame_alloc())
 }
 
-// https://ffmpeg.org/doxygen/7.0/group__lavu__frame.html#gac700017c5270c79c1e1befdeeb008b2f
+// https://ffmpeg.org/doxygen/7.0/group__lavu__frame.html#ga6b1acbfa82c79bf7fd78d868572f0ceb
 func (f *Frame) AllocBuffer(align int) error {
 	return newError(C.av_frame_get_buffer(f.c, C.int(align)))
 }
