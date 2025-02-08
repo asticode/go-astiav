@@ -41,16 +41,6 @@ func (f *Frame) AllocHardwareBuffer(hfc *HardwareFramesContext) error {
 	return newError(C.av_hwframe_get_buffer(hfc.c, f.c, 0))
 }
 
-// https://ffmpeg.org/doxygen/7.0/group__lavu__picture.html#ga841e0a89a642e24141af1918a2c10448
-func (f *Frame) AllocImage(align int) error {
-	return newError(C.av_image_alloc(&f.c.data[0], &f.c.linesize[0], f.c.width, f.c.height, (C.enum_AVPixelFormat)(f.c.format), C.int(align)))
-}
-
-// https://ffmpeg.org/doxygen/7.0/group__lavu__sampmanip.html#ga4db4c77f928d32c7d8854732f50b8c04
-func (f *Frame) AllocSamples(align int) error {
-	return newError(C.av_samples_alloc(&f.c.data[0], &f.c.linesize[0], f.c.ch_layout.nb_channels, f.c.nb_samples, (C.enum_AVSampleFormat)(f.c.format), C.int(align)))
-}
-
 // https://ffmpeg.org/doxygen/7.0/structAVFrame.html#ae291cdec7758599e765bc9e3edbb3065
 func (f *Frame) ChannelLayout() ChannelLayout {
 	l, _ := newChannelLayoutFromC(&f.c.ch_layout).clone()

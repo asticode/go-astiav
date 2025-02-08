@@ -77,7 +77,6 @@ func TestFrame(t *testing.T) {
 	f4.SetSampleRate(48000)
 	align := 0
 	require.NoError(t, f4.AllocBuffer(align))
-	require.NoError(t, f4.AllocSamples(align))
 	require.NoError(t, f4.SamplesFillSilence())
 	n, err := f4.SamplesBufferSize(align)
 	require.NoError(t, err)
@@ -113,7 +112,6 @@ func TestFrame(t *testing.T) {
 	f6.SetWidth(4)
 	align = 1
 	require.NoError(t, f6.AllocBuffer(align))
-	require.NoError(t, f6.AllocImage(align))
 	require.NoError(t, f6.ImageFillBlack())
 	n, err = f6.ImageBufferSize(align)
 	require.NoError(t, err)
@@ -138,7 +136,6 @@ func TestFrame(t *testing.T) {
 	f7.SetPixelFormat(f6.PixelFormat())
 	f7.SetWidth(f6.Width())
 	require.NoError(t, f7.AllocBuffer(align))
-	require.NoError(t, f7.AllocImage(align))
 	require.NoError(t, f6.Copy(f7))
 	f6b, err := f6.Data().Bytes(align)
 	require.NoError(t, err)

@@ -521,14 +521,12 @@ func TestFrameData(t *testing.T) {
 			f2.SetSampleFormat(f1.SampleFormat())
 			f2.SetSampleRate(f1.SampleRate())
 			require.NoError(t, f2.AllocBuffer(align))
-			require.NoError(t, f2.AllocSamples(align))
 		case MediaTypeVideo:
 			align = 1
 			f2.SetHeight(f1.Height())
 			f2.SetPixelFormat(f1.PixelFormat())
 			f2.SetWidth(f1.Width())
 			require.NoError(t, f2.AllocBuffer(align))
-			require.NoError(t, f2.AllocImage(align))
 		}
 
 		switch v.md {

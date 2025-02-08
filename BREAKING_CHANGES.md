@@ -1,3 +1,7 @@
+# v0.31.0
+
+- removed `AllocImage` and `AllocSamples` that are considered useless using CGO until proven otherwise
+
 # v0.30.0
 
 - `HardwareFrameContext` has been renamed to `HardwareFramesContext`

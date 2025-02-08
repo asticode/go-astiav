@@ -44,11 +44,6 @@ func main() {
 		log.Fatal(fmt.Errorf("main: allocating buffer failed: %w", err))
 	}
 
-	// Allocate samples
-	if err := audioFrame.AllocSamples(align); err != nil {
-		log.Fatal(fmt.Errorf("main: allocating image failed: %w", err))
-	}
-
 	// When writing data manually into a frame, you need to make sure the frame is writable
 	if err := audioFrame.MakeWritable(); err != nil {
 		log.Fatal(fmt.Errorf("main: making frame writable failed: %w", err))
@@ -84,11 +79,6 @@ func main() {
 	align = 1
 	if err := videoFrame.AllocBuffer(align); err != nil {
 		log.Fatal(fmt.Errorf("main: allocating buffer failed: %w", err))
-	}
-
-	// Allocate image
-	if err := videoFrame.AllocImage(align); err != nil {
-		log.Fatal(fmt.Errorf("main: allocating image failed: %w", err))
 	}
 
 	// When writing data manually into a frame, you need to make sure the frame is writable

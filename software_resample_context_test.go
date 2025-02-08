@@ -20,7 +20,6 @@ func TestSoftwareResampleContext(t *testing.T) {
 	f2.SetSampleFormat(SampleFormatS16)
 	f2.SetSampleRate(24000)
 	require.NoError(t, f2.AllocBuffer(0))
-	require.NoError(t, f2.AllocSamples(0))
 
 	for _, v := range []struct {
 		expectedDelay     int64

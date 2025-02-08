@@ -131,9 +131,6 @@ func main() {
 	if err := resampledFrame.AllocBuffer(align); err != nil {
 		log.Fatal(fmt.Errorf("main: allocating buffer failed: %w", err))
 	}
-	if err := resampledFrame.AllocSamples(align); err != nil {
-		log.Fatal(fmt.Errorf("main: allocating samples failed: %w", err))
-	}
 
 	// For the sake of the example we use an audio FIFO to ensure final frames have an exact constant
 	// number of samples except for the last one. However this is optional and it depends on your use case
@@ -145,9 +142,6 @@ func main() {
 	finalFrame.SetSampleRate(resampledFrame.SampleRate())
 	if err := finalFrame.AllocBuffer(align); err != nil {
 		log.Fatal(fmt.Errorf("main: allocating buffer failed: %w", err))
-	}
-	if err := finalFrame.AllocSamples(align); err != nil {
-		log.Fatal(fmt.Errorf("main: allocating samples failed: %w", err))
 	}
 	af = astiav.AllocAudioFifo(finalFrame.SampleFormat(), finalFrame.ChannelLayout().Channels(), finalFrame.NbSamples())
 	defer af.Free()
