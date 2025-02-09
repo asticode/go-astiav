@@ -85,4 +85,22 @@ func TestPacket(t *testing.T) {
 	b = []byte{}
 	require.NoError(t, pkt6.FromData(b))
 	require.Equal(t, b, pkt6.Data())
+
+	pkt7 := AllocPacket()
+	require.NotNil(t, pkt7)
+	defer pkt7.Free()
+
+	require.NotEqual(t, pkt2.Dts(), pkt7.Dts())
+	require.NoError(t, pkt7.CopyProperties(pkt2))
+	require.Equal(t, pkt2.Dts(), pkt7.Dts())
+
+	pkt8 := pkt2.Clone()
+	defer pkt8.Free()
+	require.False(t, pkt8.IsWritable())
+	require.NoError(t, pkt8.MakeWritable())
+	require.True(t, pkt8.IsWritable())
+
+	pkt9 := pkt2.Clone()
+	defer pkt9.Free()
+	require.NoError(t, pkt9.MakeReferenceCounted())
 }
