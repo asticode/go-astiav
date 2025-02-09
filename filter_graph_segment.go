@@ -21,7 +21,9 @@ func newFilterGraphSegmentFromC(c *C.AVFilterGraphSegment) *FilterGraphSegment {
 
 // https://ffmpeg.org/doxygen/7.0/group__lavfi.html#ga51283edd8f3685e1f33239f360e14ae8
 func (fgs *FilterGraphSegment) Free() {
-	C.avfilter_graph_segment_free(&fgs.c)
+	if fgs.c != nil {
+		C.avfilter_graph_segment_free(&fgs.c)
+	}
 }
 
 // https://ffmpeg.org/doxygen/7.0/structAVFilterGraphSegment.html#ad5a2779af221d1520490fe2719f9e39a

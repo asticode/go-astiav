@@ -25,14 +25,16 @@ func AllocSoftwareResampleContext() *SoftwareResampleContext {
 
 // https://ffmpeg.org/doxygen/7.0/group__lswr.html#ga818f7d78b1ad7d8d5b70de374b668c34
 func (src *SoftwareResampleContext) Free() {
-	// Make sure to clone the classer before freeing the object since
-	// the C free method may reset the pointer
-	c := newClonedClasser(src)
-	C.swr_free(&src.c)
-	// Make sure to remove from classers after freeing the object since
-	// the C free method may use methods needing the classer
-	if c != nil {
-		classers.del(c)
+	if src.c != nil {
+		// Make sure to clone the classer before freeing the object since
+		// the C free method may reset the pointer
+		c := newClonedClasser(src)
+		C.swr_free(&src.c)
+		// Make sure to remove from classers after freeing the object since
+		// the C free method may use methods needing the classer
+		if c != nil {
+			classers.del(c)
+		}
 	}
 }
 
@@ -40,6 +42,9 @@ var _ Classer = (*SoftwareResampleContext)(nil)
 
 // https://ffmpeg.org/doxygen/7.0/structSwrContext.html#a7e13adcdcbc11bcc933cb7d0b9f839a0
 func (src *SoftwareResampleContext) Class() *Class {
+	if src.c == nil {
+		return nil
+	}
 	return newClassFromC(unsafe.Pointer(src.c))
 }
 

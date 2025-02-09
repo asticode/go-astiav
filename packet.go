@@ -112,7 +112,9 @@ func (p *Packet) SetStreamIndex(i int) {
 
 // https://ffmpeg.org/doxygen/7.0/group__lavc__packet.html#ga1066464e7cdd1f215df6940db94e5d8e
 func (p *Packet) Free() {
-	C.av_packet_free(&p.c)
+	if p.c != nil {
+		C.av_packet_free(&p.c)
+	}
 }
 
 // https://ffmpeg.org/doxygen/7.0/group__lavc__packet.html#gacbe3e51cf411a7003d706127dc48cbb1

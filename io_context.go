@@ -128,6 +128,9 @@ func OpenIOContext(filename string, flags IOContextFlags, ii *IOInterrupter, d *
 }
 
 func (ic *IOContext) Class() *Class {
+	if ic.c == nil {
+		return nil
+	}
 	return newClassFromC(unsafe.Pointer(ic.c))
 }
 

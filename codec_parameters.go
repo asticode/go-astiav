@@ -22,7 +22,9 @@ func newCodecParametersFromC(c *C.AVCodecParameters) *CodecParameters {
 
 // https://ffmpeg.org/doxygen/7.0/group__lavc__core.html#ga950c8da55b8112077e640b6a0cb8cf36
 func (cp *CodecParameters) Free() {
-	C.avcodec_parameters_free(&cp.c)
+	if cp.c != nil {
+		C.avcodec_parameters_free(&cp.c)
+	}
 }
 
 // https://ffmpeg.org/doxygen/7.0/structAVCodecParameters.html#a5268fcf4ae8ed27edef54f836b926d93

@@ -266,7 +266,9 @@ func (f *Frame) TransferHardwareData(dst *Frame) error {
 
 // https://ffmpeg.org/doxygen/7.0/group__lavu__frame.html#ga979d73f3228814aee56aeca0636e37cc
 func (f *Frame) Free() {
-	C.av_frame_free(&f.c)
+	if f.c != nil {
+		C.av_frame_free(&f.c)
+	}
 }
 
 // https://ffmpeg.org/doxygen/7.0/group__lavu__frame.html#ga88b0ecbc4eb3453eef3fbefa3bddeb7c

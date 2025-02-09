@@ -22,7 +22,9 @@ func AllocFilterInOut() *FilterInOut {
 
 // https://ffmpeg.org/doxygen/7.0/group__lavfi.html#ga294500a9856260eb1552354fd9d9a6c4
 func (i *FilterInOut) Free() {
-	C.avfilter_inout_free(&i.c)
+	if i.c != nil {
+		C.avfilter_inout_free(&i.c)
+	}
 }
 
 // https://ffmpeg.org/doxygen/7.0/structAVFilterInOut.html#a88afecac258f51aab7e9a9db9e7a4d58

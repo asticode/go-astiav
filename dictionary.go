@@ -60,7 +60,9 @@ func (d *Dictionary) Get(key string, prev *DictionaryEntry, flags DictionaryFlag
 
 // https://ffmpeg.org/doxygen/7.0/group__lavu__dict.html#ga1bafd682b1fbb90e48a4cc3814b820f7
 func (d *Dictionary) Free() {
-	C.av_dict_free(&d.c)
+	if d.c != nil {
+		C.av_dict_free(&d.c)
+	}
 }
 
 // https://ffmpeg.org/doxygen/7.0/group__lavc__packet.html#ga2d2c8e143a2c98cf0aa31b072c286186

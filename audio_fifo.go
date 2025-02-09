@@ -56,5 +56,8 @@ func (a *AudioFifo) Read(f *Frame) (int, error) {
 
 // https://ffmpeg.org/doxygen/7.0/group__lavu__audiofifo.html#ga74e029e47f7aa99217ad1f315c434875
 func (a *AudioFifo) Free() {
-	C.av_audio_fifo_free(a.c)
+	if a.c != nil {
+		C.av_audio_fifo_free(a.c)
+		a.c = nil
+	}
 }

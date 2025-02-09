@@ -55,14 +55,17 @@ func AllocOutputFormatContext(of *OutputFormat, formatName, filename string) (*F
 
 // https://ffmpeg.org/doxygen/7.0/group__lavf__core.html#gac2990b13b68e831a408fce8e1d0d6445
 func (fc *FormatContext) Free() {
-	// Make sure to clone the classer before freeing the object since
-	// the C free method may reset the pointer
-	c := newClonedClasser(fc)
-	C.avformat_free_context(fc.c)
-	// Make sure to remove from classers after freeing the object since
-	// the C free method may use methods needing the classer
-	if c != nil {
-		classers.del(c)
+	if fc.c != nil {
+		// Make sure to clone the classer before freeing the object since
+		// the C free method may reset the pointer
+		c := newClonedClasser(fc)
+		C.avformat_free_context(fc.c)
+		fc.c = nil
+		// Make sure to remove from classers after freeing the object since
+		// the C free method may use methods needing the classer
+		if c != nil {
+			classers.del(c)
+		}
 	}
 }
 
@@ -73,6 +76,9 @@ func (fc *FormatContext) BitRate() int64 {
 
 // https://ffmpeg.org/doxygen/7.0/structAVFormatContext.html#a0c396740b9a2487aa57d4352d2dc1687
 func (fc *FormatContext) Class() *Class {
+	if fc.c == nil {
+		return nil
+	}
 	return newClassFromC(unsafe.Pointer(fc.c))
 }
 
@@ -238,7 +244,7 @@ func (fc *FormatContext) CloseInput() {
 		// Make sure to clone the classer before freeing the object since
 		// the C free method may reset the pointer
 		c := newClonedClasser(fc)
-		var cpb Classer
+		var cpb *ClonedClasser
 		if pb := fc.Pb(); pb != nil {
 			cpb = newClonedClasser(pb)
 		}

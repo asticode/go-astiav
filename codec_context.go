@@ -89,6 +89,9 @@ func (cc *CodecContext) ChromaLocation() ChromaLocation {
 
 // https://ffmpeg.org/doxygen/7.0/structAVCodecContext.html#a90622d3af2a9abba986a1c9f7ca21b16
 func (cc *CodecContext) Class() *Class {
+	if cc.c == nil {
+		return nil
+	}
 	return newClassFromC(unsafe.Pointer(cc.c))
 }
 

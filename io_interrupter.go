@@ -17,7 +17,10 @@ func NewIOInterrupter() *IOInterrupter {
 }
 
 func (i *IOInterrupter) Free() {
-	C.free(unsafe.Pointer(i.c))
+	if i.c != nil {
+		C.free(unsafe.Pointer(i.c))
+		i.c = nil
+	}
 }
 
 func (i *IOInterrupter) Interrupt() {

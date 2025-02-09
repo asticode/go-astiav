@@ -39,6 +39,9 @@ func AllocBitStreamFilterContext(f *BitStreamFilter) (*BitStreamFilterContext, e
 
 // https://ffmpeg.org/doxygen/7.0/structAVBSFContext.html#aa5d5018816daac804414c459ec8a1c5c
 func (bsfc *BitStreamFilterContext) Class() *Class {
+	if bsfc.c == nil {
+		return nil
+	}
 	return newClassFromC(unsafe.Pointer(bsfc.c))
 }
 

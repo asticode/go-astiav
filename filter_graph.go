@@ -37,7 +37,7 @@ func (g *FilterGraph) Free() {
 		// Make sure to clone the classer before freeing the object since
 		// the C free method may reset the pointer
 		c := newClonedClasser(g)
-		var cfcs []Classer
+		var cfcs []*ClonedClasser
 		for _, fc := range g.fcs {
 			cfcs = append(cfcs, newClonedClasser(fc))
 		}
@@ -62,6 +62,9 @@ func (g *FilterGraph) String() string {
 
 // https://ffmpeg.org/doxygen/7.0/structAVFilterGraph.html#af00925dd69b474fac48887efc0e1ac94
 func (g *FilterGraph) Class() *Class {
+	if g.c == nil {
+		return nil
+	}
 	return newClassFromC(unsafe.Pointer(g.c))
 }
 

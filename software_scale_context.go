@@ -62,14 +62,18 @@ func CreateSoftwareScaleContext(srcW, srcH int, srcFormat PixelFormat, dstW, dst
 
 // https://ffmpeg.org/doxygen/7.0/group__libsws.html#gad3af0ca76f071dbe0173444db9882932
 func (ssc *SoftwareScaleContext) Free() {
-	// Make sure to clone the classer before freeing the object since
-	// the C free method may reset the pointer
-	c := newClonedClasser(ssc)
-	C.sws_freeContext(ssc.c)
-	// Make sure to remove from classers after freeing the object since
-	// the C free method may use methods needing the classer
-	if c != nil {
-		classers.del(c)
+	if ssc.c != nil {
+		// Make sure to clone the classer before freeing the object since
+		// the C free method may reset the pointer
+		c := newClonedClasser(ssc)
+		C.sws_freeContext(ssc.c)
+		ssc.c = nil
+		// Make sure to remove from classers after freeing the object since
+		// the C free method may use methods needing the classer
+		if c != nil {
+			classers.del(c)
+		}
+
 	}
 }
 
@@ -77,6 +81,9 @@ var _ Classer = (*SoftwareScaleContext)(nil)
 
 // https://ffmpeg.org/doxygen/7.0/structSwsContext.html#a6866f52574bc730833d2580abc806261
 func (ssc *SoftwareScaleContext) Class() *Class {
+	if ssc.c == nil {
+		return nil
+	}
 	return newClassFromC(unsafe.Pointer(ssc.c))
 }
 

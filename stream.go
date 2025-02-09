@@ -28,6 +28,9 @@ func (s *Stream) SetAvgFrameRate(r Rational) {
 
 // https://ffmpeg.org/doxygen/7.0/structAVStream.html#a4737d8b012827558f55a6f559b253496
 func (s *Stream) Class() *Class {
+	if s.c == nil {
+		return nil
+	}
 	return newClassFromC(unsafe.Pointer(s.c))
 }
 
