@@ -57,7 +57,7 @@ func AllocIOContext(bufferSize int, writable bool, readFunc IOContextReadFunc, s
 	}()
 
 	// Since go doesn't allow c to store pointers to go data, we need to create this C pointer
-	handlerID := C.malloc(C.size_t(1))
+	handlerID := C.av_malloc(C.size_t(1))
 	if handlerID == nil {
 		err = errors.New("astiav: allocating handler id failed")
 		return
@@ -66,7 +66,7 @@ func AllocIOContext(bufferSize int, writable bool, readFunc IOContextReadFunc, s
 	// Make sure handler id is freed in case of error
 	defer func() {
 		if err != nil {
-			C.free(handlerID)
+			C.av_free(handlerID)
 		}
 	}()
 

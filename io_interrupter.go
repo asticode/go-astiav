@@ -1,6 +1,7 @@
 package astiav
 
 //#include "io_interrupter.h"
+//#include <libavutil/mem.h>
 //#include <stdlib.h>
 import "C"
 import "unsafe"
@@ -18,7 +19,7 @@ func NewIOInterrupter() *IOInterrupter {
 
 func (i *IOInterrupter) Free() {
 	if i.c != nil {
-		C.free(unsafe.Pointer(i.c))
+		C.av_free(unsafe.Pointer(i.c))
 		i.c = nil
 	}
 }

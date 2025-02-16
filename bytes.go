@@ -12,11 +12,11 @@ import (
 
 func stringFromC(len int, fn func(buf *C.char, size C.size_t) error) (string, error) {
 	size := C.size_t(len)
-	buf := (*C.char)(C.malloc(size))
+	buf := (*C.char)(C.av_malloc(size))
 	if buf == nil {
 		return "", errors.New("astiav: buf is nil")
 	}
-	defer C.free(unsafe.Pointer(buf))
+	defer C.av_free(unsafe.Pointer(buf))
 	if err := fn(buf, size); err != nil {
 		return "", err
 	}
