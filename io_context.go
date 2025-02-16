@@ -160,7 +160,7 @@ func (ic *IOContext) Free() {
 			C.av_freep(unsafe.Pointer(&ic.c.buffer))
 		}
 		if ic.handlerID != nil {
-			C.free(ic.handlerID)
+			C.av_free(ic.handlerID)
 			ic.handlerID = nil
 		}
 		// Make sure to clone the classer before freeing the object since
