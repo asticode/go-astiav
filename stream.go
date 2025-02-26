@@ -89,6 +89,15 @@ func (s *Stream) Metadata() *Dictionary {
 	return newDictionaryFromC(s.c.metadata)
 }
 
+// https://ffmpeg.org/doxygen/7.0/structAVStream.html
+func (s *Stream) SetMetadata(d *Dictionary) {
+	if d == nil {
+		s.c.metadata = nil
+	} else {
+		s.c.metadata = d.c
+	}
+}
+
 // https://ffmpeg.org/doxygen/7.0/structAVStream.html#a4382c3064df1c9eb232ac198dec067f9
 func (s *Stream) NbFrames() int64 {
 	return int64(s.c.nb_frames)
