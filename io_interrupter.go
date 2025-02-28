@@ -4,7 +4,10 @@ package astiav
 //#include <libavutil/mem.h>
 //#include <stdlib.h>
 import "C"
-import "unsafe"
+import (
+	"sync/atomic"
+	"unsafe"
+)
 
 type IOInterrupter struct {
 	c *C.AVIOInterruptCB
@@ -25,13 +28,18 @@ func (i *IOInterrupter) Free() {
 }
 
 func (i *IOInterrupter) Interrupt() {
-	i.i = 1
+	atomic.StoreInt32((*int32)(&i.i), 1)
 }
 
 func (i *IOInterrupter) Interrupted() bool {
-	return i.i == 1
+	return atomic.LoadInt32((*int32)(&i.i)) > 0
 }
 
 func (i *IOInterrupter) Resume() {
-	i.i = 0
+	atomic.StoreInt32((*int32)(&i.i), 0)
+}
+
+//export goAstiavAtomicLoadInt
+func goAstiavAtomicLoadInt(i *C.int) C.int {
+	return C.int(atomic.LoadInt32((*int32)(i)))
 }
