@@ -1,5 +1,6 @@
 package astiav
 
+//#include "atomic.h"
 //#include "io_interrupter.h"
 //#include <libavutil/mem.h>
 //#include <stdlib.h>
@@ -8,7 +9,7 @@ import "unsafe"
 
 type IOInterrupter struct {
 	c *C.AVIOInterruptCB
-	i C.int
+	i C.atomic_int
 }
 
 func NewIOInterrupter() *IOInterrupter {
@@ -25,13 +26,13 @@ func (i *IOInterrupter) Free() {
 }
 
 func (i *IOInterrupter) Interrupt() {
-	i.i = 1
+	C.astiavAtomicStoreInt(&i.i, 1)
 }
 
 func (i *IOInterrupter) Interrupted() bool {
-	return i.i == 1
+	return C.astiavAtomicLoadInt(&i.i) == 1
 }
 
 func (i *IOInterrupter) Resume() {
-	i.i = 0
+	C.astiavAtomicStoreInt(&i.i, 0)
 }
