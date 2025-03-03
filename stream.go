@@ -84,9 +84,18 @@ func (s *Stream) SetIndex(i int) {
 	s.c.index = C.int(i)
 }
 
-// https://ffmpeg.org/doxygen/7.0/structAVStream.html
+// https://ffmpeg.org/doxygen/7.0/structAVStream.html#a50d250a128a3da9ce3d135e84213fb82
 func (s *Stream) Metadata() *Dictionary {
 	return newDictionaryFromC(s.c.metadata)
+}
+
+// https://ffmpeg.org/doxygen/7.0/structAVStream.html#a50d250a128a3da9ce3d135e84213fb82
+func (s *Stream) SetMetadata(d *Dictionary) {
+	if d == nil {
+		s.c.metadata = nil
+	} else {
+		s.c.metadata = d.c
+	}
 }
 
 // https://ffmpeg.org/doxygen/7.0/structAVStream.html#a4382c3064df1c9eb232ac198dec067f9
