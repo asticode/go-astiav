@@ -56,4 +56,13 @@ func TestStream(t *testing.T) {
 	require.Equal(t, int64(1), s1.StartTime())
 	s1.SetTimeBase(NewRational(1, 1))
 	require.Equal(t, NewRational(1, 1), s1.TimeBase())
+
+	d := NewDictionary()
+	d.Set("k", "v", 0)
+	s1.SetMetadata(d)
+	e := s1.Metadata().Get("k", nil, 0)
+	require.NotNil(t, e)
+	require.Equal(t, "v", e.Value())
+	s1.SetMetadata(nil)
+	require.Nil(t, s1.Metadata())
 }
