@@ -26,17 +26,17 @@ Examples are located in the [examples](examples) directory and mirror as much as
 |name|astiav|ffmpeg|
 |---|---|---|
 |BitStream Filtering|[see](examples/bit_stream_filtering/main.go)|X
-|Custom IO Demuxing|[see](examples/custom_io_demuxing/main.go)|[see](https://github.com/FFmpeg/FFmpeg/blob/n7.0/doc/examples/avio_reading.c)
+|Custom IO Demuxing|[see](examples/custom_io_demuxing/main.go)|[see](https://github.com/FFmpeg/FFmpeg/blob/n7.0/doc/examples/avio_read_callback.c)
 |Custom IO Muxing|[see](examples/custom_io_muxing/main.go)|X
-|Demuxing/Decoding|[see](examples/demuxing_decoding/main.go)|[see](https://github.com/FFmpeg/FFmpeg/blob/n7.0/doc/examples/demuxing_decoding.c)
-|Filtering|[see](examples/filtering/main.go)|[see](https://github.com/FFmpeg/FFmpeg/blob/n7.0/doc/examples/filtering_video.c)
+|Demuxing/Decoding|[see](examples/demuxing_decoding/main.go)|[see](https://github.com/FFmpeg/FFmpeg/blob/n7.0/doc/examples/demux_decode.c)
+|Filtering|[see](examples/filtering/main.go)|[see](https://github.com/FFmpeg/FFmpeg/blob/n7.0/doc/examples/decode_filter_video.c)
 |Frame data manipulation|[see](examples/frame_data_manipulation/main.go)|X
 |Hardware Decoding/Filtering|[see](examples/hardware_decoding_filtering/main.go)|[see](https://github.com/FFmpeg/FFmpeg/blob/n7.0/doc/examples/hw_decode.c)
 |Hardware Encoding|[see](examples/hardware_encoding/main.go)|[see](https://github.com/FFmpeg/FFmpeg/blob/n7.0/doc/examples/vaapi_encode.c)
-|Remuxing|[see](examples/remuxing/main.go)|[see](https://github.com/FFmpeg/FFmpeg/blob/n7.0/doc/examples/remuxing.c)
+|Remuxing|[see](examples/remuxing/main.go)|[see](https://github.com/FFmpeg/FFmpeg/blob/n7.0/doc/examples/remux.c)
 |Resampling audio|[see](examples/resampling_audio/main.go)|[see](https://github.com/FFmpeg/FFmpeg/blob/n7.0/doc/examples/resample_audio.c)
-|Scaling video|[see](examples/scaling_video/main.go)|[see](https://github.com/FFmpeg/FFmpeg/blob/n7.0/doc/examples/scaling_video.c)
-|Transcoding|[see](examples/transcoding/main.go)|[see](https://github.com/FFmpeg/FFmpeg/blob/n7.0/doc/examples/transcoding.c)
+|Scaling video|[see](examples/scaling_video/main.go)|[see](https://github.com/FFmpeg/FFmpeg/blob/n7.0/doc/examples/scale_video.c)
+|Transcoding|[see](examples/transcoding/main.go)|[see](https://github.com/FFmpeg/FFmpeg/blob/n7.0/doc/examples/transcode.c)
 
 *Tip: you can use the video sample located in the `testdata` directory for your tests*
 
