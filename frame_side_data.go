@@ -58,10 +58,10 @@ func (d *frameSideDataRegionsOfInterest) Add(rois []RegionOfInterest) error {
 	return nil
 }
 
-func (d *frameSideDataRegionsOfInterest) Get() ([]RegionOfInterest, error) {
+func (d *frameSideDataRegionsOfInterest) Get() ([]RegionOfInterest, bool) {
 	sd := C.av_frame_side_data_get(*d.d.sd, *d.d.size, C.AV_FRAME_DATA_REGIONS_OF_INTEREST)
 	if sd == nil {
-		return nil, nil
+		return nil, false
 	}
 
 	crois := d.data(sd)
@@ -75,5 +75,5 @@ func (d *frameSideDataRegionsOfInterest) Get() ([]RegionOfInterest, error) {
 			Top:                int(crois[i].top),
 		}
 	}
-	return rois, nil
+	return rois, true
 }

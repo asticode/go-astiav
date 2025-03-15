@@ -38,12 +38,16 @@ func (d *packetSideDataDisplayMatrix) Add(m *DisplayMatrix) error {
 	return d.d.addBytes(C.AV_PKT_DATA_DISPLAYMATRIX, m.bytes())
 }
 
-func (d *packetSideDataDisplayMatrix) Get() (*DisplayMatrix, error) {
+func (d *packetSideDataDisplayMatrix) Get() (*DisplayMatrix, bool) {
 	b := d.d.getBytes(C.AV_PKT_DATA_DISPLAYMATRIX)
 	if len(b) == 0 {
-		return nil, nil
+		return nil, false
 	}
-	return newDisplayMatrixFromBytes(b)
+	m, err := newDisplayMatrixFromBytes(b)
+	if err != nil {
+		return nil, false
+	}
+	return m, true
 }
 
 // https://ffmpeg.org/doxygen/7.0/group__lavc__packet__side__data.html#gga9a80bfcacc586b483a973272800edb97a2093332d8086d25a04942ede61007f6a
@@ -63,12 +67,16 @@ func (d *packetSideDataSkipSamples) Add(ss *SkipSamples) error {
 	return d.d.addBytes(C.AV_PKT_DATA_SKIP_SAMPLES, ss.bytes())
 }
 
-func (d *packetSideDataSkipSamples) Get() (*SkipSamples, error) {
+func (d *packetSideDataSkipSamples) Get() (*SkipSamples, bool) {
 	b := d.d.getBytes(C.AV_PKT_DATA_SKIP_SAMPLES)
 	if len(b) == 0 {
-		return nil, nil
+		return nil, false
 	}
-	return newSkipSamplesFromBytes(b)
+	ss, err := newSkipSamplesFromBytes(b)
+	if err != nil {
+		return nil, false
+	}
+	return ss, true
 }
 
 // https://ffmpeg.org/doxygen/7.0/group__lavc__packet__side__data.html#gad208a666db035802403ea994912a83db

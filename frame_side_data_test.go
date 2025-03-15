@@ -24,8 +24,8 @@ func testFrameSideData(sd *FrameSideData, t *testing.T) {
 		},
 	}
 	require.NoError(t, sd.RegionsOfInterest().Add(rois1))
-	rois2, err := sd.RegionsOfInterest().Get()
-	require.NoError(t, err)
+	rois2, ok := sd.RegionsOfInterest().Get()
+	require.True(t, ok)
 	require.Equal(t, rois1, rois2)
 }
 
@@ -35,8 +35,8 @@ func TestFrameSideData(t *testing.T) {
 	defer f.Free()
 	sd := f.SideData()
 
-	rois1, err := sd.RegionsOfInterest().Get()
-	require.NoError(t, err)
+	rois1, ok := sd.RegionsOfInterest().Get()
+	require.False(t, ok)
 	require.Nil(t, rois1)
 	rois1 = []RegionOfInterest{
 		{
@@ -55,7 +55,7 @@ func TestFrameSideData(t *testing.T) {
 		},
 	}
 	require.NoError(t, sd.RegionsOfInterest().Add(rois1))
-	rois2, err := sd.RegionsOfInterest().Get()
-	require.NoError(t, err)
+	rois2, ok := sd.RegionsOfInterest().Get()
+	require.True(t, ok)
 	require.Equal(t, rois1, rois2)
 }
