@@ -1,38 +1,79 @@
 package astiav
 
 //#include <libavutil/frame.h>
+//#include "frame_side_data.h"
 import "C"
 import (
+	"errors"
 	"math"
 	"unsafe"
 )
 
 // https://ffmpeg.org/doxygen/7.0/structAVFrameSideData.html
+// https://ffmpeg.org/doxygen/7.0/group__lavu__frame.html#gae01fa7e427274293aacdf2adc17076bc
 type FrameSideData struct {
-	c *C.AVFrameSideData
+	sd   ***C.AVFrameSideData
+	size *C.int
 }
 
-func newFrameSideDataFromC(c *C.AVFrameSideData) *FrameSideData {
-	if c == nil {
-		return nil
+func newFrameSideDataFromC(sd ***C.AVFrameSideData, size *C.int) *FrameSideData {
+	return &FrameSideData{
+		sd:   sd,
+		size: size,
 	}
-	return &FrameSideData{c: c}
 }
 
-// https://ffmpeg.org/doxygen/7.0/structAVFrameSideData.html#a76937ad48652a5a0cc4bff65fc6c886e
-func (d *FrameSideData) Data() []byte {
-	return bytesFromC(func(size *C.size_t) *C.uint8_t {
-		*size = d.c.size
-		return d.c.data
-	})
+// https://ffmpeg.org/doxygen/7.0/group__lavu__frame.html#ggae01fa7e427274293aacdf2adc17076bcaf525ec92d2c5a78d44950bc3f29972aa
+func (d *FrameSideData) RegionsOfInterest() *frameSideDataRegionsOfInterest {
+	return newFrameSideDataRegionsOfInterest(d)
 }
 
-// https://ffmpeg.org/doxygen/7.0/structAVFrameSideData.html#a76937ad48652a5a0cc4bff65fc6c886e
-func (d *FrameSideData) SetData(b []byte) {
-	C.memcpy(unsafe.Pointer(d.c.data), unsafe.Pointer(&b[0]), C.size_t(math.Min(float64(len(b)), float64(d.c.size))))
+type frameSideDataRegionsOfInterest struct {
+	d *FrameSideData
 }
 
-// https://ffmpeg.org/doxygen/7.0/structAVFrameSideData.html#a07ff3499827c124591ff4bae6f68eec0
-func (d *FrameSideData) Type() FrameSideDataType {
-	return FrameSideDataType(d.c._type)
+func newFrameSideDataRegionsOfInterest(d *FrameSideData) *frameSideDataRegionsOfInterest {
+	return &frameSideDataRegionsOfInterest{d: d}
+}
+
+func (d *frameSideDataRegionsOfInterest) data(sd *C.AVFrameSideData) *[(math.MaxInt32 - 1) / C.sizeof_AVRegionOfInterest]C.AVRegionOfInterest {
+	return (*[(math.MaxInt32 - 1) / C.sizeof_AVRegionOfInterest](C.AVRegionOfInterest))(unsafe.Pointer(C.astiavConvertRegionsOfInterestFrameSideData(sd)))
+}
+
+func (d *frameSideDataRegionsOfInterest) Add(rois []RegionOfInterest) error {
+	sd := C.av_frame_side_data_new(d.d.sd, d.d.size, C.AV_FRAME_DATA_REGIONS_OF_INTEREST, C.size_t(C.sizeof_AVRegionOfInterest*len(rois)), 0)
+	if sd == nil {
+		return errors.New("astiav: nil pointer")
+	}
+
+	crois := d.data(sd)
+	for i, roi := range rois {
+		crois[i].bottom = C.int(roi.Bottom)
+		crois[i].left = C.int(roi.Left)
+		crois[i].qoffset = roi.QuantisationOffset.c
+		crois[i].right = C.int(roi.Right)
+		crois[i].self_size = C.sizeof_AVRegionOfInterest
+		crois[i].top = C.int(roi.Top)
+	}
+	return nil
+}
+
+func (d *frameSideDataRegionsOfInterest) Get() ([]RegionOfInterest, error) {
+	sd := C.av_frame_side_data_get(*d.d.sd, *d.d.size, C.AV_FRAME_DATA_REGIONS_OF_INTEREST)
+	if sd == nil {
+		return nil, nil
+	}
+
+	crois := d.data(sd)
+	rois := make([]RegionOfInterest, int(sd.size/C.sizeof_AVRegionOfInterest))
+	for i := range rois {
+		rois[i] = RegionOfInterest{
+			Bottom:             int(crois[i].bottom),
+			Left:               int(crois[i].left),
+			QuantisationOffset: newRationalFromC(crois[i].qoffset),
+			Right:              int(crois[i].right),
+			Top:                int(crois[i].top),
+		}
+	}
+	return rois, nil
 }

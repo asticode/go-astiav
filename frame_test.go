@@ -1,7 +1,6 @@
 package astiav
 
 import (
-	"bytes"
 	"testing"
 	"unsafe"
 
@@ -90,18 +89,7 @@ func TestFrame(t *testing.T) {
 	f5 := AllocFrame()
 	require.NotNil(t, f5)
 	defer f5.Free()
-	sd := f5.NewSideData(FrameSideDataTypeAudioServiceType, 4)
-	require.NotNil(t, sd)
-	sd.SetData([]byte{1, 2, 3})
-	sd = f5.SideData(FrameSideDataTypeAudioServiceType)
-	require.NotNil(t, sd)
-	require.Equal(t, FrameSideDataTypeAudioServiceType, sd.Type())
-	require.True(t, bytes.HasPrefix(sd.Data(), []byte{1, 2, 3}))
-	require.Len(t, sd.Data(), 4)
-	sd.SetData([]byte{1, 2, 3, 4, 5})
-	sd = f5.SideData(FrameSideDataTypeAudioServiceType)
-	require.NotNil(t, sd)
-	require.Equal(t, []byte{1, 2, 3, 4}, sd.Data())
+	testFrameSideData(f5.SideData(), t)
 
 	f6 := AllocFrame()
 	require.NotNil(t, f6)

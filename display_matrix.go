@@ -11,7 +11,7 @@ import (
 // https://ffmpeg.org/doxygen/7.0/group__lavu__video__display.html
 type DisplayMatrix [9]uint32
 
-func NewDisplayMatrixFromBytes(b []byte) (m *DisplayMatrix, err error) {
+func newDisplayMatrixFromBytes(b []byte) (m *DisplayMatrix, err error) {
 	// Check length
 	if len(b) < 36 {
 		err = fmt.Errorf("astiav: invalid length %d < 36", len(b))
@@ -35,7 +35,7 @@ func NewDisplayMatrixFromRotation(angle float64) *DisplayMatrix {
 	return m
 }
 
-func (m DisplayMatrix) Bytes() []byte {
+func (m DisplayMatrix) bytes() []byte {
 	b := make([]byte, 0, 36)
 	for _, v := range m {
 		b = binary.LittleEndian.AppendUint32(b, v)

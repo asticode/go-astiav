@@ -239,14 +239,9 @@ func (f *Frame) SetSampleRate(r int) {
 	f.c.sample_rate = C.int(r)
 }
 
-// https://ffmpeg.org/doxygen/7.0/group__lavu__frame.html#gae05843b941b79e56b955674e581a8262
-func (f *Frame) NewSideData(t FrameSideDataType, size uint64) *FrameSideData {
-	return newFrameSideDataFromC(C.av_frame_new_side_data(f.c, (C.enum_AVFrameSideDataType)(t), C.size_t(size)))
-}
-
-// https://ffmpeg.org/doxygen/7.0/group__lavu__frame.html#gadec0efb470b1eead6a979333d9deca0c
-func (f *Frame) SideData(t FrameSideDataType) *FrameSideData {
-	return newFrameSideDataFromC(C.av_frame_get_side_data(f.c, (C.enum_AVFrameSideDataType)(t)))
+// https://ffmpeg.org/doxygen/7.0/structAVFrame.html#a44d40e03fe22a0511c9157dab22143ee
+func (f *Frame) SideData() *FrameSideData {
+	return newFrameSideDataFromC(&f.c.side_data, &f.c.nb_side_data)
 }
 
 // https://ffmpeg.org/doxygen/7.0/structAVFrame.html#a1e71ce60cedd5f3b6811714a9f7f9e0a

@@ -74,10 +74,7 @@ func TestPacket(t *testing.T) {
 	pkt5 := AllocPacket()
 	require.NotNil(t, pkt5)
 	defer pkt5.Free()
-	b = []byte{1, 2, 3, 4}
-	sd := pkt5.SideData()
-	require.NoError(t, sd.Add(PacketSideDataTypeAudioServiceType, b))
-	require.Equal(t, b, sd.Get(PacketSideDataTypeAudioServiceType))
+	testPacketSideData(pkt5.SideData(), t)
 
 	pkt6 := AllocPacket()
 	require.NotNil(t, pkt6)
