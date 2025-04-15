@@ -9,6 +9,7 @@ import (
 
 // https://ffmpeg.org/doxygen/7.0/structAVCodecContext.html
 type CodecContext struct {
+	classerHandler
 	c *C.AVCodecContext
 }
 
@@ -324,7 +325,7 @@ func (cc *CodecContext) Open(c *Codec, d *Dictionary) error {
 	if d != nil {
 		dc = &d.c
 	}
-	return newError(C.avcodec_open2(cc.c, c.c, dc))
+	return cc.newError(C.avcodec_open2(cc.c, c.c, dc))
 }
 
 // https://ffmpeg.org/doxygen/7.0/group__lavc__decoding.html#ga5b8eff59cf259747cf0b31563e38ded6
@@ -333,7 +334,7 @@ func (cc *CodecContext) ReceivePacket(p *Packet) error {
 	if p != nil {
 		pc = p.c
 	}
-	return newError(C.avcodec_receive_packet(cc.c, pc))
+	return cc.newError(C.avcodec_receive_packet(cc.c, pc))
 }
 
 // https://ffmpeg.org/doxygen/7.0/group__lavc__decoding.html#ga58bc4bf1e0ac59e27362597e467efff3
@@ -342,7 +343,7 @@ func (cc *CodecContext) SendPacket(p *Packet) error {
 	if p != nil {
 		pc = p.c
 	}
-	return newError(C.avcodec_send_packet(cc.c, pc))
+	return cc.newError(C.avcodec_send_packet(cc.c, pc))
 }
 
 // https://ffmpeg.org/doxygen/7.0/group__lavc__decoding.html#ga11e6542c4e66d3028668788a1a74217c
@@ -351,7 +352,7 @@ func (cc *CodecContext) ReceiveFrame(f *Frame) error {
 	if f != nil {
 		fc = f.c
 	}
-	return newError(C.avcodec_receive_frame(cc.c, fc))
+	return cc.newError(C.avcodec_receive_frame(cc.c, fc))
 }
 
 // https://ffmpeg.org/doxygen/7.0/group__lavc__decoding.html#ga9395cb802a5febf1f00df31497779169
@@ -360,7 +361,7 @@ func (cc *CodecContext) SendFrame(f *Frame) error {
 	if f != nil {
 		fc = f.c
 	}
-	return newError(C.avcodec_send_frame(cc.c, fc))
+	return cc.newError(C.avcodec_send_frame(cc.c, fc))
 }
 
 func (cc *CodecContext) ToCodecParameters(cp *CodecParameters) error {

@@ -52,13 +52,36 @@ func (c *Class) String() string {
 	return fmt.Sprintf("%s [%s] @ %p", c.ItemName(), c.Name(), c.ptr)
 }
 
+type classerHandler struct {
+	messages []string
+}
+
+func (h *classerHandler) handleLog(l LogLevel, msg string) {
+	if 0 <= l && l <= LogLevelError {
+		h.messages = append(h.messages, msg)
+	}
+}
+
+func (h *classerHandler) newError(ret C.int) error {
+	i := int(ret)
+	if i >= 0 {
+		return nil
+	}
+	msg := h.messages
+	h.messages = nil
+	return &loggedError{Error(ret), msg}
+}
+
 type Classer interface {
 	Class() *Class
+	handleLog(l LogLevel, msg string)
+	newError(C.int) error
 }
 
 var _ Classer = (*UnknownClasser)(nil)
 
 type UnknownClasser struct {
+	classerHandler
 	c *Class
 }
 
@@ -73,6 +96,7 @@ func (c *UnknownClasser) Class() *Class {
 var _ Classer = (*ClonedClasser)(nil)
 
 type ClonedClasser struct {
+	classerHandler
 	c *Class
 }
 
@@ -84,19 +108,16 @@ func newClonedClasser(c Classer) *ClonedClasser {
 	return &ClonedClasser{c: newClassFromC(cl.ptr)}
 }
 
-func (c *ClonedClasser) Class() *Class {
-	return c.c
-}
+func (c *ClonedClasser) Class() *Class { return c.c }
 
 var classers = newClasserPool()
 
 type classerPool struct {
-	m sync.Mutex
-	p map[unsafe.Pointer]Classer
+	pm sync.Map
 }
 
 func newClasserPool() *classerPool {
-	return &classerPool{p: make(map[unsafe.Pointer]Classer)}
+	return &classerPool{}
 }
 
 func (p *classerPool) unsafePointer(c Classer) unsafe.Pointer {
@@ -111,24 +132,29 @@ func (p *classerPool) unsafePointer(c Classer) unsafe.Pointer {
 }
 
 func (p *classerPool) set(c Classer) {
-	p.m.Lock()
-	defer p.m.Unlock()
 	if ptr := p.unsafePointer(c); ptr != nil {
-		p.p[ptr] = c
+		p.pm.Store(ptr, c)
 	}
 }
 
 func (p *classerPool) del(c Classer) {
-	p.m.Lock()
-	defer p.m.Unlock()
 	if ptr := p.unsafePointer(c); ptr != nil {
-		delete(p.p, ptr)
+		p.pm.Delete(ptr)
 	}
 }
 
 func (p *classerPool) get(ptr unsafe.Pointer) (Classer, bool) {
-	p.m.Lock()
-	defer p.m.Unlock()
-	c, ok := p.p[ptr]
-	return c, ok
+	if c, ok := p.pm.Load(ptr); ok {
+		return c.(Classer), ok
+	}
+	return nil, false
+}
+
+func (p *classerPool) size() int {
+	var i int
+	p.pm.Range(func(key, value interface{}) bool {
+		i++
+		return true
+	})
+	return i
 }

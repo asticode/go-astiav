@@ -27,7 +27,7 @@ func TestClass(t *testing.T) {
 }
 
 func TestClassers(t *testing.T) {
-	cl := len(classers.p)
+	cl := classers.size()
 	f1 := AllocFilterGraph()
 	f2 := AllocFilterGraph()
 	c := FindDecoder(CodecIDMjpeg)
@@ -57,7 +57,7 @@ func TestClassers(t *testing.T) {
 	ssc, err := CreateSoftwareScaleContext(1, 1, PixelFormatRgba, 2, 2, PixelFormatRgba, NewSoftwareScaleContextFlags())
 	require.NoError(t, err)
 
-	require.Equal(t, cl+13, len(classers.p))
+	require.Equal(t, cl+13, classers.size())
 	v, ok := classers.get(unsafe.Pointer(f1.c))
 	require.True(t, ok)
 	require.Equal(t, f1, v)
@@ -73,5 +73,5 @@ func TestClassers(t *testing.T) {
 	ic2.Free()
 	src.Free()
 	ssc.Free()
-	require.Equal(t, cl, len(classers.p))
+	require.Equal(t, cl, classers.size())
 }

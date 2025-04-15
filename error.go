@@ -3,6 +3,10 @@ package astiav
 //#include <libavutil/avutil.h>
 //#include <errno.h>
 import "C"
+import (
+	"fmt"
+	"strings"
+)
 
 // https://ffmpeg.org/doxygen/7.0/group__lavu__error.html#ga586e134e9dad8f57a218b2cd8734b601
 type Error int
@@ -65,4 +69,24 @@ func (e Error) Is(err error) bool {
 		return false
 	}
 	return int(a) == int(e)
+}
+
+type loggedError struct {
+	e   Error
+	msg []string
+}
+
+func (e *loggedError) Error() string {
+	return fmt.Sprintf("%s: %s", e.e, strings.Join(e.msg, ": "))
+}
+
+func (e *loggedError) Is(err error) bool {
+	switch a := err.(type) {
+	case *loggedError:
+		return int(a.e) == int(e.e)
+	case Error:
+		return int(a) == int(e.e)
+	default:
+		return false
+	}
 }

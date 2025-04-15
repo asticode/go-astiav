@@ -10,6 +10,7 @@ import (
 
 // https://ffmpeg.org/doxygen/7.0/structAVFilterGraph.html
 type FilterGraph struct {
+	classerHandler
 	c *C.AVFilterGraph
 	// We need to store filter contexts to clean classer once filter graph is freed
 	fcs []*FilterContext

@@ -13,6 +13,7 @@ import (
 
 // https://ffmpeg.org/doxygen/7.0/structAVIOContext.html
 type IOContext struct {
+	classerHandler
 	c         *C.AVIOContext
 	handlerID unsafe.Pointer
 }
@@ -195,7 +196,7 @@ func (ic *IOContext) Read(b []byte) (n int, err error) {
 
 	// Read
 	ret := C.avio_read_partial(ic.c, (*C.uchar)(unsafe.Pointer(buf)), C.int(len(b)))
-	if err = newError(ret); err != nil {
+	if err = ic.newError(ret); err != nil {
 		err = fmt.Errorf("astiav: reading failed: %w", err)
 		return
 	}
@@ -209,7 +210,7 @@ func (ic *IOContext) Read(b []byte) (n int, err error) {
 // https://ffmpeg.org/doxygen/7.0/avio_8h.html#a03e23bf0144030961c34e803c71f614f
 func (ic *IOContext) Seek(offset int64, whence int) (int64, error) {
 	ret := C.avio_seek(ic.c, C.int64_t(offset), C.int(whence))
-	if err := newError(C.int(ret)); err != nil {
+	if err := ic.newError(C.int(ret)); err != nil {
 		return 0, err
 	}
 	return int64(ret), nil

@@ -8,6 +8,7 @@ import (
 
 // https://ffmpeg.org/doxygen/7.0/structAVFilterContext.html
 type FilterContext struct {
+	classerHandler
 	c *C.AVFilterContext
 }
 

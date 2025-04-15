@@ -9,6 +9,7 @@ import (
 
 // https://ffmpeg.org/doxygen/7.0/structSwsContext.html
 type SoftwareScaleContext struct {
+	classerHandler
 	c *C.struct_SwsContext
 	// We need to store attributes in GO since C attributes are internal and therefore not accessible
 	dstFormat C.enum_AVPixelFormat

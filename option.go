@@ -24,6 +24,10 @@ func (o *Option) Name() string {
 	return C.GoString(o.c.name)
 }
 
+func (o *Option) String() string {
+	return C.GoString(o.c.name)
+}
+
 type Options struct {
 	c unsafe.Pointer
 }
