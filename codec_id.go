@@ -413,6 +413,7 @@ const (
 	CodecIDZerocodec                = CodecID(C.AV_CODEC_ID_ZEROCODEC)
 	CodecIDZlib                     = CodecID(C.AV_CODEC_ID_ZLIB)
 	CodecIDZmbv                     = CodecID(C.AV_CODEC_ID_ZMBV)
+	CodecIDAv1                      = CodecID(C.AV_CODEC_ID_AV1)
 )
 
 func (c CodecID) MediaType() MediaType {
