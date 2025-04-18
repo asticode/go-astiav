@@ -5,10 +5,17 @@ package astiav
 //#include <libavutil/pixdesc.h>
 //#include <libavutil/pixfmt.h>
 import "C"
-import "unsafe"
+import (
+	"encoding"
+	"fmt"
+	"unsafe"
+)
 
 // https://ffmpeg.org/doxygen/7.0/pixfmt_8h.html#a9a8e335cf3be472042bc9f0cf80cd4c5
 type PixelFormat C.enum_AVPixelFormat
+
+var _ encoding.TextMarshaler = PixelFormatNone
+var _ encoding.TextUnmarshaler = (*PixelFormat)(nil)
 
 const (
 	PixelFormat0Bgr          = PixelFormat(C.AV_PIX_FMT_0BGR)
@@ -220,4 +227,18 @@ func FindPixelFormatByName(name string) PixelFormat {
 	cn := C.CString(name)
 	defer C.free(unsafe.Pointer(cn))
 	return PixelFormat(C.av_get_pix_fmt(cn))
+}
+
+func (f PixelFormat) MarshalText() ([]byte, error) { return ([]byte)(f.String()), nil }
+func (f *PixelFormat) UnmarshalText(d []byte) error {
+	s := string(d)
+	if s == "" {
+		*f = PixelFormatNone
+	}
+	pf := FindPixelFormatByName(s)
+	if pf == PixelFormatNone {
+		return fmt.Errorf("invalid PixelForamt: %s", s)
+	}
+	*f = pf
+	return nil
 }
