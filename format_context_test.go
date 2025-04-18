@@ -2,6 +2,7 @@ package astiav
 
 import (
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -35,7 +36,26 @@ func TestFormatContext(t *testing.T) {
 
 	sdp, err := fc1.SDPCreate()
 	require.NoError(t, err)
-	require.Equal(t, "v=0\r\no=- 0 0 IN IP4 127.0.0.1\r\ns=Big Buck Bunny\r\nt=0 0\r\na=tool:libavformat 61.1.100\r\nm=video 0 RTP/AVP 96\r\nb=AS:441\r\na=rtpmap:96 H264/90000\r\na=fmtp:96 packetization-mode=1; sprop-parameter-sets=Z0LADasgKDPz4CIAAAMAAgAAAwBhHihUkA==,aM48gA==; profile-level-id=42C00D\r\na=control:streamid=0\r\nm=audio 0 RTP/AVP 97\r\nb=AS:161\r\na=rtpmap:97 MPEG4-GENERIC/48000/2\r\na=fmtp:97 profile-level-id=1;mode=AAC-hbr;sizelength=13;indexlength=3;indexdeltalength=3; config=1190\r\na=control:streamid=1\r\n", sdp)
+	wants := []string{
+		"v=0",
+		"o=- 0 0 IN IP4 127.0.0.1",
+		"s=Big Buck Bunny",
+		"t=0 0",
+		// "a=tool:libavformat 61.7.100", // makes test brittle
+		"m=video 0 RTP/AVP 96",
+		"b=AS:441",
+		"a=rtpmap:96 H264/90000",
+		"a=fmtp:96 packetization-mode=1; sprop-parameter-sets=Z0LADasgKDPz4CIAAAMAAgAAAwBhHihUkA==,aM48gA==; profile-level-id=42C00D",
+		"a=control:streamid=0",
+		"m=audio 0 RTP/AVP 97",
+		"b=AS:161",
+		"a=rtpmap:97 MPEG4-GENERIC/48000/2",
+		"a=fmtp:97 profile-level-id=1;mode=AAC-hbr;sizelength=13;indexlength=3;indexdeltalength=3; config=1190",
+		"a=control:streamid=1",
+	}
+	for _, want := range wants {
+		require.Contains(t, strings.Split(sdp, "\r\n"), want)
+	}
 
 	SetLogLevel(LogLevelInfo)
 	var dump string

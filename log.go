@@ -22,6 +22,27 @@ const (
 	LogLevelDebug   = LogLevel(C.AV_LOG_DEBUG)
 )
 
+func (l LogLevel) String() string {
+	switch l {
+	case LogLevelPanic:
+		return "panic"
+	case LogLevelFatal:
+		return "fatal"
+	case LogLevelError:
+		return "error"
+	case LogLevelWarning:
+		return "warning"
+	case LogLevelInfo:
+		return "info"
+	case LogLevelVerbose:
+		return "verbose"
+	case LogLevelDebug:
+		return "debug"
+	default:
+		return "unknown"
+	}
+}
+
 // https://ffmpeg.org/doxygen/7.0/group__lavu__log.html#ga1fd32c74db581e3e2e7f35d277bb1e24
 func SetLogLevel(l LogLevel) {
 	C.av_log_set_level(C.int(l))
