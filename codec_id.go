@@ -73,6 +73,7 @@ const (
 	CodecIDAtrac3P                  = CodecID(C.AV_CODEC_ID_ATRAC3P)
 	CodecIDAura                     = CodecID(C.AV_CODEC_ID_AURA)
 	CodecIDAura2                    = CodecID(C.AV_CODEC_ID_AURA2)
+	CodecIDAv1                      = CodecID(C.AV_CODEC_ID_AV1)
 	CodecIDAvrn                     = CodecID(C.AV_CODEC_ID_AVRN)
 	CodecIDAvrp                     = CodecID(C.AV_CODEC_ID_AVRP)
 	CodecIDAvs                      = CodecID(C.AV_CODEC_ID_AVS)
@@ -413,7 +414,6 @@ const (
 	CodecIDZerocodec                = CodecID(C.AV_CODEC_ID_ZEROCODEC)
 	CodecIDZlib                     = CodecID(C.AV_CODEC_ID_ZLIB)
 	CodecIDZmbv                     = CodecID(C.AV_CODEC_ID_ZMBV)
-	CodecIDAv1                      = CodecID(C.AV_CODEC_ID_AV1)
 )
 
 func (c CodecID) MediaType() MediaType {
