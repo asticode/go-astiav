@@ -1,6 +1,3 @@
-// TODO Fix https://github.com/asticode/go-astiav/actions/runs/5853322732/job/15867145888
-//go:build !windows
-
 package astiav
 
 import (

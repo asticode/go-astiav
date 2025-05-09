@@ -2,6 +2,7 @@ package astiav
 
 //#include <libavfilter/avfilter.h>
 import "C"
+import "unsafe"
 
 // https://ffmpeg.org/doxygen/7.0/structAVFilterInOut.html
 type FilterInOut struct {
@@ -29,7 +30,9 @@ func (i *FilterInOut) Free() {
 
 // https://ffmpeg.org/doxygen/7.0/structAVFilterInOut.html#a88afecac258f51aab7e9a9db9e7a4d58
 func (i *FilterInOut) SetName(n string) {
-	i.c.name = C.CString(n)
+	cn := C.CString(n)
+	defer C.free(unsafe.Pointer(cn))
+	i.c.name = C.av_strdup(cn)
 }
 
 // https://ffmpeg.org/doxygen/7.0/structAVFilterInOut.html#a3227857d0b955b639f4950d13e4e6f40
