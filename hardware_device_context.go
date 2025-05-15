@@ -30,6 +30,11 @@ func CreateHardwareDeviceContext(t HardwareDeviceType, device string, options *D
 	return &hdc, nil
 }
 
+// https://ffmpeg.org/doxygen/7.0/hwcontext_8c.html#a80f4c1184e1758150b6d9bc0adf2c1df
+func (hdc *HardwareDeviceContext) HardwareFramesConstraints() *HardwareFramesConstraints {
+	return newHardwareFramesConstraintsFromC(C.av_hwdevice_get_hwframe_constraints(hdc.c, nil))
+}
+
 func (hdc *HardwareDeviceContext) Free() {
 	if hdc.c != nil {
 		C.av_buffer_unref(&hdc.c)
