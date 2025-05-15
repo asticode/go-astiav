@@ -102,14 +102,16 @@ func main() {
 			continue
 		}
 
+		// Merge decoder name with hardware device type name
+		if *decoderCodecName == "" {
+			*decoderCodecName = fmt.Sprintf("%s_%s", is.CodecParameters().CodecID().Name(), *hardwareDeviceTypeName)
+		}
+
 		// Update input stream
 		inputStream = is
 
 		// Find decoder
-		decCodec = astiav.FindDecoder(is.CodecParameters().CodecID())
-		if *decoderCodecName != "" {
-			decCodec = astiav.FindDecoderByName(*decoderCodecName)
-		}
+		decCodec = astiav.FindDecoderByName(*decoderCodecName)
 
 		// No codec
 		if decCodec == nil {
@@ -121,20 +123,6 @@ func main() {
 			log.Fatal(errors.New("main: codec context is nil"))
 		}
 		c.Add(decCodecContext.Free)
-
-		// Loop through codec hardware configs
-		for _, p := range decCodec.HardwareConfigs() {
-			// Valid hardware config
-			if p.MethodFlags().Has(astiav.CodecHardwareConfigMethodFlagHwDeviceCtx) && p.HardwareDeviceType() == hardwareDeviceType {
-				hardwarePixelFormat = p.PixelFormat()
-				break
-			}
-		}
-
-		// No valid hardware pixel format
-		if hardwarePixelFormat == astiav.PixelFormatNone {
-			log.Fatal(errors.New("main: hardware device type not supported by decoder"))
-		}
 
 		// Update codec context
 		if err := is.CodecParameters().ToCodecContext(decCodecContext); err != nil {
@@ -148,6 +136,20 @@ func main() {
 		}
 		c.Add(hardwareDeviceContext.Free)
 
+		hardwareFramesConstraints := hardwareDeviceContext.HardwareFramesConstraints()
+		if hardwareFramesConstraints == nil {
+			log.Fatal("main: hardware frames constraints is nil")
+			return
+		}
+		defer hardwareFramesConstraints.Free()
+
+		validHardwarePixelFormats := hardwareFramesConstraints.ValidHardwarePixelFormats()
+		if len(validHardwarePixelFormats) == 0 {
+			log.Fatal("main: no valid hardware pixel formats")
+			return
+		}
+		hardwarePixelFormat = validHardwarePixelFormats[0]
+
 		// Update decoder context
 		decCodecContext.SetHardwareDeviceContext(hardwareDeviceContext)
 		decCodecContext.SetPixelFormatCallback(func(pfs []astiav.PixelFormat) astiav.PixelFormat {
@@ -160,9 +162,9 @@ func main() {
 			return astiav.PixelFormatNone
 		})
 
-		// Open codec context
+		// Open decoder context
 		if err := decCodecContext.Open(decCodec, nil); err != nil {
-			log.Fatal(fmt.Errorf("main: opening codec context failed: %w", err))
+			log.Fatal(fmt.Errorf("main: opening decoder context failed: %w", err))
 		}
 		break
 	}

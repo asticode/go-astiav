@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"slices"
 	"strings"
 
 	"github.com/asticode/go-astiav"
@@ -55,6 +56,19 @@ func main() {
 	}
 	defer hardwareDeviceContext.Free()
 
+	hardwareFramesConstraints := hardwareDeviceContext.HardwareFramesConstraints()
+	if hardwareFramesConstraints == nil {
+		log.Fatal("main: hardware frames constraints is nil")
+		return
+	}
+	defer hardwareFramesConstraints.Free()
+
+	validHardwarePixelFormats := hardwareFramesConstraints.ValidHardwarePixelFormats()
+	if len(validHardwarePixelFormats) == 0 {
+		log.Fatal("main: no valid hardware pixel formats")
+		return
+	}
+
 	// Find encoder codec
 	encCodec := astiav.FindEncoderByName(*encoderCodecName)
 	if encCodec == nil {
@@ -72,6 +86,8 @@ func main() {
 	hardwarePixelFormat := astiav.FindPixelFormatByName(*hardwarePixelFormatName)
 	if hardwarePixelFormat == astiav.PixelFormatNone {
 		log.Fatal("main: hardware pixel format not found")
+	} else if !slices.Contains(validHardwarePixelFormats, hardwarePixelFormat) {
+		log.Fatalf("main: hardware pixel format not supported : %s", hardwarePixelFormat)
 	}
 
 	// Set codec context
@@ -88,10 +104,18 @@ func main() {
 	}
 	defer hardwareFramesContext.Free()
 
+	validSoftwarePixelFormats := hardwareFramesConstraints.ValidSoftwarePixelFormats()
+	if len(validSoftwarePixelFormats) == 0 {
+		log.Fatal("main: no valid software pixel formats")
+		return
+	}
+
 	// Get software pixel format
 	softwarePixelFormat := astiav.FindPixelFormatByName(*softwarePixelFormatName)
 	if softwarePixelFormat == astiav.PixelFormatNone {
 		log.Fatal("main: software pixel format not found")
+	} else if !slices.Contains(validSoftwarePixelFormats, softwarePixelFormat) {
+		log.Fatalf("main: software pixel format not supported : %s", softwarePixelFormat)
 	}
 
 	// Set hardware frame content
