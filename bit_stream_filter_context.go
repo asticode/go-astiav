@@ -50,6 +50,11 @@ func (bsfc *BitStreamFilterContext) Initialize() error {
 	return newError(C.av_bsf_init(bsfc.c))
 }
 
+// https://ffmpeg.org/doxygen/7.0/structAVBSFContext.html#a5c799e50f572340b69d4c79cda8f2de9
+func (bsfc *BitStreamFilterContext) PrivateData() *PrivateData {
+	return newPrivateDataFromC(bsfc.c.priv_data)
+}
+
 // https://ffmpeg.org/doxygen/7.0/group__lavc__bsf.html#gaada9ea8f08d3dcf23c14564dbc88992c
 func (bsfc *BitStreamFilterContext) SendPacket(p *Packet) error {
 	var pc *C.AVPacket
