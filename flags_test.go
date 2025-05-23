@@ -141,6 +141,15 @@ func TestPacketFlags(t *testing.T) {
 	require.False(t, fs.Has(PacketFlag(2)))
 }
 
+func TestPixelFormatDescriptorFlags(t *testing.T) {
+	fs := NewPixelFormatDescriptorFlags(PixelFormatDescriptorFlag(1))
+	require.True(t, fs.Has(PixelFormatDescriptorFlag(1)))
+	fs = fs.Add(PixelFormatDescriptorFlag(2))
+	require.True(t, fs.Has(PixelFormatDescriptorFlag(2)))
+	fs = fs.Del(PixelFormatDescriptorFlag(2))
+	require.False(t, fs.Has(PixelFormatDescriptorFlag(2)))
+}
+
 func TestSeekFlags(t *testing.T) {
 	fs := NewSeekFlags(SeekFlag(1))
 	require.True(t, fs.Has(SeekFlag(1)))

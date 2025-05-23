@@ -211,6 +211,10 @@ func (f PixelFormat) String() string {
 	return f.Name()
 }
 
+func (f PixelFormat) Descriptor() *PixelFormatDescriptor {
+	return newPixelFormatDescriptorFromC(C.av_pix_fmt_desc_get((C.enum_AVPixelFormat)(f)))
+}
+
 // https://ffmpeg.org/doxygen/7.0/pixdesc_8c.html#a925ef18d69c24c3be8c53d5a7dc0660e
 func FindPixelFormatByName(name string) PixelFormat {
 	cn := C.CString(name)

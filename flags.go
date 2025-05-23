@@ -305,6 +305,26 @@ func (fs PacketFlags) Del(f PacketFlag) PacketFlags {
 
 func (fs PacketFlags) Has(f PacketFlag) bool { return astikit.BitFlags(fs).Has(uint64(f)) }
 
+type PixelFormatDescriptorFlags astikit.BitFlags
+
+func NewPixelFormatDescriptorFlags(fs ...PixelFormatDescriptorFlag) PixelFormatDescriptorFlags {
+	o := PixelFormatDescriptorFlags(0)
+	for _, f := range fs {
+		o = o.Add(f)
+	}
+	return o
+}
+
+func (fs PixelFormatDescriptorFlags) Add(f PixelFormatDescriptorFlag) PixelFormatDescriptorFlags {
+	return PixelFormatDescriptorFlags(astikit.BitFlags(fs).Add(uint64(f)))
+}
+
+func (fs PixelFormatDescriptorFlags) Del(f PixelFormatDescriptorFlag) PixelFormatDescriptorFlags {
+	return PixelFormatDescriptorFlags(astikit.BitFlags(fs).Del(uint64(f)))
+}
+
+func (fs PixelFormatDescriptorFlags) Has(f PixelFormatDescriptorFlag) bool { return astikit.BitFlags(fs).Has(uint64(f)) }
+
 type SeekFlags astikit.BitFlags
 
 func NewSeekFlags(fs ...SeekFlag) SeekFlags {
