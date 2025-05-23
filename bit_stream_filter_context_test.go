@@ -7,13 +7,15 @@ import (
 )
 
 func TestBitStreamFilterContext(t *testing.T) {
-	bsf := FindBitStreamFilterByName("null")
+	bsf := FindBitStreamFilterByName("h264_metadata")
 	require.NotNil(t, bsf)
 
 	bsfc, err := AllocBitStreamFilterContext(bsf)
 	require.NotNil(t, bsfc)
 	require.NoError(t, err)
 	defer bsfc.Free()
+
+	require.NotNil(t, bsfc.PrivateData())
 
 	cl := bsfc.Class()
 	require.NotNil(t, cl)

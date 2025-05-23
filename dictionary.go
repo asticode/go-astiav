@@ -78,3 +78,8 @@ func (d *Dictionary) Unpack(b []byte) error {
 		return newError(C.av_packet_unpack_dictionary(b, size, &d.c))
 	})
 }
+
+// https://ffmpeg.org/doxygen/7.0/group__lavu__dict.html#ga59a6372b124b306e3a2233723c5cdc78
+func (d *Dictionary) Copy(dst *Dictionary, flags DictionaryFlags) error {
+	return newError(C.av_dict_copy(&dst.c, d.c, C.int(flags)))
+}
