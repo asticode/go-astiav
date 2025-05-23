@@ -29,6 +29,7 @@ var list = []listItem{
 	{Name: "IOFormat"},
 	{Name: "OptionSearch"},
 	{Name: "Packet"},
+	{Name: "PixelFormatDescriptor"},
 	{Name: "Seek"},
 	{Name: "SoftwareScaleContext"},
 	{Name: "StreamEvent"},
