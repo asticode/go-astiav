@@ -53,6 +53,11 @@ func (cc *CodecContext) Free() {
 	}
 }
 
+// https://ffmpeg.org/doxygen/7.0/structAVCodecContext.html#a6e606effa68724cae2ef5cc05f7fd9cb
+func (cc *CodecContext) Codec() *Codec {
+	return newCodecFromC(cc.c.codec)
+}
+
 func (cc *CodecContext) String() string {
 	s, _ := stringFromC(255, func(buf *C.char, size C.size_t) error {
 		C.avcodec_string(buf, C.int(size), cc.c, C.int(0))
@@ -201,6 +206,16 @@ func (cc *CodecContext) SetLevel(l Level) {
 // https://ffmpeg.org/doxygen/7.0/structAVCodecContext.html#a3f99ca3115c44e6d7772c9384faf15e6
 func (cc *CodecContext) MediaType() MediaType {
 	return MediaType(cc.c.codec_type)
+}
+
+// https://ffmpeg.org/doxygen/7.0/structAVCodecContext.html#a33a289c990bc3fbcad01c4a09f34da38a
+func (cc *CodecContext) PktTimeBase() Rational {
+	return newRationalFromC(cc.c.pkt_timebase)
+}
+
+// https://ffmpeg.org/doxygen/7.0/structAVCodecContext.html#a33a289c990bc3fbcad01c4a09f34da38
+func (cc *CodecContext) SetPktTimeBase(tb Rational) {
+	cc.c.pkt_timebase = tb.c
 }
 
 // https://ffmpeg.org/doxygen/7.0/structAVCodecContext.html#a0425c77b3d06d71e5db88b1d7e1b37f2

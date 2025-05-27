@@ -85,3 +85,8 @@ func (bfc *BuffersinkFilterContext) TimeBase() Rational {
 func (bfc *BuffersinkFilterContext) Width() int {
 	return int(C.av_buffersink_get_w(bfc.fc.c))
 }
+
+// https://ffmpeg.org/doxygen/7.0/group__lavfi__buffersink.html#ga359d7d1e42c27ca14c07559d4e9adba7
+func (bfc *BuffersinkFilterContext) SetFrameSize(size int) {
+	C.av_buffersink_set_frame_size(bfc.fc.c, C.uint(size))
+}

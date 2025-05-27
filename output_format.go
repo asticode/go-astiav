@@ -2,7 +2,10 @@ package astiav
 
 //#include <libavformat/avformat.h>
 import "C"
-import "unsafe"
+import (
+	"strings"
+	"unsafe"
+)
 
 // https://ffmpeg.org/doxygen/7.0/structAVOutputFormat.html
 type OutputFormat struct {
@@ -40,4 +43,13 @@ func (f *OutputFormat) LongName() string {
 
 func (f *OutputFormat) String() string {
 	return f.Name()
+}
+
+// https://ffmpeg.org/doxygen/7.0/structAVOutputFormat.html#a10f19abe463890063659723c90c15335
+func (f *OutputFormat) Extensions() []string {
+	s := C.GoString(f.c.extensions)
+	if s != "" {
+		return strings.Split(s, ",")
+	}
+	return nil
 }

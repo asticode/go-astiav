@@ -304,3 +304,33 @@ func (f *Frame) MakeWritable() error {
 func (f *Frame) Copy(dst *Frame) error {
 	return newError(C.av_frame_copy(dst.c, f.c))
 }
+
+// https://ffmpeg.org/doxygen/7.0/group__lavu__math.html#gaf02994a8bbeaa91d4757df179cbe567f
+func (f *Frame) RescaleTs(src, dst Rational) {
+	f.c.pts = C.av_rescale_q(f.c.pts, src.c, dst.c)
+}
+
+// https://ffmpeg.org/doxygen/7.0/structAVFrame.html#a36518d08c8e0ca31785e968add00fd07
+func (f *Frame) TimeBase() Rational {
+	return newRationalFromC(f.c.time_base)
+}
+
+// https://ffmpeg.org/doxygen/7.0/structAVFrame.html#a36518d08c8e0ca31785e968add00fd07
+func (f *Frame) SetTimeBase(tb Rational) {
+	f.c.time_base = tb.c
+}
+
+// https://ffmpeg.org/doxygen/7.0/structAVFrame.html#ab90bd20a44c79c144045916b00c50e0d
+func (f *Frame) Duration() int64 {
+	return int64(f.c.duration)
+}
+
+// https://ffmpeg.org/doxygen/7.0/structAVFrame.html#ab90bd20a44c79c144045916b00c50e0d
+func (f *Frame) SetDuration(d int64) {
+	f.c.duration = C.int64_t(d)
+}
+
+// https://ffmpeg.org/doxygen/7.0/structAVFrame.html#aef11fd783ad17b6841af82efa07c859ea
+func (f *Frame) RepeatPict() int64 {
+	return int64(f.c.repeat_pict)
+}
