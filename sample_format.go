@@ -31,3 +31,13 @@ func (f SampleFormat) Name() string {
 func (f SampleFormat) String() string {
 	return f.Name()
 }
+
+// https://ffmpeg.org/doxygen/7.0/group__lavu__sampfmts.html#ga0c3c218e1dd570ad4917c69a35a6c77d
+func (f SampleFormat) BytesPerSample() int {
+	return int(C.av_get_bytes_per_sample((C.enum_AVSampleFormat)(f)))
+}
+
+// https://ffmpeg.org/doxygen/7.0/group__lavu__sampfmts.html#ga06ba8a64dc4382c422789a5d0b6bf592
+func (f SampleFormat) IsPlanar() bool {
+	return C.av_sample_fmt_is_planar((C.enum_AVSampleFormat)(f)) > 0
+}
