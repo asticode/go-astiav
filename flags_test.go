@@ -60,6 +60,15 @@ func TestDictionaryFlags(t *testing.T) {
 	require.False(t, fs.Has(DictionaryFlag(2)))
 }
 
+func TestDispositionFlags(t *testing.T) {
+	fs := NewDispositionFlags(DispositionFlag(1))
+	require.True(t, fs.Has(DispositionFlag(1)))
+	fs = fs.Add(DispositionFlag(2))
+	require.True(t, fs.Has(DispositionFlag(2)))
+	fs = fs.Del(DispositionFlag(2))
+	require.False(t, fs.Has(DispositionFlag(2)))
+}
+
 func TestFilterFlags(t *testing.T) {
 	fs := NewFilterFlags(FilterFlag(1))
 	require.True(t, fs.Has(FilterFlag(1)))

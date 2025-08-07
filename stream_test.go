@@ -25,6 +25,7 @@ func TestStream(t *testing.T) {
 	require.Equal(t, NewRational(1, 1), s1.SampleAspectRatio())
 	require.Equal(t, int64(0), s1.StartTime())
 	require.Equal(t, NewRational(1, 12288), s1.TimeBase())
+	require.True(t, s1.DispositionFlags().Has(DispositionFlagDefault))
 	cl := s1.Class()
 	require.NotNil(t, cl)
 	require.Equal(t, "AVStream", cl.Name())
