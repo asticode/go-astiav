@@ -97,3 +97,8 @@ const (
 	ProfileVp92                              = Profile(C.FF_PROFILE_VP9_2)
 	ProfileVp93                              = Profile(C.FF_PROFILE_VP9_3)
 )
+
+// https://ffmpeg.org/doxygen/7.0/group__lavc__core.html#ga7f9d1f2fbf0978fc1ddc2fe196f29fa4
+func ProfileName(codecID CodecID, p Profile) string {
+	return C.GoString(C.avcodec_profile_name((C.enum_AVCodecID)(codecID), C.int(p)))
+}
