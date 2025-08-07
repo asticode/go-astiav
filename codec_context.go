@@ -498,3 +498,8 @@ func (cc *CodecContext) RateControlBufferSize() int {
 func (cc *CodecContext) SetRateControlBufferSize(n int) {
 	cc.c.rc_buffer_size = C.int(n)
 }
+
+// https://ffmpeg.org/doxygen/7.0/group__lavc__misc.html#gaf60b0e076f822abcb2700eb601d352a6
+func (cc *CodecContext) FlushBuffers() {
+	C.avcodec_flush_buffers(cc.c)
+}
