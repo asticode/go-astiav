@@ -166,6 +166,16 @@ func (p *Packet) RescaleTs(src, dst Rational) {
 	C.av_packet_rescale_ts(p.c, src.c, dst.c)
 }
 
+// https://ffmpeg.org/doxygen/7.0/structAVPacket.html#ad5ee277064c1e883a8883fb8521c7d3e
+func (p *Packet) TimeBase() Rational {
+	return newRationalFromC(p.c.time_base)
+}
+
+// https://ffmpeg.org/doxygen/7.0/structAVPacket.html#ad5ee277064c1e883a8883fb8521c7d3e
+func (p *Packet) SetTimeBase(tb Rational) {
+	p.c.time_base = tb.c
+}
+
 // https://ffmpeg.org/doxygen/7.0/group__lavc__packet.html#ga7ca877e1f0ded89a27199b65e9a077dc
 func (p *Packet) FromData(data []byte) (err error) {
 	// Create buf

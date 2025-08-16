@@ -13,4 +13,5 @@ func TestOutputFormat(t *testing.T) {
 	require.Equal(t, formatName, outputFormat.Name())
 	require.Equal(t, formatName, outputFormat.String())
 	require.Equal(t, "raw video", outputFormat.LongName())
+	require.Equal(t, []string{"yuv", "rgb"}, outputFormat.Extensions())
 }
