@@ -137,6 +137,7 @@ func TestFormatContext(t *testing.T) {
 	fc7, err := AllocOutputFormatContext(nil, "", outputPath)
 	require.NoError(t, err)
 	defer fc7.Free()
+	require.Equal(t, outputPath, fc7.URL())
 	for _, is := range fc6.Streams() {
 		os := fc7.NewStream(nil)
 		require.NotNil(t, os)
