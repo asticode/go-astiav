@@ -239,19 +239,17 @@ func flushSoftwareResampleContext(finalFlush bool) error {
 				log.Fatal(fmt.Errorf("main: flushing resampler failed: %w", err))
 			}
 
-			// Log
-			if resampledFrame.NbSamples() > 0 {
-				log.Printf("new resampled frame: nb samples: %d", resampledFrame.NbSamples())
+			// Nothing was resampled
+			if resampledFrame.NbSamples() == 0 {
+				break
 			}
+
+			// Log
+			log.Printf("new resampled frame: nb samples: %d", resampledFrame.NbSamples())
 
 			// Add resampled frame to audio fifo
 			if err := addResampledFrameToAudioFIFO(finalFlush); err != nil {
 				log.Fatal(fmt.Errorf("main: adding resampled frame to audio fifo failed: %w", err))
-			}
-
-			// Final flush is done
-			if finalFlush && resampledFrame.NbSamples() == 0 {
-				break
 			}
 			continue
 		}
