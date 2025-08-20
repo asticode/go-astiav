@@ -3,6 +3,7 @@ package astiav
 //#include "channel_layout.h"
 import "C"
 import (
+	"fmt"
 	"unsafe"
 )
 
@@ -122,4 +123,26 @@ func (l ChannelLayout) clone() (ChannelLayout, error) {
 	err := l.copy(&cl)
 	dst := newChannelLayoutFromC(&cl)
 	return dst, err
+}
+
+func ParseChannelLayout(s string) (ChannelLayout, error) {
+	var c C.AVChannelLayout
+	cn := C.CString(s)
+	defer C.free(unsafe.Pointer(cn))
+	id := C.av_channel_layout_from_string(&c, cn)
+	return newChannelLayoutFromC(&c), newError(id)
+}
+
+func (l ChannelLayout) MarshalText() ([]byte, error) { return ([]byte)(l.String()), nil }
+func (l *ChannelLayout) UnmarshalText(d []byte) error {
+	s := string(d)
+	if s == "" {
+		return nil
+	}
+	pf, err := ParseChannelLayout(s)
+	if err != nil {
+		return fmt.Errorf("invalid Channel Layout: %s: %w", s, err)
+	}
+	l.c = pf.c
+	return nil
 }
