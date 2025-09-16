@@ -28,7 +28,17 @@ const filterDescr = "scale_vaapi=78:24"
 
 func hwDecoderInit(ctx *astiav.CodecContext, hwType astiav.HardwareDeviceType) error {
 	var err error
-	hwDeviceCtx, err = astiav.CreateHardwareDeviceContext(hwType, "", nil, 0)
+	// 指定硬件设备路径，对于VAAPI通常是 /dev/dri/renderD128
+	devicePath := ""
+	if hwType == astiav.HardwareDeviceTypeVAAPI {
+		devicePath = "/dev/dri/renderD128"
+	}
+	
+	hwDeviceCtx, err = astiav.CreateHardwareDeviceContext(hwType, devicePath, nil, 0)
+	if err != nil && hwType == astiav.HardwareDeviceTypeVAAPI {
+		// 如果默认设备失败，尝试空路径
+		hwDeviceCtx, err = astiav.CreateHardwareDeviceContext(hwType, "", nil, 0)
+	}
 	if err != nil {
 		return fmt.Errorf("failed to create specified HW device: %w", err)
 	}
@@ -98,8 +108,10 @@ func initFilters(filtersDescr string, decCtx *astiav.CodecContext, inputCtx *ast
 	params.SetPixelFormat(decCtx.PixelFormat())
 	params.SetTimeBase(timeBase)
 	params.SetSampleAspectRatio(decCtx.SampleAspectRatio())
-	// Set hardware frames context for hardware filtering
-	params.SetHardwareFramesContext(decCtx.HardwareFramesContext())
+	// Set hardware frames context for hardware filtering - 这是关键！
+	if decCtx.HardwareFramesContext() != nil {
+		params.SetHardwareFramesContext(decCtx.HardwareFramesContext())
+	}
 
 	if err := buffersrcCtx.SetParameters(params); err != nil {
 		return fmt.Errorf("cannot set buffer source parameters: %w", err)
@@ -177,14 +189,35 @@ func filterFrame(frame *astiav.Frame) error {
 }
 
 func displayFrame(frame *astiav.Frame) error {
+	var outputFrame *astiav.Frame
+	
+	// Check if this is a hardware frame that needs to be transferred to system memory
+	if frame.HardwareFramesContext() != nil {
+		// Create a software frame for transfer
+		swFrame := astiav.AllocFrame()
+		if swFrame == nil {
+			return errors.New("cannot allocate software frame")
+		}
+		defer swFrame.Free()
+		
+		// Transfer data from hardware frame to software frame
+		if err := frame.TransferHardwareData(swFrame); err != nil {
+			return fmt.Errorf("error transferring hardware frame to system memory: %w", err)
+		}
+		
+		outputFrame = swFrame
+	} else {
+		outputFrame = frame
+	}
+
 	// Get frame buffer size and copy to output file
-	size, err := frame.ImageBufferSize(1)
+	size, err := outputFrame.ImageBufferSize(1)
 	if err != nil {
 		return fmt.Errorf("failed to get image buffer size: %w", err)
 	}
 
 	buffer := make([]byte, size)
-	_, err = frame.ImageCopyToBuffer(buffer, 1)
+	_, err = outputFrame.ImageCopyToBuffer(buffer, 1)
 	if err != nil {
 		return fmt.Errorf("failed to copy image to buffer: %w", err)
 	}
@@ -196,7 +229,9 @@ func displayFrame(frame *astiav.Frame) error {
 	return nil
 }
 
-func decodeWrite(avctx *astiav.CodecContext, packet *astiav.Packet) error {
+var filtersInitialized = false
+
+func decodeWrite(avctx *astiav.CodecContext, packet *astiav.Packet, inputCtx *astiav.FormatContext) error {
 	err := avctx.SendPacket(packet)
 	if err != nil {
 		return fmt.Errorf("error during decoding: %w", err)
@@ -215,6 +250,18 @@ func decodeWrite(avctx *astiav.CodecContext, packet *astiav.Packet) error {
 				break
 			}
 			return fmt.Errorf("error during decoding: %w", err)
+		}
+
+		// Initialize filters after first frame when hardware frames context is available
+		if !filtersInitialized {
+			if avctx.HardwareFramesContext() == nil {
+				return fmt.Errorf("hardware frames context not available after decoding first frame")
+			}
+			log.Printf("Hardware frames context available, initializing filters")
+			if err := initFilters(filterDescr, avctx, inputCtx); err != nil {
+				return fmt.Errorf("failed to initialize filters: %w", err)
+			}
+			filtersInitialized = true
 		}
 
 		// Set PTS if not already set
@@ -348,10 +395,8 @@ func main() {
 		log.Fatalf("Failed to open codec for stream #%d: %v", videoStreamIndex, err)
 	}
 
-	// Initialize filters
-	if err := initFilters(filterDescr, decoderCtx, inputCtx); err != nil {
-		log.Fatalf("Failed to initialize filters: %v", err)
-	}
+	// 等待第一帧解码后再初始化过滤器，因为需要硬件帧上下文
+	log.Printf("Decoder opened successfully, hardware frames context will be available after first frame")
 
 	// Open the file to dump raw data
 	var err error
@@ -377,16 +422,16 @@ func main() {
 		}
 
 		if videoStreamIndex == packet.StreamIndex() {
-			if err := decodeWrite(decoderCtx, packet); err != nil {
+			if err := decodeWrite(decoderCtx, packet, inputCtx); err != nil {
 				log.Fatalf("Error in decode_write: %v", err)
 			}
-		}
+		} 
 
 		packet.Unref()
 	}
 
 	// Flush the decoder
-	if err := decodeWrite(decoderCtx, nil); err != nil && !errors.Is(err, astiav.ErrEof) {
+	if err := decodeWrite(decoderCtx, nil, inputCtx); err != nil && !errors.Is(err, astiav.ErrEof) {
 		log.Fatalf("Error flushing decoder: %v", err)
 	}
 
