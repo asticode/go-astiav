@@ -50,7 +50,8 @@ func main() {
 	}
 
 	// Let's say b1 contains an actual audio buffer, we can update the audio frame's data based on the buffer
-	var b1 []byte
+	// For stereo float32 audio with 960 samples: 2 channels * 960 samples * 4 bytes per float32 = 7680 bytes
+	b1 := make([]byte, 2*960*4)
 	if err := audioFrame.Data().SetBytes(b1, align); err != nil {
 		log.Fatal(fmt.Errorf("main: setting frame's data based from bytes failed: %w", err))
 	}
@@ -87,7 +88,8 @@ func main() {
 	}
 
 	// Let's say b2 contains an actual video buffer, we can update the video frame's data based on the buffer
-	var b2 []byte
+	// For RGBA video 256x256: 256 * 256 * 4 bytes per pixel = 262144 bytes
+	b2 := make([]byte, 256*256*4)
 	if err := videoFrame.Data().SetBytes(b2, align); err != nil {
 		log.Fatal(fmt.Errorf("main: setting frame's data based from bytes failed: %w", err))
 	}
@@ -98,7 +100,8 @@ func main() {
 	}
 
 	// Let's say i1 is an actual Go image.Image, we can update the video frame's data based on the image
-	var i1 image.Image
+	// Create a simple RGBA image for demonstration
+	i1 := image.NewRGBA(image.Rect(0, 0, 256, 256))
 	if err := videoFrame.Data().FromImage(i1); err != nil {
 		log.Fatal(fmt.Errorf("main: setting frame's data based on Go image failed: %w", err))
 	}

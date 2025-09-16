@@ -4,7 +4,7 @@ package astiav
 //#include <libavutil/pixfmt.h>
 import "C"
 
-// https://ffmpeg.org/doxygen/7.0/pixfmt_8h.html#a3da0bf691418bc22c4bcbe6583ad589a
+// https://ffmpeg.org/doxygen/8.1/pixfmt_8h.html#a3da0bf691418bc22c4bcbe6583ad589a
 type ColorRange C.enum_AVColorRange
 
 const (
@@ -14,7 +14,7 @@ const (
 	ColorRangeNb          = ColorRange(C.AVCOL_RANGE_NB)
 )
 
-// https://ffmpeg.org/doxygen/7.0/pixdesc_8c.html#a590decf389632dd3af095f3096a92caf
+// https://ffmpeg.org/doxygen/8.1/pixdesc_8c.html#a590decf389632dd3af095f3096a92caf
 func (r ColorRange) Name() string {
 	return C.GoString(C.av_color_range_name(C.enum_AVColorRange(r)))
 }

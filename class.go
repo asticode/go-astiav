@@ -8,7 +8,7 @@ import (
 	"unsafe"
 )
 
-// https://ffmpeg.org/doxygen/7.0/structAVClass.html
+// https://ffmpeg.org/doxygen/8.1/structAVClass.html
 type Class struct {
 	c   *C.AVClass
 	ptr unsafe.Pointer
@@ -28,22 +28,22 @@ func newClassFromC(ptr unsafe.Pointer) *Class {
 	}
 }
 
-// https://ffmpeg.org/doxygen/7.0/structAVClass.html#a5fc161d93a0d65a608819da20b7203ba
+// https://ffmpeg.org/doxygen/8.1/structAVClass.html#a5fc161d93a0d65a608819da20b7203ba
 func (c *Class) Category() ClassCategory {
 	return ClassCategory(C.astiavClassCategory(c.c, c.ptr))
 }
 
-// https://ffmpeg.org/doxygen/7.0/structAVClass.html#ad763b2e6a0846234a165e74574a550bd
+// https://ffmpeg.org/doxygen/8.1/structAVClass.html#ad763b2e6a0846234a165e74574a550bd
 func (c *Class) ItemName() string {
 	return C.GoString(C.astiavClassItemName(c.c, c.ptr))
 }
 
-// https://ffmpeg.org/doxygen/7.0/structAVClass.html#aa8883e113a3f2965abd008f7667db7eb
+// https://ffmpeg.org/doxygen/8.1/structAVClass.html#aa8883e113a3f2965abd008f7667db7eb
 func (c *Class) Name() string {
 	return C.GoString(c.c.class_name)
 }
 
-// https://ffmpeg.org/doxygen/7.0/structAVClass.html#a88948c8a7c6515181771615a54a808bf
+// https://ffmpeg.org/doxygen/8.1/structAVClass.html#a88948c8a7c6515181771615a54a808bf
 func (c *Class) Parent() *Class {
 	return newClassFromC(unsafe.Pointer(C.astiavClassParent(c.c, c.ptr)))
 }

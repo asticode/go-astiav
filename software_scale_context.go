@@ -7,7 +7,7 @@ import (
 	"unsafe"
 )
 
-// https://ffmpeg.org/doxygen/7.0/structSwsContext.html
+// https://ffmpeg.org/doxygen/8.1/structSwsContext.html
 type SoftwareScaleContext struct {
 	c *C.struct_SwsContext
 	// We need to store attributes in GO since C attributes are internal and therefore not accessible
@@ -30,7 +30,7 @@ type softwareScaleContextUpdate struct {
 	srcW      *int
 }
 
-// https://ffmpeg.org/doxygen/7.0/group__libsws.html#gaf360d1a9e0e60f906f74d7d44f9abfdd
+// https://ffmpeg.org/doxygen/8.1/group__libsws.html#gaf360d1a9e0e60f906f74d7d44f9abfdd
 func CreateSoftwareScaleContext(srcW, srcH int, srcFormat PixelFormat, dstW, dstH int, dstFormat PixelFormat, flags SoftwareScaleContextFlags) (*SoftwareScaleContext, error) {
 	ssc := &SoftwareScaleContext{
 		dstFormat: C.enum_AVPixelFormat(dstFormat),
@@ -60,7 +60,7 @@ func CreateSoftwareScaleContext(srcW, srcH int, srcFormat PixelFormat, dstW, dst
 	return ssc, nil
 }
 
-// https://ffmpeg.org/doxygen/7.0/group__libsws.html#gad3af0ca76f071dbe0173444db9882932
+// https://ffmpeg.org/doxygen/8.1/group__libsws.html#gad3af0ca76f071dbe0173444db9882932
 func (ssc *SoftwareScaleContext) Free() {
 	if ssc.c != nil {
 		// Make sure to clone the classer before freeing the object since
@@ -79,7 +79,7 @@ func (ssc *SoftwareScaleContext) Free() {
 
 var _ Classer = (*SoftwareScaleContext)(nil)
 
-// https://ffmpeg.org/doxygen/7.0/structSwsContext.html#a6866f52574bc730833d2580abc806261
+// https://ffmpeg.org/doxygen/8.1/structSwsContext.html#a6866f52574bc730833d2580abc806261
 func (ssc *SoftwareScaleContext) Class() *Class {
 	if ssc.c == nil {
 		return nil
@@ -87,7 +87,7 @@ func (ssc *SoftwareScaleContext) Class() *Class {
 	return newClassFromC(unsafe.Pointer(ssc.c))
 }
 
-// https://ffmpeg.org/doxygen/7.0/group__libsws.html#ga1c72fcf83bd57aea72cf3dadfcf02541
+// https://ffmpeg.org/doxygen/8.1/group__libsws.html#ga1c72fcf83bd57aea72cf3dadfcf02541
 func (ssc *SoftwareScaleContext) ScaleFrame(src, dst *Frame) error {
 	return newError(C.sws_scale_frame(ssc.c, dst.c, src.c))
 }
@@ -155,42 +155,42 @@ func (ssc *SoftwareScaleContext) update(u softwareScaleContextUpdate) error {
 	return nil
 }
 
-// https://ffmpeg.org/doxygen/7.0/structSwsContext.html#a4bad42bdd38e916f045956efe81039bf
+// https://ffmpeg.org/doxygen/8.1/structSwsContext.html#a4bad42bdd38e916f045956efe81039bf
 func (ssc *SoftwareScaleContext) Flags() SoftwareScaleContextFlags {
 	return SoftwareScaleContextFlags(ssc.flags)
 }
 
-// https://ffmpeg.org/doxygen/7.0/structSwsContext.html#a4bad42bdd38e916f045956efe81039bf
+// https://ffmpeg.org/doxygen/8.1/structSwsContext.html#a4bad42bdd38e916f045956efe81039bf
 func (ssc *SoftwareScaleContext) SetFlags(swscf SoftwareScaleContextFlags) error {
 	return ssc.update(softwareScaleContextUpdate{flags: &swscf})
 }
 
-// https://ffmpeg.org/doxygen/7.0/structSwsContext.html#a0bf831c04c58c12ea7aef32e0ffb2f6d
+// https://ffmpeg.org/doxygen/8.1/structSwsContext.html#a0bf831c04c58c12ea7aef32e0ffb2f6d
 func (ssc *SoftwareScaleContext) DestinationWidth() int {
 	return int(ssc.dstW)
 }
 
-// https://ffmpeg.org/doxygen/7.0/structSwsContext.html#a0bf831c04c58c12ea7aef32e0ffb2f6d
+// https://ffmpeg.org/doxygen/8.1/structSwsContext.html#a0bf831c04c58c12ea7aef32e0ffb2f6d
 func (ssc *SoftwareScaleContext) SetDestinationWidth(i int) error {
 	return ssc.update(softwareScaleContextUpdate{dstW: &i})
 }
 
-// https://ffmpeg.org/doxygen/7.0/structSwsContext.html#a195564564eff11e1ee181999c13b9a22
+// https://ffmpeg.org/doxygen/8.1/structSwsContext.html#a195564564eff11e1ee181999c13b9a22
 func (ssc *SoftwareScaleContext) DestinationHeight() int {
 	return int(ssc.dstH)
 }
 
-// https://ffmpeg.org/doxygen/7.0/structSwsContext.html#a195564564eff11e1ee181999c13b9a22
+// https://ffmpeg.org/doxygen/8.1/structSwsContext.html#a195564564eff11e1ee181999c13b9a22
 func (ssc *SoftwareScaleContext) SetDestinationHeight(i int) error {
 	return ssc.update(softwareScaleContextUpdate{dstH: &i})
 }
 
-// https://ffmpeg.org/doxygen/7.0/structSwsContext.html#a66adb1238b56e3539ad1145c146348e2
+// https://ffmpeg.org/doxygen/8.1/structSwsContext.html#a66adb1238b56e3539ad1145c146348e2
 func (ssc *SoftwareScaleContext) DestinationPixelFormat() PixelFormat {
 	return PixelFormat(ssc.dstFormat)
 }
 
-// https://ffmpeg.org/doxygen/7.0/structSwsContext.html#a66adb1238b56e3539ad1145c146348e2
+// https://ffmpeg.org/doxygen/8.1/structSwsContext.html#a66adb1238b56e3539ad1145c146348e2
 func (ssc *SoftwareScaleContext) SetDestinationPixelFormat(p PixelFormat) error {
 	return ssc.update(softwareScaleContextUpdate{dstFormat: &p})
 }
@@ -203,12 +203,12 @@ func (ssc *SoftwareScaleContext) SetDestinationResolution(w int, h int) error {
 	return ssc.update(softwareScaleContextUpdate{dstW: &w, dstH: &h})
 }
 
-// https://ffmpeg.org/doxygen/7.0/structSwsContext.html#a1e1455f5d751e9ca639bf8afbda25646
+// https://ffmpeg.org/doxygen/8.1/structSwsContext.html#a1e1455f5d751e9ca639bf8afbda25646
 func (ssc *SoftwareScaleContext) SourceWidth() int {
 	return int(ssc.srcW)
 }
 
-// https://ffmpeg.org/doxygen/7.0/structSwsContext.html#a1e1455f5d751e9ca639bf8afbda25646
+// https://ffmpeg.org/doxygen/8.1/structSwsContext.html#a1e1455f5d751e9ca639bf8afbda25646
 func (ssc *SoftwareScaleContext) SetSourceWidth(i int) error {
 	return ssc.update(softwareScaleContextUpdate{srcW: &i})
 }

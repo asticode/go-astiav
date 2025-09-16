@@ -39,6 +39,21 @@ func (d *FrameData) Bytes(align int) ([]byte, error) {
 	return d.f.bytes(align)
 }
 
+// Get bytes for a specific plane index
+func (d *FrameData) BytesForPlane(planeIndex int) ([]byte, error) {
+	// Get all planes first
+	planes, err := d.f.planes(nil, 1)
+	if err != nil {
+		return nil, fmt.Errorf("astiav: getting planes failed: %w", err)
+	}
+	
+	if planeIndex < 0 || planeIndex >= len(planes) {
+		return nil, fmt.Errorf("astiav: plane index %d out of range (0-%d)", planeIndex, len(planes)-1)
+	}
+	
+	return planes[planeIndex].bytes, nil
+}
+
 // It's the developer's responsibility to handle frame's writability
 func (d *FrameData) SetBytes(b []byte, align int) error {
 	// Get planes
@@ -362,7 +377,7 @@ func (f *frameDataFrame) planes(b []byte, align int) ([]frameDataPlane, error) {
 			planeSizes[i] = int(cLinesize)
 		}
 	case MediaTypeVideo:
-		// Below is mostly inspired by https://ffmpeg.org/doxygen/7.0/group__lavu__picture.html#ga24a67963c3ae0054a2a4bab35930e694
+		// Below is mostly inspired by https://ffmpeg.org/doxygen/8.1/group__lavu__picture.html#ga24a67963c3ae0054a2a4bab35930e694
 
 		// Get linesize
 		var cLinesizes [8]C.int

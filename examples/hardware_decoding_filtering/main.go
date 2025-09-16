@@ -2,9 +2,9 @@ package main
 
 import (
 	"errors"
-	"flag"
 	"fmt"
 	"log"
+	"os"
 	"strings"
 
 	"github.com/asticode/go-astiav"
@@ -12,411 +12,383 @@ import (
 )
 
 var (
-	decoderCodecName       = flag.String("c", "", "the decoder codec name (e.g. h264_cuvid)")
-	filter                 = flag.String("f", "", "the hardware filter")
-	hardwareDeviceName     = flag.String("n", "", "the hardware device name (e.g. 0)")
-	hardwareDeviceTypeName = flag.String("t", "", "the hardware device type (e.g. cuda)")
-	input                  = flag.String("i", "", "the input path")
+	hwDeviceCtx     *astiav.HardwareDeviceContext
+	hwPixFmt        astiav.PixelFormat
+	outputFile      *os.File
+	c               = astikit.NewCloser()
+	
+	// Filter related variables
+	buffersinkCtx   *astiav.BuffersinkFilterContext
+	buffersrcCtx    *astiav.BuffersrcFilterContext
+	filterGraph     *astiav.FilterGraph
+	videoStreamIndex int
 )
 
-var (
-	buffersinkContext     *astiav.BuffersinkFilterContext
-	buffersrcContext      *astiav.BuffersrcFilterContext
-	c                     = astikit.NewCloser()
-	decCodec              *astiav.Codec
-	decCodecContext       *astiav.CodecContext
-	decodedHardwareFrame  *astiav.Frame
-	filterGraph           *astiav.FilterGraph
-	filteredHardwareFrame *astiav.Frame
-	hardwareDeviceContext *astiav.HardwareDeviceContext
-	inputStream           *astiav.Stream
-	softwareFrame         *astiav.Frame
-)
+const filterDescr = "scale_vaapi=78:24"
+
+func hwDecoderInit(ctx *astiav.CodecContext, hwType astiav.HardwareDeviceType) error {
+	var err error
+	hwDeviceCtx, err = astiav.CreateHardwareDeviceContext(hwType, "", nil, 0)
+	if err != nil {
+		return fmt.Errorf("failed to create specified HW device: %w", err)
+	}
+	
+	ctx.SetHardwareDeviceContext(hwDeviceCtx)
+	return nil
+}
+
+func getHwFormat(pixFmts []astiav.PixelFormat) astiav.PixelFormat {
+	for _, pf := range pixFmts {
+		if pf == hwPixFmt {
+			return pf
+		}
+	}
+	
+	log.Println("Failed to get HW surface format")
+	return astiav.PixelFormatNone
+}
+
+func initFilters(filtersDescr string, decCtx *astiav.CodecContext, inputCtx *astiav.FormatContext) error {
+	// Allocate filter graph
+	filterGraph = astiav.AllocFilterGraph()
+	if filterGraph == nil {
+		return errors.New("cannot allocate filter graph")
+	}
+	c.Add(filterGraph.Free)
+
+	// Allocate inputs and outputs
+	outputs := astiav.AllocFilterInOut()
+	if outputs == nil {
+		return errors.New("cannot allocate filter outputs")
+	}
+	c.Add(outputs.Free)
+
+	inputs := astiav.AllocFilterInOut()
+	if inputs == nil {
+		return errors.New("cannot allocate filter inputs")
+	}
+	c.Add(inputs.Free)
+
+	// Get buffer source and sink filters
+	buffersrc := astiav.FindFilterByName("buffer")
+	if buffersrc == nil {
+		return errors.New("cannot find buffer source")
+	}
+
+	buffersink := astiav.FindFilterByName("buffersink")
+	if buffersink == nil {
+		return errors.New("cannot find buffer sink")
+	}
+
+	// Create buffer source context
+	timeBase := inputCtx.Streams()[videoStreamIndex].TimeBase()
+
+	var err error
+	buffersrcCtx, err = filterGraph.NewBuffersrcFilterContext(buffersrc, "in")
+	if err != nil {
+		return fmt.Errorf("cannot create buffer source: %w", err)
+	}
+
+	// Set buffer source parameters for hardware filtering
+	params := astiav.AllocBuffersrcFilterContextParameters()
+	defer params.Free()
+	params.SetWidth(decCtx.Width())
+	params.SetHeight(decCtx.Height())
+	// Use hardware pixel format for VAAPI processing
+	params.SetPixelFormat(decCtx.PixelFormat())
+	params.SetTimeBase(timeBase)
+	params.SetSampleAspectRatio(decCtx.SampleAspectRatio())
+	// Set hardware frames context for hardware filtering
+	params.SetHardwareFramesContext(decCtx.HardwareFramesContext())
+
+	if err := buffersrcCtx.SetParameters(params); err != nil {
+		return fmt.Errorf("cannot set buffer source parameters: %w", err)
+	}
+
+	if err := buffersrcCtx.Initialize(nil); err != nil {
+		return fmt.Errorf("cannot initialize buffer source: %w", err)
+	}
+
+	// Create buffer sink context
+	buffersinkCtx, err = filterGraph.NewBuffersinkFilterContext(buffersink, "out")
+	if err != nil {
+		return fmt.Errorf("cannot create buffer sink: %w", err)
+	}
+
+	if err := buffersinkCtx.Initialize(); err != nil {
+		return fmt.Errorf("cannot initialize buffer sink: %w", err)
+	}
+
+	// Set the endpoints for the filter graph
+	outputs.SetName("in")
+	outputs.SetFilterContext(buffersrcCtx.FilterContext())
+	outputs.SetPadIdx(0)
+	outputs.SetNext(nil)
+
+	inputs.SetName("out")
+	inputs.SetFilterContext(buffersinkCtx.FilterContext())
+	inputs.SetPadIdx(0)
+	inputs.SetNext(nil)
+
+	// Parse the filter graph
+	if err := filterGraph.Parse(filtersDescr, inputs, outputs); err != nil {
+		return fmt.Errorf("cannot parse filter graph: %w", err)
+	}
+
+	// Configure the filter graph
+	if err := filterGraph.Configure(); err != nil {
+		return fmt.Errorf("cannot configure filter graph: %w", err)
+	}
+
+	return nil
+}
+
+func filterFrame(frame *astiav.Frame) error {
+	// Add frame to buffer source
+	if err := buffersrcCtx.AddFrame(frame, astiav.NewBuffersrcFlags(astiav.BuffersrcFlagKeepRef)); err != nil {
+		return fmt.Errorf("error while feeding the filtergraph: %w", err)
+	}
+
+	// Pull filtered frames from the filtergraph
+	for {
+		filtFrame := astiav.AllocFrame()
+		if filtFrame == nil {
+			return errors.New("cannot allocate filtered frame")
+		}
+		defer filtFrame.Free()
+
+		err := buffersinkCtx.GetFrame(filtFrame, astiav.NewBuffersinkFlags())
+		if err != nil {
+			if errors.Is(err, astiav.ErrEagain) || errors.Is(err, astiav.ErrEof) {
+				break
+			}
+			return fmt.Errorf("error while getting frame from filtergraph: %w", err)
+		}
+
+		// Write filtered frame to output
+		if err := displayFrame(filtFrame); err != nil {
+			return fmt.Errorf("error displaying frame: %w", err)
+		}
+
+		filtFrame.Unref()
+	}
+
+	return nil
+}
+
+func displayFrame(frame *astiav.Frame) error {
+	// Get frame buffer size and copy to output file
+	size, err := frame.ImageBufferSize(1)
+	if err != nil {
+		return fmt.Errorf("failed to get image buffer size: %w", err)
+	}
+
+	buffer := make([]byte, size)
+	_, err = frame.ImageCopyToBuffer(buffer, 1)
+	if err != nil {
+		return fmt.Errorf("failed to copy image to buffer: %w", err)
+	}
+
+	if _, err := outputFile.Write(buffer); err != nil {
+		return fmt.Errorf("failed to write buffer: %w", err)
+	}
+
+	return nil
+}
+
+func decodeWrite(avctx *astiav.CodecContext, packet *astiav.Packet) error {
+	err := avctx.SendPacket(packet)
+	if err != nil {
+		return fmt.Errorf("error during decoding: %w", err)
+	}
+
+	for {
+		frame := astiav.AllocFrame()
+		if frame == nil {
+			return errors.New("can not alloc frame")
+		}
+		defer frame.Free()
+
+		err := avctx.ReceiveFrame(frame)
+		if err != nil {
+			if errors.Is(err, astiav.ErrEagain) || errors.Is(err, astiav.ErrEof) {
+				break
+			}
+			return fmt.Errorf("error during decoding: %w", err)
+		}
+
+		// Set PTS if not already set
+		if frame.Pts() == astiav.NoPtsValue {
+			frame.SetPts(0)
+		}
+
+		// Push the hardware frame directly into the filtergraph for hardware processing
+		if err := filterFrame(frame); err != nil {
+			return fmt.Errorf("error filtering frame: %w", err)
+		}
+
+		frame.Unref()
+	}
+
+	return nil
+}
 
 func main() {
 	// Handle ffmpeg logs
-	astiav.SetLogLevel(astiav.LogLevelDebug)
-	astiav.SetLogCallback(func(c astiav.Classer, l astiav.LogLevel, fmt, msg string) {
+	astiav.SetLogLevel(astiav.LogLevelInfo)
+	astiav.SetLogCallback(func(cl astiav.Classer, l astiav.LogLevel, fmt, msg string) {
 		var cs string
-		if c != nil {
-			if cl := c.Class(); cl != nil {
-				cs = " - class: " + cl.String()
+		if cl != nil {
+			if class := cl.Class(); class != nil {
+				cs = " - class: " + class.String()
 			}
 		}
 		log.Printf("ffmpeg log: %s%s - level: %d\n", strings.TrimSpace(msg), cs, l)
 	})
 
-	// Parse flags
-	flag.Parse()
-
-	// Usage
-	if *input == "" || *hardwareDeviceTypeName == "" {
-		log.Println("Usage: <binary path> -t <hardware device type> -i <input path> [-n <hardware device name> -c <decoder codec> -f <hardware filter>]")
-		return
+	if len(os.Args) < 4 {
+		fmt.Fprintf(os.Stderr, "Usage: %s <device type> <input file> <output file>\n", os.Args[0])
+		fmt.Fprintf(os.Stderr, "Example: %s vaapi input.mp4 output.yuv\n", os.Args[0])
+		fmt.Fprintf(os.Stderr, "Filter: %s\n", filterDescr)
+		os.Exit(1)
 	}
 
 	// We use an astikit.Closer to free all resources properly
 	defer c.Close()
 
-	// Get hardware device type
-	hardwareDeviceType := astiav.FindHardwareDeviceTypeByName(*hardwareDeviceTypeName)
-	if hardwareDeviceType == astiav.HardwareDeviceTypeNone {
-		log.Fatal(errors.New("main: hardware device not found"))
+	deviceTypeName := os.Args[1]
+	inputFile := os.Args[2]
+	outputFileName := os.Args[3]
+
+	// Find hardware device type
+	hwType := astiav.FindHardwareDeviceTypeByName(deviceTypeName)
+	if hwType == astiav.HardwareDeviceTypeNone {
+		log.Fatalf("Device type %s is not supported", deviceTypeName)
 	}
 
 	// Allocate packet
-	pkt := astiav.AllocPacket()
-	c.Add(pkt.Free)
-
-	// Allocate decoded hardware frame
-	decodedHardwareFrame = astiav.AllocFrame()
-	c.Add(decodedHardwareFrame.Free)
-
-	// Allocate software frame
-	softwareFrame = astiav.AllocFrame()
-	c.Add(softwareFrame.Free)
-
-	// Allocate input format context
-	inputFormatContext := astiav.AllocFormatContext()
-	if inputFormatContext == nil {
-		log.Fatal(errors.New("main: input format context is nil"))
+	packet := astiav.AllocPacket()
+	if packet == nil {
+		log.Fatal("Failed to allocate AVPacket")
 	}
-	c.Add(inputFormatContext.Free)
+	c.Add(packet.Free)
 
-	// Open input
-	if err := inputFormatContext.OpenInput(*input, nil, nil); err != nil {
-		log.Fatal(fmt.Errorf("main: opening input failed: %w", err))
+	// Open the input file
+	inputCtx := astiav.AllocFormatContext()
+	if inputCtx == nil {
+		log.Fatal("Failed to allocate format context")
 	}
-	c.Add(inputFormatContext.CloseInput)
+	c.Add(inputCtx.Free)
+	
+	if err := inputCtx.OpenInput(inputFile, nil, nil); err != nil {
+		log.Fatalf("Cannot open input file '%s': %v", inputFile, err)
+	}
+	c.Add(inputCtx.CloseInput)
 
-	// Find stream info
-	if err := inputFormatContext.FindStreamInfo(nil); err != nil {
-		log.Fatal(fmt.Errorf("main: finding stream info failed: %w", err))
+	if err := inputCtx.FindStreamInfo(nil); err != nil {
+		log.Fatalf("Cannot find input stream information: %v", err)
 	}
 
-	// Loop through streams
-	hardwarePixelFormat := astiav.PixelFormatNone
-	for _, is := range inputFormatContext.Streams() {
-		// Only process video
-		if is.CodecParameters().MediaType() != astiav.MediaTypeVideo {
-			continue
-		}
+	// Find the video stream information
+	videoStreamIndex = -1
+	var decoder *astiav.Codec
+	var videoStream *astiav.Stream
 
-		// Merge decoder name with hardware device type name
-		if *decoderCodecName == "" {
-			*decoderCodecName = fmt.Sprintf("%s_%s", is.CodecParameters().CodecID().Name(), *hardwareDeviceTypeName)
-		}
-
-		// Update input stream
-		inputStream = is
-
-		// Find decoder
-		decCodec = astiav.FindDecoderByName(*decoderCodecName)
-
-		// No codec
-		if decCodec == nil {
-			log.Fatal(errors.New("main: codec is nil"))
-		}
-
-		// Allocate codec context
-		if decCodecContext = astiav.AllocCodecContext(decCodec); decCodecContext == nil {
-			log.Fatal(errors.New("main: codec context is nil"))
-		}
-		c.Add(decCodecContext.Free)
-
-		// Update codec context
-		if err := is.CodecParameters().ToCodecContext(decCodecContext); err != nil {
-			log.Fatal(fmt.Errorf("main: updating codec context failed: %w", err))
-		}
-
-		// Create hardware device context
-		var err error
-		if hardwareDeviceContext, err = astiav.CreateHardwareDeviceContext(hardwareDeviceType, *hardwareDeviceName, nil, 0); err != nil {
-			log.Fatal(fmt.Errorf("main: creating hardware device context failed: %w", err))
-		}
-		c.Add(hardwareDeviceContext.Free)
-
-		hardwareFramesConstraints := hardwareDeviceContext.HardwareFramesConstraints()
-		if hardwareFramesConstraints == nil {
-			log.Fatal("main: hardware frames constraints is nil")
-			return
-		}
-		defer hardwareFramesConstraints.Free()
-
-		validHardwarePixelFormats := hardwareFramesConstraints.ValidHardwarePixelFormats()
-		if len(validHardwarePixelFormats) == 0 {
-			log.Fatal("main: no valid hardware pixel formats")
-			return
-		}
-		hardwarePixelFormat = validHardwarePixelFormats[0]
-
-		// Update decoder context
-		decCodecContext.SetHardwareDeviceContext(hardwareDeviceContext)
-		decCodecContext.SetPixelFormatCallback(func(pfs []astiav.PixelFormat) astiav.PixelFormat {
-			for _, pf := range pfs {
-				if pf == hardwarePixelFormat {
-					return pf
-				}
-			}
-			log.Fatal(errors.New("main: using hardware pixel format failed"))
-			return astiav.PixelFormatNone
-		})
-
-		// Open decoder context
-		if err := decCodecContext.Open(decCodec, nil); err != nil {
-			log.Fatal(fmt.Errorf("main: opening decoder context failed: %w", err))
-		}
-		break
-	}
-
-	// No video stream
-	if inputStream == nil {
-		log.Fatal("main: no video stream found")
-	}
-
-	// Loop through packets
-	for {
-		// We use a closure to ease unreferencing the packet
-		if stop := func() bool {
-			// Read frame
-			if err := inputFormatContext.ReadFrame(pkt); err != nil {
-				if errors.Is(err, astiav.ErrEof) {
-					return true
-				}
-				log.Fatal(fmt.Errorf("main: reading frame failed: %w", err))
-			}
-
-			// Make sure to unreference the packet
-			defer pkt.Unref()
-
-			// Invalid stream
-			if pkt.StreamIndex() != inputStream.Index() {
-				return false
-			}
-
-			// Send packet
-			if err := decCodecContext.SendPacket(pkt); err != nil {
-				log.Fatal(fmt.Errorf("main: sending packet failed: %w", err))
-			}
-
-			// Loop
-			for {
-				// We use a closure to ease unreferencing frames
-				if stop := func() bool {
-					// Receive frame
-					if err := decCodecContext.ReceiveFrame(decodedHardwareFrame); err != nil {
-						if errors.Is(err, astiav.ErrEof) || errors.Is(err, astiav.ErrEagain) {
-							return true
-						}
-						log.Fatal(fmt.Errorf("main: receiving frame failed: %w", err))
-					}
-
-					// Make sure to unreference hardware frame
-					defer decodedHardwareFrame.Unref()
-
-					// Invalid pixel format
-					if decodedHardwareFrame.PixelFormat() != hardwarePixelFormat {
-						log.Fatalf("main: invalid decoded pixel format %s, expected %s", decodedHardwareFrame.PixelFormat(), hardwarePixelFormat)
-					}
-
-					// No filter requested
-					if *filter == "" {
-						// Do something with hardware frame
-						if err := doSomethingWithHardwareFrame(decodedHardwareFrame); err != nil {
-							log.Fatal(fmt.Errorf("main: doing something with hardware frame failed: %w", err))
-						}
-						return false
-					}
-
-					// Make sure the filter is initialized
-					// We need to wait for the first frame to be decoded before initializing the filter
-					// since we need a valid hardware frames context
-					if filterGraph == nil {
-						if err := initFilter(); err != nil {
-							log.Fatal(fmt.Errorf("main: initializing filter failed: %w", err))
-						}
-					}
-
-					// Filter frame
-					if err := filterFrame(); err != nil {
-						log.Fatal(fmt.Errorf("main: filtering frame failed: %w", err))
-					}
-					return false
-				}(); stop {
-					break
-				}
-			}
-			return false
-		}(); stop {
+	for i, stream := range inputCtx.Streams() {
+		if stream.CodecParameters().MediaType() == astiav.MediaTypeVideo {
+			videoStreamIndex = i
+			videoStream = stream
+			decoder = astiav.FindDecoder(stream.CodecParameters().CodecID())
 			break
 		}
 	}
 
-	// Success
-	log.Println("success")
-}
-
-func initFilter() (err error) {
-	// Allocate graph
-	if filterGraph = astiav.AllocFilterGraph(); filterGraph == nil {
-		err = errors.New("main: graph is nil")
-		return
-	}
-	c.Add(filterGraph.Free)
-
-	// Allocate outputs
-	outputs := astiav.AllocFilterInOut()
-	if outputs == nil {
-		err = errors.New("main: outputs is nil")
-		return
-	}
-	c.Add(outputs.Free)
-
-	// Allocate inputs
-	inputs := astiav.AllocFilterInOut()
-	if inputs == nil {
-		err = errors.New("main: inputs is nil")
-		return
-	}
-	c.Add(inputs.Free)
-
-	// Create buffersrc
-	buffersrc := astiav.FindFilterByName("buffer")
-	if buffersrc == nil {
-		err = errors.New("main: buffersrc is nil")
-		return
+	if videoStreamIndex == -1 {
+		log.Fatal("Cannot find a video stream in the input file")
 	}
 
-	// Create buffersink
-	buffersink := astiav.FindFilterByName("buffersink")
-	if buffersink == nil {
-		err = errors.New("main: buffersink is nil")
-		return
+	if decoder == nil {
+		log.Fatal("Failed to find decoder")
 	}
 
-	// Create filter contexts
-	if buffersrcContext, err = filterGraph.NewBuffersrcFilterContext(buffersrc, "in"); err != nil {
-		err = fmt.Errorf("main: creating buffersrc context failed: %w", err)
-		return
-	}
-	if buffersinkContext, err = filterGraph.NewBuffersinkFilterContext(buffersink, "in"); err != nil {
-		err = fmt.Errorf("main: creating buffersink context failed: %w", err)
-		return
-	}
-
-	// Create buffersrc context parameters
-	buffersrcContextParameters := astiav.AllocBuffersrcFilterContextParameters()
-	defer buffersrcContextParameters.Free()
-	buffersrcContextParameters.SetHardwareFramesContext(decodedHardwareFrame.HardwareFramesContext())
-	buffersrcContextParameters.SetHeight(decCodecContext.Height())
-	buffersrcContextParameters.SetPixelFormat(decCodecContext.PixelFormat())
-	buffersrcContextParameters.SetSampleAspectRatio(decCodecContext.SampleAspectRatio())
-	buffersrcContextParameters.SetTimeBase(inputStream.TimeBase())
-	buffersrcContextParameters.SetWidth(decCodecContext.Width())
-
-	// Set buffersrc context parameters
-	if err = buffersrcContext.SetParameters(buffersrcContextParameters); err != nil {
-		err = fmt.Errorf("main: setting buffersrc context parameters failed: %w", err)
-		return
-	}
-
-	// Initialize buffersrc context
-	if err = buffersrcContext.Initialize(nil); err != nil {
-		err = fmt.Errorf("main: initializing buffersrc context failed: %w", err)
-		return
-	}
-
-	// Update outputs
-	outputs.SetName("in")
-	outputs.SetFilterContext(buffersrcContext.FilterContext())
-	outputs.SetPadIdx(0)
-	outputs.SetNext(nil)
-
-	// Update inputs
-	inputs.SetName("out")
-	inputs.SetFilterContext(buffersinkContext.FilterContext())
-	inputs.SetPadIdx(0)
-	inputs.SetNext(nil)
-
-	// Loop through filters
-	for _, f := range filterGraph.Filters() {
-		// Filter doesn't handle hardware devices
-		if !f.Filter().Flags().Has(astiav.FilterFlagHardwareDevice) {
-			continue
-		}
-
-		// Update hardware device context
-		f.SetHardwareDeviceContext(hardwareDeviceContext)
-	}
-
-	// Parse
-	if err = filterGraph.Parse(*filter, inputs, outputs); err != nil {
-		err = fmt.Errorf("main: parsing filter failed: %w", err)
-		return
-	}
-
-	// Configure
-	if err = filterGraph.Configure(); err != nil {
-		err = fmt.Errorf("main: configuring filter failed: %w", err)
-		return
-	}
-
-	// Allocate frame
-	filteredHardwareFrame = astiav.AllocFrame()
-	c.Add(filteredHardwareFrame.Free)
-	return
-}
-
-func filterFrame() (err error) {
-	// Add frame
-	if err = buffersrcContext.AddFrame(decodedHardwareFrame, astiav.NewBuffersrcFlags(astiav.BuffersrcFlagKeepRef)); err != nil {
-		err = fmt.Errorf("main: adding frame failed: %w", err)
-		return
-	}
-
-	// Loop
-	for {
-		// We use a closure to ease unreferencing the frame
-		if stop, err := func() (bool, error) {
-			// Get frame
-			if err := buffersinkContext.GetFrame(filteredHardwareFrame, astiav.NewBuffersinkFlags()); err != nil {
-				if errors.Is(err, astiav.ErrEof) || errors.Is(err, astiav.ErrEagain) {
-					return true, nil
-				}
-				return false, fmt.Errorf("main: getting frame failed: %w", err)
-			}
-
-			// Make sure to unrefernce the frame
-			defer filteredHardwareFrame.Unref()
-
-			// Do something with hardware frame
-			if err := doSomethingWithHardwareFrame(filteredHardwareFrame); err != nil {
-				return false, fmt.Errorf("main: doing something with hardware frame failed: %w", err)
-			}
-			return false, nil
-		}(); err != nil {
-			return err
-		} else if stop {
+	// Find hardware config
+	hwConfigFound := false
+	configs := decoder.HardwareConfigs()
+	for _, config := range configs {
+		if config.MethodFlags().Has(astiav.CodecHardwareConfigMethodFlagHwDeviceCtx) &&
+			config.HardwareDeviceType() == hwType {
+			hwPixFmt = config.PixelFormat()
+			hwConfigFound = true
 			break
 		}
-
-	}
-	return
-}
-
-func doSomethingWithHardwareFrame(hardwareFrame *astiav.Frame) error {
-	// Transfer hardware data
-	if err := hardwareFrame.TransferHardwareData(softwareFrame); err != nil {
-		return fmt.Errorf("main: transferring hardware data failed: %w", err)
 	}
 
-	// Make sure to unreference software frame
-	defer softwareFrame.Unref()
+	if !hwConfigFound {
+		log.Fatalf("Decoder %s does not support device type %s", decoder.Name(), deviceTypeName)
+	}
 
-	// Update pts
-	softwareFrame.SetPts(hardwareFrame.Pts())
+	// Allocate decoder context
+	decoderCtx := astiav.AllocCodecContext(decoder)
+	if decoderCtx == nil {
+		log.Fatal("Failed to allocate decoder context")
+	}
+	c.Add(decoderCtx.Free)
 
-	// Do something with software frame
-	log.Printf("new software frame: pts: %d", softwareFrame.Pts())
-	return nil
+	if err := videoStream.CodecParameters().ToCodecContext(decoderCtx); err != nil {
+		log.Fatalf("Failed to copy codec parameters to decoder context: %v", err)
+	}
+
+	decoderCtx.SetPixelFormatCallback(getHwFormat)
+
+	if err := hwDecoderInit(decoderCtx, hwType); err != nil {
+		log.Fatalf("Failed to initialize hardware decoder: %v", err)
+	}
+
+	if err := decoderCtx.Open(decoder, nil); err != nil {
+		log.Fatalf("Failed to open codec for stream #%d: %v", videoStreamIndex, err)
+	}
+
+	// Initialize filters
+	if err := initFilters(filterDescr, decoderCtx, inputCtx); err != nil {
+		log.Fatalf("Failed to initialize filters: %v", err)
+	}
+
+	// Open the file to dump raw data
+	var err error
+	outputFile, err = os.OpenFile(outputFileName, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
+	if err != nil {
+		log.Fatalf("Failed to open output file: %v", err)
+	}
+	defer outputFile.Close()
+
+	log.Printf("Using hardware decoder: %s", decoder.Name())
+	log.Printf("Hardware device type: %s", deviceTypeName)
+	log.Printf("Hardware pixel format: %s", hwPixFmt.String())
+	log.Printf("Filter description: %s", filterDescr)
+
+	// Actual decoding, filtering and dump the raw data
+	for {
+		err := inputCtx.ReadFrame(packet)
+		if err != nil {
+			if errors.Is(err, astiav.ErrEof) {
+				break
+			}
+			log.Fatalf("Error reading frame: %v", err)
+		}
+
+		if videoStreamIndex == packet.StreamIndex() {
+			if err := decodeWrite(decoderCtx, packet); err != nil {
+				log.Fatalf("Error in decode_write: %v", err)
+			}
+		}
+
+		packet.Unref()
+	}
+
+	// Flush the decoder
+	if err := decodeWrite(decoderCtx, nil); err != nil && !errors.Is(err, astiav.ErrEof) {
+		log.Fatalf("Error flushing decoder: %v", err)
+	}
+
+	log.Println("Hardware decoding and filtering completed successfully")
 }

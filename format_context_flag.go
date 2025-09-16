@@ -3,7 +3,7 @@ package astiav
 //#include <libavformat/avformat.h>
 import "C"
 
-// https://ffmpeg.org/doxygen/7.0/avformat_8h.html#a69e2c8bc119c0245ff6092f9db4d12ae
+// https://ffmpeg.org/doxygen/8.1/avformat_8h.html#a69e2c8bc119c0245ff6092f9db4d12ae
 type FormatContextFlag int64
 
 const (
@@ -20,6 +20,6 @@ const (
 	FormatContextFlagBitexact       = FormatContextFlag(C.AVFMT_FLAG_BITEXACT)
 	FormatContextFlagSortDts        = FormatContextFlag(C.AVFMT_FLAG_SORT_DTS)
 	FormatContextFlagFastSeek       = FormatContextFlag(C.AVFMT_FLAG_FAST_SEEK)
-	FormatContextFlagShortest       = FormatContextFlag(C.AVFMT_FLAG_SHORTEST)
-	FormatContextFlagAutoBsf        = FormatContextFlag(C.AVFMT_FLAG_AUTO_BSF)
+	// FormatContextFlagShortest removed in FFmpeg 8.0 - AVFMT_FLAG_SHORTEST deprecated and removed
+	FormatContextFlagAutoBsf = FormatContextFlag(C.AVFMT_FLAG_AUTO_BSF)
 )
