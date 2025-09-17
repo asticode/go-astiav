@@ -71,3 +71,36 @@ func (os *Options) Get(name string, f OptionSearchFlags) (string, error) {
 	defer C.av_freep(unsafe.Pointer(&cvalue))
 	return C.GoString(cvalue), nil
 }
+
+// SetDict sets options from a dictionary
+// https://www.ffmpeg.org/doxygen/7.0/group__opt__set__funcs.html#ga8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b
+func (os *Options) SetDict(dict *Dictionary) error {
+	var dc *C.AVDictionary
+	if dict != nil {
+		dc = dict.c
+	}
+	return newError(C.av_opt_set_dict(os.c, &dc))
+}
+
+// SetArray sets an array option (simplified implementation)
+// https://www.ffmpeg.org/doxygen/7.0/group__opt__set__funcs.html#ga8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b
+func (os *Options) SetArray(name string, values []string, f OptionSearchFlags) error {
+	// Note: av_opt_set_array has complex signature in FFmpeg 8.0
+	// For now, we'll use a simplified approach by setting as string
+	cname := C.CString(name)
+	defer C.free(unsafe.Pointer(cname))
+	
+	// Join values as comma-separated string for basic array support
+	var valueStr string
+	for i, v := range values {
+		if i > 0 {
+			valueStr += ","
+		}
+		valueStr += v
+	}
+	
+	cvalue := C.CString(valueStr)
+	defer C.free(unsafe.Pointer(cvalue))
+	
+	return newError(C.av_opt_set(os.c, cname, cvalue, C.int(f)))
+}

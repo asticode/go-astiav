@@ -3,7 +3,7 @@ package astiav
 //#include <libavformat/avformat.h>
 import "C"
 
-// https://ffmpeg.org/doxygen/8.1/avformat_8h.html#af09f200b4cd9bf0baa05671436eef2fb
+// https://ffmpeg.org/doxygen/8.0/avformat_8h.html#af09f200b4cd9bf0baa05671436eef2fb
 type DispositionFlag int64
 
 const (

@@ -6,7 +6,7 @@ import (
 	"unsafe"
 )
 
-// https://ffmpeg.org/doxygen/8.1/hwcontext_8h.html#acf25724be4b066a51ad86aa9214b0d34
+// https://ffmpeg.org/doxygen/8.0/hwcontext_8h.html#acf25724be4b066a51ad86aa9214b0d34
 type HardwareDeviceType C.enum_AVHWDeviceType
 
 const (
@@ -24,7 +24,7 @@ const (
 	HardwareDeviceTypeVulkan       = HardwareDeviceType(C.AV_HWDEVICE_TYPE_VULKAN)
 )
 
-// https://ffmpeg.org/doxygen/8.1/hwcontext_8h.html#afb2b99a15f3fdde25a2fd19353ac5a67
+// https://ffmpeg.org/doxygen/8.0/hwcontext_8h.html#afb2b99a15f3fdde25a2fd19353ac5a67
 func (t HardwareDeviceType) Name() string {
 	return C.GoString(C.av_hwdevice_get_type_name((C.enum_AVHWDeviceType)(t)))
 }
@@ -33,7 +33,7 @@ func (t HardwareDeviceType) String() string {
 	return t.Name()
 }
 
-// https://ffmpeg.org/doxygen/8.1/hwcontext_8h.html#a541943ddced791765349645a30adfa4d
+// https://ffmpeg.org/doxygen/8.0/hwcontext_8h.html#a541943ddced791765349645a30adfa4d
 func FindHardwareDeviceTypeByName(n string) HardwareDeviceType {
 	cn := C.CString(n)
 	defer C.free(unsafe.Pointer(cn))

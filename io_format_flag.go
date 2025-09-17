@@ -3,7 +3,7 @@ package astiav
 //#include <libavformat/avformat.h>
 import "C"
 
-// https://ffmpeg.org/doxygen/8.1/avformat_8h.html#a752cce390d480521919aa5d8be24ac0b
+// https://ffmpeg.org/doxygen/8.0/avformat_8h.html#a752cce390d480521919aa5d8be24ac0b
 type IOFormatFlag int64
 
 const (

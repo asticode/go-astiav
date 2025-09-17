@@ -8,7 +8,7 @@ import (
 	"unsafe"
 )
 
-// https://ffmpeg.org/doxygen/8.1/group__lavu__video__display.html
+// https://ffmpeg.org/doxygen/8.0/group__lavu__video__display.html
 type DisplayMatrix [9]uint32
 
 func newDisplayMatrixFromBytes(b []byte) (m *DisplayMatrix, err error) {
@@ -28,7 +28,7 @@ func newDisplayMatrixFromBytes(b []byte) (m *DisplayMatrix, err error) {
 	return
 }
 
-// https://ffmpeg.org/doxygen/8.1/group__lavu__video__display.html#ga5964303bfe085ad33683bc2454768d4a
+// https://ffmpeg.org/doxygen/8.0/group__lavu__video__display.html#ga5964303bfe085ad33683bc2454768d4a
 func NewDisplayMatrixFromRotation(angle float64) *DisplayMatrix {
 	m := &DisplayMatrix{}
 	C.av_display_rotation_set((*C.int32_t)(unsafe.Pointer(&m[0])), C.double(angle))
@@ -44,7 +44,7 @@ func (m DisplayMatrix) bytes() []byte {
 }
 
 // Rotation is a clockwise angle
-// https://ffmpeg.org/doxygen/8.1/group__lavu__video__display.html#gaac2ea94d3f66496c758349450b5b0217
+// https://ffmpeg.org/doxygen/8.0/group__lavu__video__display.html#gaac2ea94d3f66496c758349450b5b0217
 func (m DisplayMatrix) Rotation() float64 {
 	return -float64(C.av_display_rotation_get((*C.int32_t)(unsafe.Pointer(&m[0]))))
 }

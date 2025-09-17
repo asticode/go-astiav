@@ -9,8 +9,8 @@ import (
 	"unsafe"
 )
 
-// https://ffmpeg.org/doxygen/8.1/structAVFrameSideData.html
-// https://ffmpeg.org/doxygen/8.1/group__lavu__frame.html#gae01fa7e427274293aacdf2adc17076bc
+// https://ffmpeg.org/doxygen/8.0/structAVFrameSideData.html
+// https://ffmpeg.org/doxygen/8.0/group__lavu__frame.html#gae01fa7e427274293aacdf2adc17076bc
 type FrameSideData struct {
 	sd   ***C.AVFrameSideData
 	size *C.int
@@ -23,7 +23,7 @@ func newFrameSideDataFromC(sd ***C.AVFrameSideData, size *C.int) *FrameSideData 
 	}
 }
 
-// https://ffmpeg.org/doxygen/8.1/group__lavu__frame.html#ggae01fa7e427274293aacdf2adc17076bcaf525ec92d2c5a78d44950bc3f29972aa
+// https://ffmpeg.org/doxygen/8.0/group__lavu__frame.html#ggae01fa7e427274293aacdf2adc17076bcaf525ec92d2c5a78d44950bc3f29972aa
 func (d *FrameSideData) RegionsOfInterest() *frameSideDataRegionsOfInterest {
 	return newFrameSideDataRegionsOfInterest(d)
 }

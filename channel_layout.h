@@ -38,3 +38,8 @@ AVChannelLayout *astiavChannelLayoutHexadecagonal     = &(AVChannelLayout)AV_CHA
 AVChannelLayout *astiavChannelLayoutStereoDownmix     = &(AVChannelLayout)AV_CHANNEL_LAYOUT_STEREO_DOWNMIX;
 AVChannelLayout *astiavChannelLayout22Point2          = &(AVChannelLayout)AV_CHANNEL_LAYOUT_22POINT2;
 AVChannelLayout *astiavChannelLayout7Point1TopBack    = &(AVChannelLayout)AV_CHANNEL_LAYOUT_7POINT1_TOP_BACK;
+
+// 包装函数用于CGO调用
+void astiavChannelLayoutDefault(AVChannelLayout *ch_layout, int nb_channels) {
+    av_channel_layout_default(ch_layout, nb_channels);
+}

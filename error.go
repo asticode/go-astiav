@@ -4,7 +4,7 @@ package astiav
 //#include <errno.h>
 import "C"
 
-// https://ffmpeg.org/doxygen/8.1/group__lavu__error.html#ga586e134e9dad8f57a218b2cd8734b601
+// https://ffmpeg.org/doxygen/8.0/group__lavu__error.html#ga586e134e9dad8f57a218b2cd8734b601
 type Error int
 
 const (
@@ -51,12 +51,28 @@ func newError(ret C.int) error {
 	return Error(i)
 }
 
-// https://ffmpeg.org/doxygen/8.1/group__lavu__error.html#ga5792b4a2d18d7d9cb0efbcfc335dce24
+// https://ffmpeg.org/doxygen/8.0/group__lavu__error.html#ga5792b4a2d18d7d9cb0efbcfc335dce24
 func (e Error) Error() string {
 	s, _ := stringFromC(255, func(buf *C.char, size C.size_t) error {
 		return newError(C.av_strerror(C.int(e), buf, size))
 	})
 	return s
+}
+
+// IsEagain checks if error is EAGAIN
+func IsEagain(err error) bool {
+	if e, ok := err.(Error); ok {
+		return e == ErrEagain
+	}
+	return false
+}
+
+// IsEof checks if error is EOF
+func IsEof(err error) bool {
+	if e, ok := err.(Error); ok {
+		return e == ErrEof
+	}
+	return false
 }
 
 func (e Error) Is(err error) bool {

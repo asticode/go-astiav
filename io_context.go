@@ -11,7 +11,7 @@ import (
 	"unsafe"
 )
 
-// https://ffmpeg.org/doxygen/8.1/structAVIOContext.html
+// https://ffmpeg.org/doxygen/8.0/structAVIOContext.html
 type IOContext struct {
 	c         *C.AVIOContext
 	handlerID unsafe.Pointer
@@ -34,7 +34,7 @@ type IOContextSeekFunc func(offset int64, whence int) (n int64, err error)
 
 type IOContextWriteFunc func(b []byte) (n int, err error)
 
-// https://ffmpeg.org/doxygen/8.1/avio_8h.html#a50c588d3c44707784f3afde39e1c181c
+// https://ffmpeg.org/doxygen/8.0/avio_8h.html#a50c588d3c44707784f3afde39e1c181c
 func AllocIOContext(bufferSize int, writable bool, readFunc IOContextReadFunc, seekFunc IOContextSeekFunc, writeFunc IOContextWriteFunc) (ic *IOContext, err error) {
 	// Invalid buffer size
 	if bufferSize <= 0 {
@@ -108,7 +108,7 @@ func AllocIOContext(bufferSize int, writable bool, readFunc IOContextReadFunc, s
 	return
 }
 
-// https://ffmpeg.org/doxygen/8.1/avio_8c.html#ae8589aae955d16ca228b6b9d66ced33d
+// https://ffmpeg.org/doxygen/8.0/avio_8c.html#ae8589aae955d16ca228b6b9d66ced33d
 func OpenIOContext(filename string, flags IOContextFlags, ii *IOInterrupter, d *Dictionary) (*IOContext, error) {
 	cfi := C.CString(filename)
 	defer C.free(unsafe.Pointer(cfi))
@@ -134,7 +134,7 @@ func (ic *IOContext) Class() *Class {
 	return newClassFromC(unsafe.Pointer(ic.c))
 }
 
-// https://ffmpeg.org/doxygen/8.1/avio_8c.html#ae118a1f37f1e48617609ead9910aac15
+// https://ffmpeg.org/doxygen/8.0/avio_8c.html#ae118a1f37f1e48617609ead9910aac15
 func (ic *IOContext) Close() error {
 	if ic.c != nil {
 		// Make sure to clone the classer before freeing the object since
@@ -153,7 +153,7 @@ func (ic *IOContext) Close() error {
 	return nil
 }
 
-// https://ffmpeg.org/doxygen/8.1/avio_8h.html#ad1baf8cd6711f05a45d0339cafe2d21d
+// https://ffmpeg.org/doxygen/8.0/avio_8h.html#ad1baf8cd6711f05a45d0339cafe2d21d
 func (ic *IOContext) Free() {
 	if ic.c != nil {
 		if ic.c.buffer != nil {
@@ -176,7 +176,7 @@ func (ic *IOContext) Free() {
 	return
 }
 
-// https://ffmpeg.org/doxygen/8.1/avio_8h.html#a53843d2cbe6282d994fcf59c03d59294
+// https://ffmpeg.org/doxygen/8.0/avio_8h.html#a53843d2cbe6282d994fcf59c03d59294
 func (ic *IOContext) Read(b []byte) (n int, err error) {
 	// Nothing to read
 	if b == nil || len(b) <= 0 {
@@ -206,7 +206,7 @@ func (ic *IOContext) Read(b []byte) (n int, err error) {
 	return
 }
 
-// https://ffmpeg.org/doxygen/8.1/avio_8h.html#a03e23bf0144030961c34e803c71f614f
+// https://ffmpeg.org/doxygen/8.0/avio_8h.html#a03e23bf0144030961c34e803c71f614f
 func (ic *IOContext) Seek(offset int64, whence int) (int64, error) {
 	ret := C.avio_seek(ic.c, C.int64_t(offset), C.int(whence))
 	if err := newError(C.int(ret)); err != nil {
@@ -215,7 +215,7 @@ func (ic *IOContext) Seek(offset int64, whence int) (int64, error) {
 	return int64(ret), nil
 }
 
-// https://ffmpeg.org/doxygen/8.1/avio_8h.html#acc3626afc6aa3964b75d02811457164e
+// https://ffmpeg.org/doxygen/8.0/avio_8h.html#acc3626afc6aa3964b75d02811457164e
 func (ic *IOContext) Write(b []byte) {
 	// Nothing to write
 	if b == nil || len(b) <= 0 {
@@ -226,7 +226,7 @@ func (ic *IOContext) Write(b []byte) {
 	C.avio_write(ic.c, (*C.uchar)(unsafe.Pointer(&b[0])), C.int(len(b)))
 }
 
-// https://ffmpeg.org/doxygen/8.1/avio_8h.html#ad88b866a118c17c95663f7782b2e8946
+// https://ffmpeg.org/doxygen/8.0/avio_8h.html#ad88b866a118c17c95663f7782b2e8946
 func (ic *IOContext) Flush() {
 	C.avio_flush(ic.c)
 }
@@ -327,4 +327,198 @@ func goAstiavIOContextWriteFunc(opaque unsafe.Pointer, buf *C.uint8_t, bufSize C
 		return C.AVERROR_UNKNOWN
 	}
 	return C.int(n)
+}
+
+// AvioFindProtocolName finds the protocol name from a URL
+// https://ffmpeg.org/doxygen/8.0/group__lavf__misc.html#ga7b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b
+func AvioFindProtocolName(url string) string {
+	cURL := C.CString(url)
+	defer C.free(unsafe.Pointer(cURL))
+	
+	cProtocol := C.avio_find_protocol_name(cURL)
+	if cProtocol == nil {
+		return ""
+	}
+	return C.GoString(cProtocol)
+}
+
+// AvioEnum enumerates available protocols
+// https://ffmpeg.org/doxygen/8.0/group__lavf__misc.html#ga7b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b
+func AvioEnum(output bool) []string {
+	var protocols []string
+	var opaque unsafe.Pointer
+	
+	for {
+		var cProtocol *C.char
+		if output {
+			cProtocol = C.avio_enum_protocols(&opaque, 1)
+		} else {
+			cProtocol = C.avio_enum_protocols(&opaque, 0)
+		}
+		
+		if cProtocol == nil {
+			break
+		}
+		
+		protocols = append(protocols, C.GoString(cProtocol))
+	}
+	
+	return protocols
+}
+
+// IODirEntryType represents the type of a directory entry
+type IODirEntryType int
+
+const (
+	IODirEntryTypeUnknown         IODirEntryType = C.AVIO_ENTRY_UNKNOWN
+	IODirEntryTypeFile            IODirEntryType = C.AVIO_ENTRY_FILE
+	IODirEntryTypeDirectory       IODirEntryType = C.AVIO_ENTRY_DIRECTORY
+	IODirEntryTypeBlockDevice     IODirEntryType = C.AVIO_ENTRY_BLOCK_DEVICE
+	IODirEntryTypeCharacterDevice IODirEntryType = C.AVIO_ENTRY_CHARACTER_DEVICE
+	IODirEntryTypeNamedPipe       IODirEntryType = C.AVIO_ENTRY_NAMED_PIPE
+	IODirEntryTypeSymbolicLink    IODirEntryType = C.AVIO_ENTRY_SYMBOLIC_LINK
+	IODirEntryTypeSocket          IODirEntryType = C.AVIO_ENTRY_SOCKET
+	IODirEntryTypeServer          IODirEntryType = C.AVIO_ENTRY_SERVER
+	IODirEntryTypeShare           IODirEntryType = C.AVIO_ENTRY_SHARE
+	IODirEntryTypeWorkgroup       IODirEntryType = C.AVIO_ENTRY_WORKGROUP
+)
+
+// IODirContext represents a directory context for listing files
+type IODirContext struct {
+	c *C.AVIODirContext
+}
+
+// IODirEntry represents a directory entry
+type IODirEntry struct {
+	c *C.AVIODirEntry
+}
+
+// OpenDir opens a directory for listing
+// https://ffmpeg.org/doxygen/8.0/group__lavf__misc.html#ga7b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b
+func OpenDir(url string, options *Dictionary) (*IODirContext, error) {
+	var cOptions *C.AVDictionary
+	if options != nil {
+		cOptions = options.c
+	}
+	
+	cURL := C.CString(url)
+	defer C.free(unsafe.Pointer(cURL))
+	
+	var cCtx *C.AVIODirContext
+	ret := C.avio_open_dir(&cCtx, cURL, &cOptions)
+	if ret < 0 {
+		return nil, newError(ret)
+	}
+	
+	return &IODirContext{c: cCtx}, nil
+}
+
+// ReadDir reads the next directory entry
+// https://ffmpeg.org/doxygen/8.0/group__lavf__misc.html#ga7b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b
+func (ctx *IODirContext) ReadDir() (*IODirEntry, error) {
+	var cEntry *C.AVIODirEntry
+	ret := C.avio_read_dir(ctx.c, &cEntry)
+	if ret < 0 {
+		return nil, newError(ret)
+	}
+	if cEntry == nil {
+		return nil, nil // End of directory
+	}
+	
+	return &IODirEntry{c: cEntry}, nil
+}
+
+// CloseDir closes the directory context
+// https://ffmpeg.org/doxygen/8.0/group__lavf__misc.html#ga7b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b
+func (ctx *IODirContext) CloseDir() error {
+	ret := C.avio_close_dir(&ctx.c)
+	if ret < 0 {
+		return newError(ret)
+	}
+	return nil
+}
+
+// Free frees the directory entry
+// https://ffmpeg.org/doxygen/8.0/group__lavf__misc.html#ga7b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b
+func (entry *IODirEntry) Free() {
+	C.avio_free_directory_entry(&entry.c)
+}
+
+// Name returns the name of the directory entry
+func (entry *IODirEntry) Name() string {
+	if entry.c.name == nil {
+		return ""
+	}
+	return C.GoString(entry.c.name)
+}
+
+// Type returns the type of the directory entry
+func (entry *IODirEntry) Type() IODirEntryType {
+	return IODirEntryType(entry.c._type)
+}
+
+// Size returns the size of the directory entry
+func (entry *IODirEntry) Size() int64 {
+	return int64(entry.c.size)
+}
+
+// Filemode returns the file mode of the directory entry
+func (entry *IODirEntry) Filemode() int64 {
+	return int64(entry.c.filemode)
+}
+
+// UserID returns the user ID of the directory entry
+func (entry *IODirEntry) UserID() int64 {
+	return int64(entry.c.user_id)
+}
+
+// GroupID returns the group ID of the directory entry
+func (entry *IODirEntry) GroupID() int64 {
+	return int64(entry.c.group_id)
+}
+
+// ModificationTimestamp returns the modification timestamp of the directory entry
+func (entry *IODirEntry) ModificationTimestamp() int64 {
+	return int64(entry.c.modification_timestamp)
+}
+
+// AccessTimestamp returns the access timestamp of the directory entry
+func (entry *IODirEntry) AccessTimestamp() int64 {
+	return int64(entry.c.access_timestamp)
+}
+
+// StatusChangeTimestamp returns the status change timestamp of the directory entry
+func (entry *IODirEntry) StatusChangeTimestamp() int64 {
+	return int64(entry.c.status_change_timestamp)
+}
+
+// Handshake performs HTTP handshake
+// https://ffmpeg.org/doxygen/8.0/group__lavf__misc.html#ga7b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b
+func (ic *IOContext) Handshake() int {
+	return int(C.avio_handshake(ic.c))
+}
+
+// Accept accepts a new client connection
+// https://ffmpeg.org/doxygen/8.0/group__lavf__misc.html#ga7b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b
+func (ic *IOContext) Accept() (*IOContext, error) {
+	var cClient *C.AVIOContext
+	ret := C.avio_accept(ic.c, &cClient)
+	if ret < 0 {
+		return nil, newError(ret)
+	}
+	return newIOContextFromC(cClient), nil
+}
+
+// GetOption gets an option value
+// https://ffmpeg.org/doxygen/8.0/group__lavf__misc.html#ga7b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b
+func (ic *IOContext) GetOption(name string) (string, error) {
+	options := newOptionsFromC(unsafe.Pointer(ic.c))
+	return options.Get(name, NewOptionSearchFlags(OptionSearchFlagChildren))
+}
+
+// SetOption sets an option value
+// https://ffmpeg.org/doxygen/8.0/group__lavf__misc.html#ga7b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b
+func (ic *IOContext) SetOption(name, value string) error {
+	options := newOptionsFromC(unsafe.Pointer(ic.c))
+	return options.Set(name, value, NewOptionSearchFlags(OptionSearchFlagChildren))
 }

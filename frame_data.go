@@ -46,11 +46,11 @@ func (d *FrameData) BytesForPlane(planeIndex int) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("astiav: getting planes failed: %w", err)
 	}
-	
+
 	if planeIndex < 0 || planeIndex >= len(planes) {
 		return nil, fmt.Errorf("astiav: plane index %d out of range (0-%d)", planeIndex, len(planes)-1)
 	}
-	
+
 	return planes[planeIndex].bytes, nil
 }
 
@@ -377,7 +377,7 @@ func (f *frameDataFrame) planes(b []byte, align int) ([]frameDataPlane, error) {
 			planeSizes[i] = int(cLinesize)
 		}
 	case MediaTypeVideo:
-		// Below is mostly inspired by https://ffmpeg.org/doxygen/8.1/group__lavu__picture.html#ga24a67963c3ae0054a2a4bab35930e694
+		// Below is mostly inspired by https://ffmpeg.org/doxygen/8.0/group__lavu__picture.html#ga24a67963c3ae0054a2a4bab35930e694
 
 		// Get linesize
 		var cLinesizes [8]C.int

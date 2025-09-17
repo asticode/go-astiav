@@ -3,7 +3,7 @@ package astiav
 //#include <libavformat/avformat.h>
 import "C"
 
-// https://ffmpeg.org/doxygen/8.1/avformat_8h.html#ac736f8f4afc930ca1cda0b43638cc678
+// https://ffmpeg.org/doxygen/8.0/avformat_8h.html#ac736f8f4afc930ca1cda0b43638cc678
 type SeekFlag int64
 
 const (

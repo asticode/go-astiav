@@ -3,7 +3,7 @@ package astiav
 //#include <libavutil/mathematics.h>
 import "C"
 
-// https://ffmpeg.org/doxygen/8.1/group__lavu__math.html#ga921d656eaf2c4d6800a734a13af021d0
+// https://ffmpeg.org/doxygen/8.0/group__lavu__math.html#ga921d656eaf2c4d6800a734a13af021d0
 type Rounding C.enum_AVRounding
 
 const (

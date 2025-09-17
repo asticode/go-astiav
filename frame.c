@@ -1,6 +1,7 @@
 #include <errno.h>
 #include <libavutil/avutil.h>
 #include <libavutil/samplefmt.h>
+#include <libavcodec/avcodec.h>
 #include <stdint.h>
 #include <string.h>
 
@@ -19,4 +20,8 @@ int astiavSamplesCopyToBuffer(uint8_t* dst, int dst_size, const uint8_t * const 
         src += linesize;
     }
     return buffer_size;
+}
+
+int astiavFillAudioFrame(AVFrame *frame, int nb_channels, enum AVSampleFormat sample_fmt, const uint8_t *buf, int buf_size, int align) {
+	return avcodec_fill_audio_frame(frame, nb_channels, sample_fmt, buf, buf_size, align);
 }

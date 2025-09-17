@@ -4,7 +4,7 @@ package astiav
 //#include <libavformat/avformat.h>
 import "C"
 
-// https://ffmpeg.org/doxygen/8.1/group__lavc__core.html#gaadca229ad2c20e060a14fec08a5cc7ce
+// https://ffmpeg.org/doxygen/8.0/group__lavc__core.html#gaadca229ad2c20e060a14fec08a5cc7ce
 type CodecID C.enum_AVCodecID
 
 const (

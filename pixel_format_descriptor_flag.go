@@ -3,7 +3,7 @@ package astiav
 //#include <libavutil/pixdesc.h>
 import "C"
 
-// https://ffmpeg.org/doxygen/8.1/pixdesc_8h.html#ac7c7d0be16fb9b6f05b3e0d463cd037b
+// https://ffmpeg.org/doxygen/8.0/pixdesc_8h.html#ac7c7d0be16fb9b6f05b3e0d463cd037b
 type PixelFormatDescriptorFlag int64
 
 const (

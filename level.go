@@ -3,7 +3,7 @@ package astiav
 //#include <libavcodec/avcodec.h>
 import "C"
 
-// https://ffmpeg.org/doxygen/8.1/avcodec_8h.html#a84a993ea19afa2cbda45b3283a598fe6
+// https://ffmpeg.org/doxygen/8.0/avcodec_8h.html#a84a993ea19afa2cbda45b3283a598fe6
 type Level int
 
 const (

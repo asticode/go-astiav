@@ -3,7 +3,7 @@ package astiav
 //#include <libavutil/log.h>
 import "C"
 
-// https://ffmpeg.org/doxygen/8.1/log_8h.html#aeb1c06cc3e47a029ca6afeac782ac8f9
+// https://ffmpeg.org/doxygen/8.0/log_8h.html#aeb1c06cc3e47a029ca6afeac782ac8f9
 type ClassCategory C.AVClassCategory
 
 const (
