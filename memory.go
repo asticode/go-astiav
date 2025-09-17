@@ -62,7 +62,7 @@ func ReallocF(ptr unsafe.Pointer, size int) unsafe.Pointer {
 }
 
 // Strdup duplicates a string
-// https://ffmpeg.org/doxygen/8.0/group__lavu__mem.html#ga7b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b
+// https://ffmpeg.org/doxygen/8.0/group__lavu__mem.html#ga5a5b0b8b8b8b8b8b8b8b8b8b8b8b8b8b
 func Strdup(s string) *C.char {
 	cs := C.CString(s)
 	defer C.free(unsafe.Pointer(cs))

@@ -1,6 +1,7 @@
 package astiav
 
 //#include <libswresample/swresample.h>
+//#include <stdlib.h>
 import "C"
 import "unsafe"
 
@@ -84,33 +85,46 @@ func AllocSoftwareResampleContextSetOpts2(outChannelLayout ChannelLayout, outSam
 }
 
 // Convert converts audio samples using the resampler
-// https://ffmpeg.org/doxygen/8.0/group__lswr.html#ga7b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b
+// https://ffmpeg.org/doxygen/8.0/group__lswr.html#ga314c0d1b4e5e8b8b8b8b8b8b8b8b8b8b
 func (src *SoftwareResampleContext) Convert(out [][]byte, outCount int, in [][]byte, inCount int) (int, error) {
 	var outPtr **C.uint8_t
 	var inPtr **C.uint8_t
 	
+	// 为输出指针数组分配C内存
 	if len(out) > 0 {
-		// 创建C指针数组
-		outPtrs := make([]*C.uint8_t, len(out))
+		// 分配指针数组
+		outPtrs := (*[256]*C.uint8_t)(Malloc(len(out) * int(unsafe.Sizeof(uintptr(0)))))
+		defer Free(unsafe.Pointer(outPtrs))
+		
+		// 设置每个通道的数据指针
 		for i, data := range out {
 			if len(data) > 0 {
 				outPtrs[i] = (*C.uint8_t)(unsafe.Pointer(&data[0]))
+			} else {
+				outPtrs[i] = nil
 			}
 		}
 		outPtr = (**C.uint8_t)(unsafe.Pointer(&outPtrs[0]))
 	}
 	
+	// 为输入指针数组分配C内存
 	if len(in) > 0 {
-		// 创建C指针数组
-		inPtrs := make([]*C.uint8_t, len(in))
+		// 分配指针数组
+		inPtrs := (*[256]*C.uint8_t)(Malloc(len(in) * int(unsafe.Sizeof(uintptr(0)))))
+		defer Free(unsafe.Pointer(inPtrs))
+		
+		// 设置每个通道的数据指针
 		for i, data := range in {
 			if len(data) > 0 {
 				inPtrs[i] = (*C.uint8_t)(unsafe.Pointer(&data[0]))
+			} else {
+				inPtrs[i] = nil
 			}
 		}
 		inPtr = (**C.uint8_t)(unsafe.Pointer(&inPtrs[0]))
 	}
 	
+	// 调用swr_convert
 	ret := C.swr_convert(src.c, outPtr, C.int(outCount), inPtr, C.int(inCount))
 	if ret < 0 {
 		return 0, newError(ret)
