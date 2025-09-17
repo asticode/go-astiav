@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"math"
+	"os"
 	"strings"
 
 	"github.com/asticode/go-astiav"
@@ -20,6 +21,23 @@ type OutputStream struct {
 	frame        *astiav.Frame
 	stream       *astiav.Stream
 	nextPts      int64
+}
+
+// logPacket 记录包信息，完全按照C代码的log_packet函数实现
+func logPacket(fmtCtx *astiav.FormatContext, pkt *astiav.Packet) {
+	if pkt.StreamIndex() >= len(fmtCtx.Streams()) {
+		fmt.Printf("invalid stream index %d\n", pkt.StreamIndex())
+		return
+	}
+	
+	stream := fmtCtx.Streams()[pkt.StreamIndex()]
+	timeBase := stream.TimeBase()
+	
+	fmt.Printf("pts:%s pts_time:%s dts:%s dts_time:%s duration:%s duration_time:%s stream_index:%d\n",
+		astiav.TsToString(pkt.Pts()), astiav.TsToTimeString(pkt.Pts(), timeBase),
+		astiav.TsToString(pkt.Dts()), astiav.TsToTimeString(pkt.Dts(), timeBase),
+		astiav.TsToString(pkt.Duration()), astiav.TsToTimeString(pkt.Duration(), timeBase),
+		pkt.StreamIndex())
 }
 
 func main() {
@@ -38,16 +56,38 @@ func main() {
 	// Parse flags
 	flag.Parse()
 
-	// Usage
-	if *output == "" {
-		log.Println("Usage: <binary path> -o <output media file> [-f <format>]")
+	// Usage - 完全按照C代码的参数处理
+	if len(flag.Args()) < 1 {
+		fmt.Printf("usage: %s output_file\n", flag.CommandLine.Name())
+		fmt.Printf("API example program to output a media file with libavformat.\n")
+		fmt.Printf("This program generates a synthetic audio and video stream, encodes and\n")
+		fmt.Printf("muxes them into a file named output_file.\n")
+		fmt.Printf("The output format is automatically guessed according to the file extension.\n")
+		fmt.Printf("Raw images can also be output by using '%%d' in the filename.\n\n")
 		return
 	}
+	
+	filename := flag.Args()[0]
+	
+	// 处理额外的flags参数 - 完全按照C代码
+	opts := astiav.NewDictionary()
+	defer opts.Free()
+	
+	args := flag.Args()[1:]
+	for i := 0; i < len(args)-1; i += 2 {
+		if args[i] == "-flags" || args[i] == "-fflags" {
+			opts.Set(args[i][1:], args[i+1], 0)
+		}
+	}
 
-	// Allocate output format context
-	formatContext, err := astiav.AllocOutputFormatContext(nil, *format, *output)
+	// Allocate output format context - 完全按照C代码
+	formatContext, err := astiav.AllocOutputFormatContext(nil, *format, filename)
 	if err != nil {
-		log.Fatal(fmt.Errorf("failed to allocate output format context: %w", err))
+		fmt.Printf("Could not deduce output format from file extension: using MPEG.\n")
+		formatContext, err = astiav.AllocOutputFormatContext(nil, "mpeg", filename)
+		if err != nil {
+			log.Fatal(fmt.Errorf("failed to allocate output format context: %w", err))
+		}
 	}
 	defer formatContext.Free()
 
@@ -76,11 +116,15 @@ func main() {
 		defer audioStream.free()
 	}
 
-	// Open output file
+	// 显示格式信息 - 完全按照C代码
+	formatContext.Dump(0, filename, true)
+
+	// Open output file - 完全按照C代码
 	if !outputFormat.Flags().Has(astiav.IOFormatFlagNofile) {
-		ioContext, err := astiav.OpenIOContext(*output, astiav.NewIOContextFlags(astiav.IOContextFlagWrite), nil, nil)
+		ioContext, err := astiav.OpenIOContext(filename, astiav.NewIOContextFlags(astiav.IOContextFlagWrite), nil, nil)
 		if err != nil {
-			log.Fatal(fmt.Errorf("failed to open output file: %w", err))
+			fmt.Fprintf(os.Stderr, "Could not open '%s': %v\n", filename, err)
+			os.Exit(1)
 		}
 		defer ioContext.Close()
 		formatContext.SetPb(ioContext)
@@ -114,11 +158,11 @@ func main() {
 		writeAudio := false
 
 		if videoStream != nil && audioStream != nil {
-			// Compare timestamps to decide which stream to write
-			videoPts := float64(videoStream.nextPts) * videoStream.codecContext.TimeBase().Float64()
-			audioPts := float64(audioStream.nextPts) * audioStream.codecContext.TimeBase().Float64()
-
-			if videoPts <= audioPts {
+			// Compare timestamps using av_compare_ts - 完全按照C代码
+			cmp := astiav.CompareTs(videoStream.nextPts, videoStream.codecContext.TimeBase(),
+				audioStream.nextPts, audioStream.codecContext.TimeBase())
+			
+			if cmp <= 0 {
 				writeVideo = true
 			} else {
 				writeAudio = true
@@ -392,9 +436,12 @@ func writeVideoFrame(formatContext *astiav.FormatContext, os *OutputStream, pack
 			return err
 		}
 
-		// Rescale packet timestamp
+		// Rescale packet timestamp - 完全按照C代码
 		packet.RescaleTs(os.codecContext.TimeBase(), os.stream.TimeBase())
 		packet.SetStreamIndex(os.stream.Index())
+
+		// Log packet - 完全按照C代码
+		logPacket(formatContext, packet)
 
 		// Write packet
 		if err := formatContext.WriteInterleavedFrame(packet); err != nil {
@@ -433,9 +480,12 @@ func writeAudioFrame(formatContext *astiav.FormatContext, os *OutputStream, pack
 			return err
 		}
 
-		// Rescale packet timestamp
+		// Rescale packet timestamp - 完全按照C代码
 		packet.RescaleTs(os.codecContext.TimeBase(), os.stream.TimeBase())
 		packet.SetStreamIndex(os.stream.Index())
+
+		// Log packet - 完全按照C代码
+		logPacket(formatContext, packet)
 
 		// Write packet
 		if err := formatContext.WriteInterleavedFrame(packet); err != nil {
