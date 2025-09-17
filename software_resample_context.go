@@ -61,3 +61,59 @@ func (src_ *SoftwareResampleContext) ConvertFrame(src, dst *Frame) error {
 func (src_ *SoftwareResampleContext) Delay(base int64) int64 {
 	return int64(C.swr_get_delay(src_.c, C.int64_t(base)))
 }
+
+// Init initializes the resampling context
+// https://ffmpeg.org/doxygen/8.0/group__lswr.html#ga7b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b
+func (src *SoftwareResampleContext) Init() error {
+	return newError(C.swr_init(src.c))
+}
+
+// AllocSetOpts2 allocates and sets options for a resampling context
+// https://ffmpeg.org/doxygen/8.0/group__lswr.html#ga7b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b
+func AllocSoftwareResampleContextSetOpts2(outChannelLayout ChannelLayout, outSampleFormat SampleFormat, outSampleRate int,
+	inChannelLayout ChannelLayout, inSampleFormat SampleFormat, inSampleRate int) (*SoftwareResampleContext, error) {
+	var c *C.SwrContext
+	ret := C.swr_alloc_set_opts2(&c,
+		outChannelLayout.c, C.enum_AVSampleFormat(outSampleFormat), C.int(outSampleRate),
+		inChannelLayout.c, C.enum_AVSampleFormat(inSampleFormat), C.int(inSampleRate),
+		0, nil)
+	if err := newError(ret); err != nil {
+		return nil, err
+	}
+	return newSoftwareResampleContextFromC(c), nil
+}
+
+// Convert converts audio samples using the resampler
+// https://ffmpeg.org/doxygen/8.0/group__lswr.html#ga7b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b
+func (src *SoftwareResampleContext) Convert(out [][]byte, outCount int, in [][]byte, inCount int) (int, error) {
+	var outPtr **C.uint8_t
+	var inPtr **C.uint8_t
+	
+	if len(out) > 0 {
+		// 创建C指针数组
+		outPtrs := make([]*C.uint8_t, len(out))
+		for i, data := range out {
+			if len(data) > 0 {
+				outPtrs[i] = (*C.uint8_t)(unsafe.Pointer(&data[0]))
+			}
+		}
+		outPtr = (**C.uint8_t)(unsafe.Pointer(&outPtrs[0]))
+	}
+	
+	if len(in) > 0 {
+		// 创建C指针数组
+		inPtrs := make([]*C.uint8_t, len(in))
+		for i, data := range in {
+			if len(data) > 0 {
+				inPtrs[i] = (*C.uint8_t)(unsafe.Pointer(&data[0]))
+			}
+		}
+		inPtr = (**C.uint8_t)(unsafe.Pointer(&inPtrs[0]))
+	}
+	
+	ret := C.swr_convert(src.c, outPtr, C.int(outCount), inPtr, C.int(inCount))
+	if ret < 0 {
+		return 0, newError(ret)
+	}
+	return int(ret), nil
+}

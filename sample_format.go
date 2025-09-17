@@ -2,6 +2,7 @@ package astiav
 
 //#include <libavutil/samplefmt.h>
 import "C"
+import "unsafe"
 
 // https://ffmpeg.org/doxygen/8.0/group__lavu__sampfmts.html#gaf9a51ca15301871723577c730b5865c5
 type SampleFormat C.enum_AVSampleFormat
@@ -40,4 +41,31 @@ func (f SampleFormat) BytesPerSample() int {
 // https://ffmpeg.org/doxygen/8.0/group__lavu__sampfmts.html#ga06ba8a64dc4382c422789a5d0b6bf592
 func (f SampleFormat) IsPlanar() bool {
 	return C.av_sample_fmt_is_planar((C.enum_AVSampleFormat)(f)) > 0
+}
+
+// SamplesAllocArrayAndSamples allocates a samples buffer array and samples buffer
+// https://ffmpeg.org/doxygen/8.0/group__lavu__sampmanip.html#ga7b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b
+func SamplesAllocArrayAndSamples(nbChannels, nbSamples int, sampleFmt SampleFormat, align int) ([][]byte, int, error) {
+	var audioData **C.uint8_t
+	var linesize C.int
+	
+	ret := C.av_samples_alloc_array_and_samples(&audioData, &linesize, C.int(nbChannels), C.int(nbSamples), C.enum_AVSampleFormat(sampleFmt), C.int(align))
+	if ret < 0 {
+		return nil, 0, newError(ret)
+	}
+	
+	// 转换C指针数组为Go切片
+	samples := make([][]byte, nbChannels)
+	audioDataSlice := (*[256]*C.uint8_t)(unsafe.Pointer(audioData))[:nbChannels:nbChannels]
+	
+	bytesPerSample := sampleFmt.BytesPerSample()
+	sampleSize := nbSamples * bytesPerSample
+	
+	for i := 0; i < nbChannels; i++ {
+		if audioDataSlice[i] != nil {
+			samples[i] = (*[1 << 30]byte)(unsafe.Pointer(audioDataSlice[i]))[:sampleSize:sampleSize]
+		}
+	}
+	
+	return samples, int(linesize), nil
 }
