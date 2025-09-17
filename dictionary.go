@@ -83,3 +83,16 @@ func (d *Dictionary) Unpack(b []byte) error {
 func (d *Dictionary) Copy(dst *Dictionary, flags DictionaryFlags) error {
 	return newError(C.av_dict_copy(&dst.c, d.c, C.int(flags)))
 }
+
+// Iterate iterates over all entries in the dictionary
+// https://ffmpeg.org/doxygen/8.0/group__lavu__dict.html#ga7b8b8b8b8b8b8b8b8b8b8b8b8b8b8b8b
+func (d *Dictionary) Iterate(prev *DictionaryEntry) *DictionaryEntry {
+	var cp *C.AVDictionaryEntry
+	if prev != nil {
+		cp = prev.c
+	}
+	if e := C.av_dict_iterate(d.c, cp); e != nil {
+		return newDictionaryEntryFromC(e)
+	}
+	return nil
+}
