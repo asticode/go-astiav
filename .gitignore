@@ -1,3 +1,6 @@
 .DS_STORE
 coverage.out
 .idea
+.vscode
+example/go.mod
+example/go.sum

@@ -29,14 +29,14 @@ func logPacket(fmtCtx *astiav.FormatContext, pkt *astiav.Packet) {
 		fmt.Printf("invalid stream index %d\n", pkt.StreamIndex())
 		return
 	}
-	
+
 	stream := fmtCtx.Streams()[pkt.StreamIndex()]
 	timeBase := stream.TimeBase()
-	
-	fmt.Printf("pts:%s pts_time:%s dts:%s dts_time:%s duration:%s duration_time:%s stream_index:%d\n",
-		astiav.TsToString(pkt.Pts()), astiav.TsToTimeString(pkt.Pts(), timeBase),
-		astiav.TsToString(pkt.Dts()), astiav.TsToTimeString(pkt.Dts(), timeBase),
-		astiav.TsToString(pkt.Duration()), astiav.TsToTimeString(pkt.Duration(), timeBase),
+
+	fmt.Printf("pts:%d pts_time:%f dts:%d dts_time:%f duration:%d duration_time:%f stream_index:%d\n",
+		pkt.Pts(), float64(pkt.Pts())*timeBase.Float64(),
+		pkt.Dts(), float64(pkt.Dts())*timeBase.Float64(),
+		pkt.Duration(), float64(pkt.Duration())*timeBase.Float64(),
 		pkt.StreamIndex())
 }
 
@@ -66,13 +66,13 @@ func main() {
 		fmt.Printf("Raw images can also be output by using '%%d' in the filename.\n\n")
 		return
 	}
-	
+
 	filename := flag.Args()[0]
-	
+
 	// 处理额外的flags参数 - 完全按照C代码
 	opts := astiav.NewDictionary()
 	defer opts.Free()
-	
+
 	args := flag.Args()[1:]
 	for i := 0; i < len(args)-1; i += 2 {
 		if args[i] == "-flags" || args[i] == "-fflags" {
@@ -161,7 +161,7 @@ func main() {
 			// Compare timestamps using av_compare_ts - 完全按照C代码
 			cmp := astiav.CompareTs(videoStream.nextPts, videoStream.codecContext.TimeBase(),
 				audioStream.nextPts, audioStream.codecContext.TimeBase())
-			
+
 			if cmp <= 0 {
 				writeVideo = true
 			} else {
