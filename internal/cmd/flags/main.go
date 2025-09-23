@@ -21,6 +21,7 @@ var list = []listItem{
 	{Name: "CodecHardwareConfigMethod"},
 	{Name: "Dictionary"},
 	{Name: "Disposition"},
+	{Name: "ErrorRecognition"},
 	{Name: "Filter"},
 	{Name: "FilterCommand"},
 	{Name: "FormatContext"},

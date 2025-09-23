@@ -69,6 +69,15 @@ func TestDispositionFlags(t *testing.T) {
 	require.False(t, fs.Has(DispositionFlag(2)))
 }
 
+func TestErrorRecognitionFlags(t *testing.T) {
+	fs := NewErrorRecognitionFlags(ErrorRecognitionFlag(1))
+	require.True(t, fs.Has(ErrorRecognitionFlag(1)))
+	fs = fs.Add(ErrorRecognitionFlag(2))
+	require.True(t, fs.Has(ErrorRecognitionFlag(2)))
+	fs = fs.Del(ErrorRecognitionFlag(2))
+	require.False(t, fs.Has(ErrorRecognitionFlag(2)))
+}
+
 func TestFilterFlags(t *testing.T) {
 	fs := NewFilterFlags(FilterFlag(1))
 	require.True(t, fs.Has(FilterFlag(1)))

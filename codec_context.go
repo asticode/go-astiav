@@ -140,6 +140,16 @@ func (cc *CodecContext) SetColorTransferCharacteristic(tc ColorTransferCharacter
 	cc.c.color_trc = C.enum_AVColorTransferCharacteristic(tc)
 }
 
+// https://ffmpeg.org/doxygen/7.0/structAVCodecContext.html#af9978d9bd6ac80a494ef1b78fe1d004f
+func (cc *CodecContext) ErrorRecognitionFlags() ErrorRecognitionFlags {
+	return ErrorRecognitionFlags(cc.c.err_recognition)
+}
+
+// https://ffmpeg.org/doxygen/7.0/structAVCodecContext.html#af9978d9bd6ac80a494ef1b78fe1d004f
+func (cc *CodecContext) SetErrorRecognitionFlags(fs ErrorRecognitionFlags) {
+	cc.c.err_recognition = C.int(fs)
+}
+
 // https://ffmpeg.org/doxygen/7.0/structAVCodecContext.html#abe964316aaaa61967b012efdcced79c4
 func (cc *CodecContext) ExtraData() []byte {
 	return bytesFromC(func(size *C.size_t) *C.uint8_t {
