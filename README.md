@@ -77,22 +77,16 @@ for {
 
 # Install ffmpeg from source
 
-If you don't know how to install `ffmpeg`, you can use the following to install it from source:
+Check out the `ffmpeg` section in the [Devcontainer Dockerfile](.devcontainer/Dockerfile) to see how to install ffmpeg from source.
+
+For your GO code to pick up `ffmpeg` dependency automatically, you'll need to update the following environment variables :
+
+(don't forget to replace `{{ path to your ffmpeg directory }}` with the absolute path to your ffmpeg directory)
 
 ```sh
-$ make install-ffmpeg
-```
-
-`ffmpeg` will be built from source in a directory named `tmp` and located in you working directory
-
-For your GO code to pick up `ffmpeg` dependency automatically, you'll need to add the following environment variables:
-
-(don't forget to replace `{{ path to your working directory }}` with the absolute path to your working directory)
-
-```sh
-export CGO_LDFLAGS="-L{{ path to your working directory }}/tmp/n7.0/lib/",
-export CGO_CFLAGS="-I{{ path to your working directory }}/tmp/n7.0/include/",
-export PKG_CONFIG_PATH="{{ path to your working directory }}/tmp/n7.0/lib/pkgconfig",
+export CGO_CFLAGS="-I{{ path to your ffmpeg directory }}/include/",
+export CGO_LDFLAGS="-L{{ path to your ffmpeg directory }}/lib/",
+export PKG_CONFIG_PATH="{{ path to your ffmpeg directory }}/lib/pkgconfig",
 ```
 
 ## Building on Windows

@@ -1,0 +1,11 @@
+{
+    "configurations": [
+        {
+            "includePath": [
+                "${workspaceFolder}/**",
+                "/opt/ffmpeg/include"
+            ]
+        }
+    ],
+    "version": 4
+}
