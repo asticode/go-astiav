@@ -130,4 +130,16 @@ func TestFrame(t *testing.T) {
 	f7b, err := f7.Data().Bytes(align)
 	require.NoError(t, err)
 	require.Equal(t, f6b, f7b)
+
+	f8 := AllocFrame()
+	require.NotNil(t, f8)
+	defer f8.Free()
+	d := NewDictionary()
+	require.NoError(t, d.Set("k", "v", 0))
+	f8.SetMetadata(d)
+	v := f8.Metadata().Get("k", nil, 0)
+	require.NotNil(t, v)
+	require.Equal(t, "v", v.Value())
+	f8.SetMetadata(nil)
+	require.Nil(t, f8.Metadata())
 }
