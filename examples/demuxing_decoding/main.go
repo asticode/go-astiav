@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/asticode/go-astiav"
+	"github.com/asticode/go-astikit"
 )
 
 var (
@@ -17,6 +18,7 @@ var (
 type stream struct {
 	decCodec        *astiav.Codec
 	decCodecContext *astiav.CodecContext
+	decLastPTS      *int64
 	inputStream     *astiav.Stream
 }
 
@@ -145,6 +147,12 @@ func main() {
 
 					// Make sure to unreference the frame
 					defer f.Unref()
+
+					// Ignore frames with non monotonic PTS
+					if s.decLastPTS != nil && *s.decLastPTS >= f.Pts() {
+						return false
+					}
+					s.decLastPTS = astikit.Int64Ptr(f.Pts())
 
 					// Log
 					log.Printf("new %s frame: stream %d - pts: %d", s.inputStream.CodecParameters().MediaType(), pkt.StreamIndex(), f.Pts())

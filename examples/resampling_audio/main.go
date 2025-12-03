@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/asticode/go-astiav"
+	"github.com/asticode/go-astikit"
 )
 
 var (
@@ -16,6 +17,7 @@ var (
 
 var (
 	af             *astiav.AudioFifo
+	decLastPTS     *int64
 	decodedFrame   *astiav.Frame
 	finalFrame     *astiav.Frame
 	resampledFrame *astiav.Frame
@@ -185,6 +187,12 @@ func main() {
 
 					// Make sure to unreference the frame
 					defer decodedFrame.Unref()
+
+					// Ignore frames with non monotonic PTS
+					if decLastPTS != nil && *decLastPTS >= decodedFrame.Pts() {
+						return false
+					}
+					decLastPTS = astikit.Int64Ptr(decodedFrame.Pts())
 
 					// Log
 					log.Printf("new decoded frame: nb samples: %d", decodedFrame.NbSamples())

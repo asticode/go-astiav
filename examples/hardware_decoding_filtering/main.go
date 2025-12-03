@@ -25,6 +25,7 @@ var (
 	c                     = astikit.NewCloser()
 	decCodec              *astiav.Codec
 	decCodecContext       *astiav.CodecContext
+	decLastPTS            *int64
 	decodedHardwareFrame  *astiav.Frame
 	filterGraph           *astiav.FilterGraph
 	filteredHardwareFrame *astiav.Frame
@@ -213,6 +214,12 @@ func main() {
 
 					// Make sure to unreference hardware frame
 					defer decodedHardwareFrame.Unref()
+
+					// Ignore frames with non monotonic PTS
+					if decLastPTS != nil && *decLastPTS >= decodedHardwareFrame.Pts() {
+						return false
+					}
+					decLastPTS = astikit.Int64Ptr(decodedHardwareFrame.Pts())
 
 					// Invalid pixel format
 					if decodedHardwareFrame.PixelFormat() != hardwarePixelFormat {

@@ -29,6 +29,7 @@ type stream struct {
 	decCodec          *astiav.Codec
 	decCodecContext   *astiav.CodecContext
 	decFrame          *astiav.Frame
+	decLastPTS        *int64
 	encCodec          *astiav.Codec
 	encCodecContext   *astiav.CodecContext
 	encPkt            *astiav.Packet
@@ -125,6 +126,12 @@ func main() {
 
 					// Make sure to unreference the frame
 					defer s.decFrame.Unref()
+
+					// Ignore frames with non monotonic PTS
+					if s.decLastPTS != nil && *s.decLastPTS >= s.decFrame.Pts() {
+						return false
+					}
+					s.decLastPTS = astikit.Int64Ptr(s.decFrame.Pts())
 
 					// Filter, encode and write frame
 					if err := filterEncodeWriteFrame(s.decFrame, s); err != nil {
