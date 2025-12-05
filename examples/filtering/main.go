@@ -61,12 +61,14 @@ func main() {
 
 	// Open input file
 	if err := openInputFile(); err != nil {
-		log.Fatal(fmt.Errorf("main: opening input file failed: %w", err))
+		log.Println(fmt.Errorf("main: opening input file failed: %w", err))
+		return
 	}
 
 	// Init filter
 	if err := initFilter(); err != nil {
-		log.Fatal(fmt.Errorf("main: initializing filter failed: %w", err))
+		log.Println(fmt.Errorf("main: initializing filter failed: %w", err))
+		return
 	}
 
 	// Allocate packet
@@ -79,10 +81,10 @@ func main() {
 		if stop := func() bool {
 			// Read frame
 			if err := inputFormatContext.ReadFrame(pkt); err != nil {
-				if errors.Is(err, astiav.ErrEof) {
-					return true
+				if !errors.Is(err, astiav.ErrEof) {
+					log.Println(fmt.Errorf("main: reading frame failed: %w", err))
 				}
-				log.Fatal(fmt.Errorf("main: reading frame failed: %w", err))
+				return true
 			}
 
 			// Make sure to unreference the packet
@@ -95,7 +97,8 @@ func main() {
 
 			// Send packet
 			if err := s.decCodecContext.SendPacket(pkt); err != nil {
-				log.Fatal(fmt.Errorf("main: sending packet failed: %w", err))
+				log.Println(fmt.Errorf("main: sending packet failed: %w", err))
+				return true
 			}
 
 			// Loop
@@ -104,10 +107,10 @@ func main() {
 				if stop := func() bool {
 					// Receive frame
 					if err := s.decCodecContext.ReceiveFrame(s.decFrame); err != nil {
-						if errors.Is(err, astiav.ErrEof) || errors.Is(err, astiav.ErrEagain) {
-							return true
+						if !errors.Is(err, astiav.ErrEof) && !errors.Is(err, astiav.ErrEagain) {
+							log.Println(fmt.Errorf("main: receiving frame failed: %w", err))
 						}
-						log.Fatal(fmt.Errorf("main: receiving frame failed: %w", err))
+						return true
 					}
 
 					// Make sure to unreference the frame
@@ -121,7 +124,8 @@ func main() {
 
 					// Filter frame
 					if err := filterFrame(s.decFrame, s); err != nil {
-						log.Fatal(fmt.Errorf("main: filtering frame failed: %w", err))
+						log.Println(fmt.Errorf("main: filtering frame failed: %w", err))
+						return true
 					}
 					return false
 				}(); stop {
@@ -136,11 +140,12 @@ func main() {
 
 	// Flush filter
 	if err := filterFrame(nil, s); err != nil {
-		log.Fatal(fmt.Errorf("main: filtering frame failed: %w", err))
+		log.Println(fmt.Errorf("main: filtering frame failed: %w", err))
+		return
 	}
 
-	// Success
-	log.Println("success")
+	// Done
+	log.Println("done")
 }
 
 func openInputFile() (err error) {

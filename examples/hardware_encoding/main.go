@@ -46,48 +46,54 @@ func main() {
 	// Get hardware device type
 	hardwareDeviceType := astiav.FindHardwareDeviceTypeByName(*hardwareDeviceTypeName)
 	if hardwareDeviceType == astiav.HardwareDeviceTypeNone {
-		log.Fatal(errors.New("main: hardware device not found"))
+		log.Println(errors.New("main: hardware device not found"))
+		return
 	}
 
 	// Create hardware device context
 	hardwareDeviceContext, err := astiav.CreateHardwareDeviceContext(hardwareDeviceType, *hardwareDeviceName, nil, 0)
 	if err != nil {
-		log.Fatal(fmt.Errorf("main: creating hardware device context failed: %w", err))
+		log.Println(fmt.Errorf("main: creating hardware device context failed: %w", err))
+		return
 	}
 	defer hardwareDeviceContext.Free()
 
 	hardwareFramesConstraints := hardwareDeviceContext.HardwareFramesConstraints()
 	if hardwareFramesConstraints == nil {
-		log.Fatal("main: hardware frames constraints is nil")
+		log.Println("main: hardware frames constraints is nil")
 		return
 	}
 	defer hardwareFramesConstraints.Free()
 
 	validHardwarePixelFormats := hardwareFramesConstraints.ValidHardwarePixelFormats()
 	if len(validHardwarePixelFormats) == 0 {
-		log.Fatal("main: no valid hardware pixel formats")
+		log.Println("main: no valid hardware pixel formats")
 		return
 	}
 
 	// Find encoder codec
 	encCodec := astiav.FindEncoderByName(*encoderCodecName)
 	if encCodec == nil {
-		log.Fatal("main: encoder codec is nil")
+		log.Println("main: encoder codec is nil")
+		return
 	}
 
 	// Alloc codec context
 	encCodecContext := astiav.AllocCodecContext(encCodec)
 	if encCodecContext == nil {
-		log.Fatal("main: codec context is nil")
+		log.Println("main: codec context is nil")
+		return
 	}
 	defer encCodecContext.Free()
 
 	// Get hardware pixel format
 	hardwarePixelFormat := astiav.FindPixelFormatByName(*hardwarePixelFormatName)
 	if hardwarePixelFormat == astiav.PixelFormatNone {
-		log.Fatal("main: hardware pixel format not found")
+		log.Println("main: hardware pixel format not found")
+		return
 	} else if !slices.Contains(validHardwarePixelFormats, hardwarePixelFormat) {
-		log.Fatalf("main: hardware pixel format not supported : %s", hardwarePixelFormat)
+		log.Printf("main: hardware pixel format not supported : %s\n", hardwarePixelFormat)
+		return
 	}
 
 	// Set codec context
@@ -100,22 +106,25 @@ func main() {
 	// Alloc hardware frames context
 	hardwareFramesContext := astiav.AllocHardwareFramesContext(hardwareDeviceContext)
 	if hardwareFramesContext == nil {
-		log.Fatal("main: hardware frames context is nil")
+		log.Println("main: hardware frames context is nil")
+		return
 	}
 	defer hardwareFramesContext.Free()
 
 	validSoftwarePixelFormats := hardwareFramesConstraints.ValidSoftwarePixelFormats()
 	if len(validSoftwarePixelFormats) == 0 {
-		log.Fatal("main: no valid software pixel formats")
+		log.Println("main: no valid software pixel formats")
 		return
 	}
 
 	// Get software pixel format
 	softwarePixelFormat := astiav.FindPixelFormatByName(*softwarePixelFormatName)
 	if softwarePixelFormat == astiav.PixelFormatNone {
-		log.Fatal("main: software pixel format not found")
+		log.Println("main: software pixel format not found")
+		return
 	} else if !slices.Contains(validSoftwarePixelFormats, softwarePixelFormat) {
-		log.Fatalf("main: software pixel format not supported : %s", softwarePixelFormat)
+		log.Printf("main: software pixel format not supported : %s\n", softwarePixelFormat)
+		return
 	}
 
 	// Set hardware frame content
@@ -127,7 +136,8 @@ func main() {
 
 	// Initialize hardware frame context
 	if err := hardwareFramesContext.Initialize(); err != nil {
-		log.Fatal(fmt.Errorf("main: initializing hardware frame context failed: %w", err))
+		log.Println(fmt.Errorf("main: initializing hardware frame context failed: %w", err))
+		return
 	}
 
 	// Update encoder codec context hardware frame context
@@ -135,7 +145,8 @@ func main() {
 
 	// Open codec context
 	if err := encCodecContext.Open(encCodec, nil); err != nil {
-		log.Fatal(fmt.Errorf("main: opening codec context failed: %w", err))
+		log.Println(fmt.Errorf("main: opening codec context failed: %w", err))
+		return
 	}
 
 	// Alloc software frame
@@ -149,12 +160,14 @@ func main() {
 
 	// Alloc software frame buffer
 	if err := softwareFrame.AllocBuffer(0); err != nil {
-		log.Fatal(fmt.Errorf("main: allocating buffer failed: %w", err))
+		log.Println(fmt.Errorf("main: allocating buffer failed: %w", err))
+		return
 	}
 
 	// Fill software frame with black
 	if err = softwareFrame.ImageFillBlack(); err != nil {
-		log.Fatal(fmt.Errorf("main: filling software frame with black failed: %w", err))
+		log.Println(fmt.Errorf("main: filling software frame with black failed: %w", err))
+		return
 	}
 
 	// Alloc hardware frame
@@ -163,17 +176,20 @@ func main() {
 
 	// Alloc hardware frame buffer
 	if err := hardwareFrame.AllocHardwareBuffer(hardwareFramesContext); err != nil {
-		log.Fatal(fmt.Errorf("main: allocating hardware buffer failed: %w", err))
+		log.Println(fmt.Errorf("main: allocating hardware buffer failed: %w", err))
+		return
 	}
 
 	// Transfer software frame data to hardware frame
 	if err := softwareFrame.TransferHardwareData(hardwareFrame); err != nil {
-		log.Fatal(fmt.Errorf("main: transferring hardware data failed: %w", err))
+		log.Println(fmt.Errorf("main: transferring hardware data failed: %w", err))
+		return
 	}
 
 	// Encode frame
 	if err := encCodecContext.SendFrame(hardwareFrame); err != nil {
-		log.Fatal(fmt.Errorf("main: sending frame failed: %w", err))
+		log.Println(fmt.Errorf("main: sending frame failed: %w", err))
+		return
 	}
 
 	// Alloc packet
@@ -186,10 +202,10 @@ func main() {
 		if stop := func() bool {
 			// Receive packet
 			if err = encCodecContext.ReceivePacket(pkt); err != nil {
-				if errors.Is(err, astiav.ErrEof) || errors.Is(err, astiav.ErrEagain) {
-					return true
+				if !errors.Is(err, astiav.ErrEof) && !errors.Is(err, astiav.ErrEagain) {
+					log.Println(fmt.Errorf("main: receiving packet failed: %w", err))
 				}
-				log.Fatal(fmt.Errorf("main: receiving packet failed: %w", err))
+				return true
 			}
 
 			// Make sure to unreference packet

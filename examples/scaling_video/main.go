@@ -42,7 +42,8 @@ func main() {
 	// Create destination file
 	dstFile, err := os.Create(*output)
 	if err != nil {
-		log.Fatal(fmt.Errorf("main: creating %s failed: %w", *output, err))
+		log.Println(fmt.Errorf("main: creating %s failed: %w", *output, err))
+		return
 	}
 	defer dstFile.Close()
 
@@ -53,10 +54,12 @@ func main() {
 	srcFrame.SetHeight(240)
 	srcFrame.SetPixelFormat(astiav.PixelFormatYuv420P)
 	if err = srcFrame.AllocBuffer(1); err != nil {
-		log.Fatal(fmt.Errorf("main: allocating source frame buffer failed: %w", err))
+		log.Println(fmt.Errorf("main: allocating source frame buffer failed: %w", err))
+		return
 	}
 	if err = srcFrame.ImageFillBlack(); err != nil {
-		log.Fatal(fmt.Errorf("main: filling source frame with black image failed: %w", err))
+		log.Println(fmt.Errorf("main: filling source frame with black image failed: %w", err))
+		return
 	}
 
 	// Create destination frame
@@ -74,31 +77,36 @@ func main() {
 		astiav.NewSoftwareScaleContextFlags(astiav.SoftwareScaleContextFlagBilinear),
 	)
 	if err != nil {
-		log.Fatal(fmt.Errorf("main: creating software scale context failed: %w", err))
+		log.Println(fmt.Errorf("main: creating software scale context failed: %w", err))
+		return
 	}
 	defer swsCtx.Free()
 
 	// Scale frame
 	if err := swsCtx.ScaleFrame(srcFrame, dstFrame); err != nil {
-		log.Fatal(fmt.Errorf("main: scaling frame failed: %w", err))
+		log.Println(fmt.Errorf("main: scaling frame failed: %w", err))
+		return
 	}
 
 	// Guess destination image format
 	img, err := dstFrame.Data().GuessImageFormat()
 	if err != nil {
-		log.Fatal(fmt.Errorf("main: guessing destination image format failed: %w", err))
+		log.Println(fmt.Errorf("main: guessing destination image format failed: %w", err))
+		return
 	}
 
 	// Copy frame data to destination image
 	if err = dstFrame.Data().ToImage(img); err != nil {
-		log.Fatal(fmt.Errorf("main: copying frame data to destination image failed: %w", err))
+		log.Println(fmt.Errorf("main: copying frame data to destination image failed: %w", err))
+		return
 	}
 
 	// Encode to png
 	if err = png.Encode(dstFile, img); err != nil {
-		log.Fatal(fmt.Errorf("main: encoding to png failed: %w", err))
+		log.Println(fmt.Errorf("main: encoding to png failed: %w", err))
+		return
 	}
 
-	// Success
-	log.Println("success")
+	// Done
+	log.Println("done")
 }

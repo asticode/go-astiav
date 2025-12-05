@@ -55,19 +55,22 @@ func main() {
 	// Allocate input format context
 	inputFormatContext := astiav.AllocFormatContext()
 	if inputFormatContext == nil {
-		log.Fatal(errors.New("main: input format context is nil"))
+		log.Println(errors.New("main: input format context is nil"))
+		return
 	}
 	defer inputFormatContext.Free()
 
 	// Open input
 	if err := inputFormatContext.OpenInput(*input, nil, nil); err != nil {
-		log.Fatal(fmt.Errorf("main: opening input failed: %w", err))
+		log.Println(fmt.Errorf("main: opening input failed: %w", err))
+		return
 	}
 	defer inputFormatContext.CloseInput()
 
 	// Find stream info
 	if err := inputFormatContext.FindStreamInfo(nil); err != nil {
-		log.Fatal(fmt.Errorf("main: finding stream info failed: %w", err))
+		log.Println(fmt.Errorf("main: finding stream info failed: %w", err))
+		return
 	}
 
 	// Loop through streams
@@ -84,23 +87,27 @@ func main() {
 
 		// Find decoder
 		if s.decCodec = astiav.FindDecoder(is.CodecParameters().CodecID()); s.decCodec == nil {
-			log.Fatal(errors.New("main: codec is nil"))
+			log.Println(errors.New("main: codec is nil"))
+			return
 		}
 
 		// Allocate codec context
 		if s.decCodecContext = astiav.AllocCodecContext(s.decCodec); s.decCodecContext == nil {
-			log.Fatal(errors.New("main: codec context is nil"))
+			log.Println(errors.New("main: codec context is nil"))
+			return
 		}
 		defer s.decCodecContext.Free()
 
 		// Update codec context
 		if err := is.CodecParameters().ToCodecContext(s.decCodecContext); err != nil {
-			log.Fatal(fmt.Errorf("main: updating codec context failed: %w", err))
+			log.Println(fmt.Errorf("main: updating codec context failed: %w", err))
+			return
 		}
 
 		// Open codec context
 		if err := s.decCodecContext.Open(s.decCodec, nil); err != nil {
-			log.Fatal(fmt.Errorf("main: opening codec context failed: %w", err))
+			log.Println(fmt.Errorf("main: opening codec context failed: %w", err))
+			return
 		}
 
 		// Add stream
@@ -113,10 +120,10 @@ func main() {
 		if stop := func() bool {
 			// Read frame
 			if err := inputFormatContext.ReadFrame(pkt); err != nil {
-				if errors.Is(err, astiav.ErrEof) {
-					return true
+				if !errors.Is(err, astiav.ErrEof) {
+					log.Println(fmt.Errorf("main: reading frame failed: %w", err))
 				}
-				log.Fatal(fmt.Errorf("main: reading frame failed: %w", err))
+				return true
 			}
 
 			// Make sure to unreference the packet
@@ -130,7 +137,8 @@ func main() {
 
 			// Send packet
 			if err := s.decCodecContext.SendPacket(pkt); err != nil {
-				log.Fatal(fmt.Errorf("main: sending packet failed: %w", err))
+				log.Println(fmt.Errorf("main: sending packet failed: %w", err))
+				return true
 			}
 
 			// Loop
@@ -139,10 +147,10 @@ func main() {
 				if stop := func() bool {
 					// Receive frame
 					if err := s.decCodecContext.ReceiveFrame(f); err != nil {
-						if errors.Is(err, astiav.ErrEof) || errors.Is(err, astiav.ErrEagain) {
-							return true
+						if !errors.Is(err, astiav.ErrEof) && !errors.Is(err, astiav.ErrEagain) {
+							log.Println(fmt.Errorf("main: receiving frame failed: %w", err))
 						}
-						log.Fatal(fmt.Errorf("main: receiving frame failed: %w", err))
+						return true
 					}
 
 					// Make sure to unreference the frame
@@ -167,6 +175,6 @@ func main() {
 		}
 	}
 
-	// Success
-	log.Println("success")
+	// Done
+	log.Println("done")
 }

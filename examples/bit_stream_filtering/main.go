@@ -49,19 +49,22 @@ func main() {
 	// Allocate input format context
 	inputFormatContext := astiav.AllocFormatContext()
 	if inputFormatContext == nil {
-		log.Fatal(errors.New("main: input format context is nil"))
+		log.Println(errors.New("main: input format context is nil"))
+		return
 	}
 	defer inputFormatContext.Free()
 
 	// Open input
 	if err := inputFormatContext.OpenInput(*input, nil, nil); err != nil {
-		log.Fatal(fmt.Errorf("main: opening input failed: %w", err))
+		log.Println(fmt.Errorf("main: opening input failed: %w", err))
+		return
 	}
 	defer inputFormatContext.CloseInput()
 
 	// Find stream info
 	if err := inputFormatContext.FindStreamInfo(nil); err != nil {
-		log.Fatal(fmt.Errorf("main: finding stream info failed: %w", err))
+		log.Println(fmt.Errorf("main: finding stream info failed: %w", err))
+		return
 	}
 
 	// Loop through streams
@@ -83,19 +86,22 @@ func main() {
 		// Find bit stream filter
 		bsf := astiav.FindBitStreamFilterByName(*filter)
 		if bsf == nil {
-			log.Fatal(errors.New("main: bit stream filter is nil"))
+			log.Println(errors.New("main: bit stream filter is nil"))
+			return
 		}
 
 		// Allocate bit stream filter context
 		var err error
 		if s.bitStreamFilterContext, err = astiav.AllocBitStreamFilterContext(bsf); err != nil {
-			log.Fatal(fmt.Errorf("main: allocating bit stream filter context failed: %w", err))
+			log.Println(fmt.Errorf("main: allocating bit stream filter context failed: %w", err))
+			return
 		}
 		defer s.bitStreamFilterContext.Free()
 
 		// Copy codec parameters
 		if err := is.CodecParameters().Copy(s.bitStreamFilterContext.InputCodecParameters()); err != nil {
-			log.Fatal(fmt.Errorf("main: copying codec parameters failed: %w", err))
+			log.Println(fmt.Errorf("main: copying codec parameters failed: %w", err))
+			return
 		}
 
 		// Update time base
@@ -103,7 +109,8 @@ func main() {
 
 		// Initialize bit stream filter context
 		if err := s.bitStreamFilterContext.Initialize(); err != nil {
-			log.Fatal(fmt.Errorf("main: initializing bit stream filter context failed: %w", err))
+			log.Println(fmt.Errorf("main: initializing bit stream filter context failed: %w", err))
+			return
 		}
 
 		// Add stream
@@ -116,10 +123,10 @@ func main() {
 		if stop := func() bool {
 			// Read frame
 			if err := inputFormatContext.ReadFrame(pkt); err != nil {
-				if errors.Is(err, astiav.ErrEof) {
-					return true
+				if !errors.Is(err, astiav.ErrEof) {
+					log.Println(fmt.Errorf("main: reading frame failed: %w", err))
 				}
-				log.Fatal(fmt.Errorf("main: reading frame failed: %w", err))
+				return true
 			}
 
 			// Make sure to unreference the packet
@@ -133,7 +140,8 @@ func main() {
 
 			// Filter bit stream
 			if err := filterBitStream(pkt, s); err != nil {
-				log.Fatal(fmt.Errorf("main: filtering bit stream failed: %w", err))
+				log.Println(fmt.Errorf("main: filtering bit stream failed: %w", err))
+				return true
 			}
 			return false
 		}(); stop {
@@ -145,12 +153,13 @@ func main() {
 	for _, s := range streams {
 		// Flush bit stream filter
 		if err := filterBitStream(nil, s); err != nil {
-			log.Fatal(fmt.Errorf("main: filtering bit stream failed: %w", err))
+			log.Println(fmt.Errorf("main: filtering bit stream failed: %w", err))
+			return
 		}
 	}
 
-	// Success
-	log.Println("success")
+	// Done
+	log.Println("done")
 }
 
 func filterBitStream(pkt *astiav.Packet, s *stream) error {

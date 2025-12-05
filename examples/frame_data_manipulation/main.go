@@ -41,23 +41,27 @@ func main() {
 	// Allocate buffer
 	align := 0
 	if err := audioFrame.AllocBuffer(align); err != nil {
-		log.Fatal(fmt.Errorf("main: allocating buffer failed: %w", err))
+		log.Println(fmt.Errorf("main: allocating buffer failed: %w", err))
+		return
 	}
 
 	// When writing data manually into a frame, you need to make sure the frame is writable
 	if err := audioFrame.MakeWritable(); err != nil {
-		log.Fatal(fmt.Errorf("main: making frame writable failed: %w", err))
+		log.Println(fmt.Errorf("main: making frame writable failed: %w", err))
+		return
 	}
 
 	// Let's say b1 contains an actual audio buffer, we can update the audio frame's data based on the buffer
 	var b1 []byte
 	if err := audioFrame.Data().SetBytes(b1, align); err != nil {
-		log.Fatal(fmt.Errorf("main: setting frame's data based from bytes failed: %w", err))
+		log.Println(fmt.Errorf("main: setting frame's data based from bytes failed: %w", err))
+		return
 	}
 
 	// We can also retrieve the audio frame's data as buffer
 	if _, err := audioFrame.Data().Bytes(align); err != nil {
-		log.Fatal(fmt.Errorf("main: getting frame's data as bytes failed: %w", err))
+		log.Println(fmt.Errorf("main: getting frame's data as bytes failed: %w", err))
+		return
 	}
 
 	/*
@@ -78,29 +82,34 @@ func main() {
 	// Allocate buffer
 	align = 1
 	if err := videoFrame.AllocBuffer(align); err != nil {
-		log.Fatal(fmt.Errorf("main: allocating buffer failed: %w", err))
+		log.Println(fmt.Errorf("main: allocating buffer failed: %w", err))
+		return
 	}
 
 	// When writing data manually into a frame, you need to make sure the frame is writable
 	if err := videoFrame.MakeWritable(); err != nil {
-		log.Fatal(fmt.Errorf("main: making frame writable failed: %w", err))
+		log.Println(fmt.Errorf("main: making frame writable failed: %w", err))
+		return
 	}
 
 	// Let's say b2 contains an actual video buffer, we can update the video frame's data based on the buffer
 	var b2 []byte
 	if err := videoFrame.Data().SetBytes(b2, align); err != nil {
-		log.Fatal(fmt.Errorf("main: setting frame's data based from bytes failed: %w", err))
+		log.Println(fmt.Errorf("main: setting frame's data based from bytes failed: %w", err))
+		return
 	}
 
 	// We can also retrieve the video frame's data as buffer
 	if _, err := videoFrame.Data().Bytes(align); err != nil {
-		log.Fatal(fmt.Errorf("main: getting frame's data as bytes failed: %w", err))
+		log.Println(fmt.Errorf("main: getting frame's data as bytes failed: %w", err))
+		return
 	}
 
 	// Let's say i1 is an actual Go image.Image, we can update the video frame's data based on the image
 	var i1 image.Image
 	if err := videoFrame.Data().FromImage(i1); err != nil {
-		log.Fatal(fmt.Errorf("main: setting frame's data based on Go image failed: %w", err))
+		log.Println(fmt.Errorf("main: setting frame's data based on Go image failed: %w", err))
+		return
 	}
 
 	// We can also retrieve the video frame's data as a Go image
@@ -108,12 +117,14 @@ func main() {
 	// it to .ToImage(). You may not need this and can provide your own image.Image to .ToImage()
 	i2, err := videoFrame.Data().GuessImageFormat()
 	if err != nil {
-		log.Fatal(fmt.Errorf("main: guessing image format failed: %w", err))
+		log.Println(fmt.Errorf("main: guessing image format failed: %w", err))
+		return
 	}
 	if err := videoFrame.Data().ToImage(i2); err != nil {
-		log.Fatal(fmt.Errorf("main: getting frame's data as Go image failed: %w", err))
+		log.Println(fmt.Errorf("main: getting frame's data as Go image failed: %w", err))
+		return
 	}
 
-	// Success
-	log.Println("success")
+	// Done
+	log.Println("done")
 }

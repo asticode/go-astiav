@@ -45,35 +45,41 @@ func main() {
 	// Allocate input format context
 	inputFormatContext := astiav.AllocFormatContext()
 	if inputFormatContext == nil {
-		log.Fatal(errors.New("main: input format context is nil"))
+		log.Println(errors.New("main: input format context is nil"))
+		return
 	}
 	defer inputFormatContext.Free()
 
 	// Open input
 	if err := inputFormatContext.OpenInput(*input, nil, nil); err != nil {
-		log.Fatal(fmt.Errorf("main: opening input failed: %w", err))
+		log.Println(fmt.Errorf("main: opening input failed: %w", err))
+		return
 	}
 	defer inputFormatContext.CloseInput()
 
 	// Find stream info
 	if err := inputFormatContext.FindStreamInfo(nil); err != nil {
-		log.Fatal(fmt.Errorf("main: finding stream info failed: %w", err))
+		log.Println(fmt.Errorf("main: finding stream info failed: %w", err))
+		return
 	}
 
 	// Allocate output format context
 	outputFormatContext, err := astiav.AllocOutputFormatContext(nil, "mp4", "")
 	if err != nil {
-		log.Fatal(fmt.Errorf("main: allocating output format context failed: %w", err))
+		log.Println(fmt.Errorf("main: allocating output format context failed: %w", err))
+		return
 	}
 	if outputFormatContext == nil {
-		log.Fatal(errors.New("main: output format context is nil"))
+		log.Println(errors.New("main: output format context is nil"))
+		return
 	}
 	defer outputFormatContext.Free()
 
 	// Open file
 	f, err := os.Create(*output)
 	if err != nil {
-		log.Fatal(fmt.Errorf("main: creating %s failed: %w", *output, err))
+		log.Println(fmt.Errorf("main: creating %s failed: %w", *output, err))
+		return
 	}
 	defer f.Close()
 
@@ -90,7 +96,8 @@ func main() {
 		},
 	)
 	if err != nil {
-		log.Fatal(fmt.Errorf("main: allocating io context failed: %w", err))
+		log.Println(fmt.Errorf("main: allocating io context failed: %w", err))
+		return
 	}
 	defer ioContext.Free()
 
@@ -113,12 +120,14 @@ func main() {
 		// Add stream to output format context
 		os := outputFormatContext.NewStream(nil)
 		if os == nil {
-			log.Fatal(errors.New("main: output stream is nil"))
+			log.Println(errors.New("main: output stream is nil"))
+			return
 		}
 
 		// Copy codec parameters
 		if err = is.CodecParameters().Copy(os.CodecParameters()); err != nil {
-			log.Fatal(fmt.Errorf("main: copying codec parameters failed: %w", err))
+			log.Println(fmt.Errorf("main: copying codec parameters failed: %w", err))
+			return
 		}
 
 		// Reset codec tag
@@ -130,7 +139,8 @@ func main() {
 
 	// Write header
 	if err = outputFormatContext.WriteHeader(nil); err != nil {
-		log.Fatal(fmt.Errorf("main: writing header failed: %w", err))
+		log.Println(fmt.Errorf("main: writing header failed: %w", err))
+		return
 	}
 
 	// Loop through packets
@@ -139,10 +149,10 @@ func main() {
 		if stop := func() bool {
 			// Read frame
 			if err = inputFormatContext.ReadFrame(pkt); err != nil {
-				if errors.Is(err, astiav.ErrEof) {
-					return true
+				if !errors.Is(err, astiav.ErrEof) {
+					log.Println(fmt.Errorf("main: reading frame failed: %w", err))
 				}
-				log.Fatal(fmt.Errorf("main: reading frame failed: %w", err))
+				return true
 			}
 
 			// Make sure to unreference packet
@@ -167,7 +177,8 @@ func main() {
 
 			// Write frame
 			if err = outputFormatContext.WriteInterleavedFrame(pkt); err != nil {
-				log.Fatal(fmt.Errorf("main: writing interleaved frame failed: %w", err))
+				log.Println(fmt.Errorf("main: writing interleaved frame failed: %w", err))
+				return true
 			}
 			return false
 		}(); stop {
@@ -177,9 +188,10 @@ func main() {
 
 	// Write trailer
 	if err = outputFormatContext.WriteTrailer(); err != nil {
-		log.Fatal(fmt.Errorf("main: writing trailer failed: %w", err))
+		log.Println(fmt.Errorf("main: writing trailer failed: %w", err))
+		return
 	}
 
-	// Success
-	log.Println("success")
+	// Done
+	log.Println("done")
 }

@@ -62,7 +62,8 @@ func main() {
 	// Get hardware device type
 	hardwareDeviceType := astiav.FindHardwareDeviceTypeByName(*hardwareDeviceTypeName)
 	if hardwareDeviceType == astiav.HardwareDeviceTypeNone {
-		log.Fatal(errors.New("main: hardware device not found"))
+		log.Println(errors.New("main: hardware device not found"))
+		return
 	}
 
 	// Allocate packet
@@ -80,19 +81,22 @@ func main() {
 	// Allocate input format context
 	inputFormatContext := astiav.AllocFormatContext()
 	if inputFormatContext == nil {
-		log.Fatal(errors.New("main: input format context is nil"))
+		log.Println(errors.New("main: input format context is nil"))
+		return
 	}
 	c.Add(inputFormatContext.Free)
 
 	// Open input
 	if err := inputFormatContext.OpenInput(*input, nil, nil); err != nil {
-		log.Fatal(fmt.Errorf("main: opening input failed: %w", err))
+		log.Println(fmt.Errorf("main: opening input failed: %w", err))
+		return
 	}
 	c.Add(inputFormatContext.CloseInput)
 
 	// Find stream info
 	if err := inputFormatContext.FindStreamInfo(nil); err != nil {
-		log.Fatal(fmt.Errorf("main: finding stream info failed: %w", err))
+		log.Println(fmt.Errorf("main: finding stream info failed: %w", err))
+		return
 	}
 
 	// Loop through streams
@@ -116,37 +120,41 @@ func main() {
 
 		// No codec
 		if decCodec == nil {
-			log.Fatal(errors.New("main: codec is nil"))
+			log.Println(errors.New("main: codec is nil"))
+			return
 		}
 
 		// Allocate codec context
 		if decCodecContext = astiav.AllocCodecContext(decCodec); decCodecContext == nil {
-			log.Fatal(errors.New("main: codec context is nil"))
+			log.Println(errors.New("main: codec context is nil"))
+			return
 		}
 		c.Add(decCodecContext.Free)
 
 		// Update codec context
 		if err := is.CodecParameters().ToCodecContext(decCodecContext); err != nil {
-			log.Fatal(fmt.Errorf("main: updating codec context failed: %w", err))
+			log.Println(fmt.Errorf("main: updating codec context failed: %w", err))
+			return
 		}
 
 		// Create hardware device context
 		var err error
 		if hardwareDeviceContext, err = astiav.CreateHardwareDeviceContext(hardwareDeviceType, *hardwareDeviceName, nil, 0); err != nil {
-			log.Fatal(fmt.Errorf("main: creating hardware device context failed: %w", err))
+			log.Println(fmt.Errorf("main: creating hardware device context failed: %w", err))
+			return
 		}
 		c.Add(hardwareDeviceContext.Free)
 
 		hardwareFramesConstraints := hardwareDeviceContext.HardwareFramesConstraints()
 		if hardwareFramesConstraints == nil {
-			log.Fatal("main: hardware frames constraints is nil")
+			log.Println("main: hardware frames constraints is nil")
 			return
 		}
 		defer hardwareFramesConstraints.Free()
 
 		validHardwarePixelFormats := hardwareFramesConstraints.ValidHardwarePixelFormats()
 		if len(validHardwarePixelFormats) == 0 {
-			log.Fatal("main: no valid hardware pixel formats")
+			log.Println("main: no valid hardware pixel formats")
 			return
 		}
 		hardwarePixelFormat = validHardwarePixelFormats[0]
@@ -159,20 +167,22 @@ func main() {
 					return pf
 				}
 			}
-			log.Fatal(errors.New("main: using hardware pixel format failed"))
+			log.Println(errors.New("main: using hardware pixel format failed"))
 			return astiav.PixelFormatNone
 		})
 
 		// Open decoder context
 		if err := decCodecContext.Open(decCodec, nil); err != nil {
-			log.Fatal(fmt.Errorf("main: opening decoder context failed: %w", err))
+			log.Println(fmt.Errorf("main: opening decoder context failed: %w", err))
+			return
 		}
 		break
 	}
 
 	// No video stream
 	if inputStream == nil {
-		log.Fatal("main: no video stream found")
+		log.Println("main: no video stream found")
+		return
 	}
 
 	// Loop through packets
@@ -181,10 +191,10 @@ func main() {
 		if stop := func() bool {
 			// Read frame
 			if err := inputFormatContext.ReadFrame(pkt); err != nil {
-				if errors.Is(err, astiav.ErrEof) {
-					return true
+				if !errors.Is(err, astiav.ErrEof) {
+					log.Println(fmt.Errorf("main: reading frame failed: %w", err))
 				}
-				log.Fatal(fmt.Errorf("main: reading frame failed: %w", err))
+				return true
 			}
 
 			// Make sure to unreference the packet
@@ -197,7 +207,8 @@ func main() {
 
 			// Send packet
 			if err := decCodecContext.SendPacket(pkt); err != nil {
-				log.Fatal(fmt.Errorf("main: sending packet failed: %w", err))
+				log.Println(fmt.Errorf("main: sending packet failed: %w", err))
+				return true
 			}
 
 			// Loop
@@ -206,10 +217,10 @@ func main() {
 				if stop := func() bool {
 					// Receive frame
 					if err := decCodecContext.ReceiveFrame(decodedHardwareFrame); err != nil {
-						if errors.Is(err, astiav.ErrEof) || errors.Is(err, astiav.ErrEagain) {
-							return true
+						if !errors.Is(err, astiav.ErrEof) && !errors.Is(err, astiav.ErrEagain) {
+							log.Println(fmt.Errorf("main: receiving frame failed: %w", err))
 						}
-						log.Fatal(fmt.Errorf("main: receiving frame failed: %w", err))
+						return true
 					}
 
 					// Make sure to unreference hardware frame
@@ -223,14 +234,16 @@ func main() {
 
 					// Invalid pixel format
 					if decodedHardwareFrame.PixelFormat() != hardwarePixelFormat {
-						log.Fatalf("main: invalid decoded pixel format %s, expected %s", decodedHardwareFrame.PixelFormat(), hardwarePixelFormat)
+						log.Printf("main: invalid decoded pixel format %s, expected %s\n", decodedHardwareFrame.PixelFormat(), hardwarePixelFormat)
+						return true
 					}
 
 					// No filter requested
 					if *filter == "" {
 						// Do something with hardware frame
 						if err := doSomethingWithHardwareFrame(decodedHardwareFrame); err != nil {
-							log.Fatal(fmt.Errorf("main: doing something with hardware frame failed: %w", err))
+							log.Println(fmt.Errorf("main: doing something with hardware frame failed: %w", err))
+							return true
 						}
 						return false
 					}
@@ -240,13 +253,15 @@ func main() {
 					// since we need a valid hardware frames context
 					if filterGraph == nil {
 						if err := initFilter(); err != nil {
-							log.Fatal(fmt.Errorf("main: initializing filter failed: %w", err))
+							log.Println(fmt.Errorf("main: initializing filter failed: %w", err))
+							return true
 						}
 					}
 
 					// Filter frame
 					if err := filterFrame(); err != nil {
-						log.Fatal(fmt.Errorf("main: filtering frame failed: %w", err))
+						log.Println(fmt.Errorf("main: filtering frame failed: %w", err))
+						return true
 					}
 					return false
 				}(); stop {
@@ -259,8 +274,8 @@ func main() {
 		}
 	}
 
-	// Success
-	log.Println("success")
+	// Done
+	log.Println("done")
 }
 
 func initFilter() (err error) {
