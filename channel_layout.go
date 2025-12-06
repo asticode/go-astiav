@@ -3,6 +3,8 @@ package astiav
 //#include "channel_layout.h"
 import "C"
 import (
+	"encoding"
+	"fmt"
 	"unsafe"
 )
 
@@ -54,6 +56,11 @@ type ChannelLayout struct {
 func newChannelLayoutFromC(c *C.AVChannelLayout) ChannelLayout {
 	return ChannelLayout{c: c}
 }
+
+var (
+	_ encoding.TextMarshaler   = ChannelLayoutMono
+	_ encoding.TextUnmarshaler = (*ChannelLayout)(nil)
+)
 
 // https://ffmpeg.org/doxygen/7.0/structAVChannelLayout.html#adfd3f460a8ea1575baa32852d9248d3c
 func (l ChannelLayout) Channels() int {
@@ -122,4 +129,29 @@ func (l ChannelLayout) clone() (ChannelLayout, error) {
 	err := l.copy(&cl)
 	dst := newChannelLayoutFromC(&cl)
 	return dst, err
+}
+
+// https://ffmpeg.org/doxygen/7.0/group__lavu__audio__channels.html#ga16a894cd275eba471ccad4fe1c5e5c28
+func ChannelLayoutFromString(s string) (ChannelLayout, error) {
+	var c C.AVChannelLayout
+	cn := C.CString(s)
+	defer C.free(unsafe.Pointer(cn))
+	if err := newError(C.av_channel_layout_from_string(&c, cn)); err != nil {
+		return ChannelLayout{}, fmt.Errorf("astiav: could not find or parse channel layout %q: %w", s, err)
+	}
+	return newChannelLayoutFromC(&c), nil
+}
+
+func (l ChannelLayout) MarshalText() ([]byte, error) { return ([]byte)(l.String()), nil }
+func (l *ChannelLayout) UnmarshalText(d []byte) error {
+	s := string(d)
+	if s == "" {
+		return nil
+	}
+	pf, err := ChannelLayoutFromString(s)
+	if err != nil {
+		return err
+	}
+	*l = pf
+	return nil
 }
