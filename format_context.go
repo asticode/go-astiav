@@ -297,6 +297,11 @@ func (fc *FormatContext) SeekFrame(streamIndex int, timestamp int64, f SeekFlags
 	return newError(C.av_seek_frame(fc.c, C.int(streamIndex), C.int64_t(timestamp), C.int(f)))
 }
 
+// https://ffmpeg.org/doxygen/7.0/group__lavf__decoding.html#ga3b40fc8d2fda6992ae6ea2567d71ba30
+func (fc *FormatContext) SeekFile(streamIndex int, mints, timestamp, maxts int64, f SeekFlags) error {
+	return newError(C.avformat_seek_file(fc.c, C.int(streamIndex), C.int64_t(mints), C.int64_t(timestamp), C.int64_t(maxts), C.int(f)))
+}
+
 // https://ffmpeg.org/doxygen/7.0/group__lavf__decoding.html#gaa03a82c5fd4fe3af312d229ca94cd6f3
 func (fc *FormatContext) Flush() error {
 	return newError(C.avformat_flush(fc.c))
