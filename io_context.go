@@ -160,6 +160,7 @@ func (ic *IOContext) Free() {
 			C.av_freep(unsafe.Pointer(&ic.c.buffer))
 		}
 		if ic.handlerID != nil {
+			ioContextHandlers.del(ic.handlerID)
 			C.av_free(ic.handlerID)
 			ic.handlerID = nil
 		}
@@ -259,6 +260,12 @@ func (p *ioContextHandlerPool) get(id unsafe.Pointer) (h *ioContextHandler, ok b
 	defer p.m.Unlock()
 	h, ok = p.p[id]
 	return
+}
+
+func (p *ioContextHandlerPool) del(id unsafe.Pointer) {
+	p.m.Lock()
+	defer p.m.Unlock()
+	delete(p.p, id)
 }
 
 //export goAstiavIOContextReadFunc

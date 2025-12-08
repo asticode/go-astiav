@@ -69,6 +69,7 @@ jobs:
     - if: ${{ steps.load-ffmpeg-cache.outputs.cache-hit != 'true' }}
       name: Install ffmpeg
       run: |
+        cd .github/workflows
         make install-ffmpeg srcPath=${{ env.FFMPEG_PATH }}/src version=${{ env.FFMPEG_VERSION }} patchPath=${{ env.FFMPEG_PATCH_PATH }}
 
     - if: ${{ steps.load-ffmpeg-cache.outputs.cache-hit != 'true' }}

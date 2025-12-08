@@ -125,6 +125,46 @@ func (fs DictionaryFlags) Del(f DictionaryFlag) DictionaryFlags {
 
 func (fs DictionaryFlags) Has(f DictionaryFlag) bool { return astikit.BitFlags(fs).Has(uint64(f)) }
 
+type DispositionFlags astikit.BitFlags
+
+func NewDispositionFlags(fs ...DispositionFlag) DispositionFlags {
+	o := DispositionFlags(0)
+	for _, f := range fs {
+		o = o.Add(f)
+	}
+	return o
+}
+
+func (fs DispositionFlags) Add(f DispositionFlag) DispositionFlags {
+	return DispositionFlags(astikit.BitFlags(fs).Add(uint64(f)))
+}
+
+func (fs DispositionFlags) Del(f DispositionFlag) DispositionFlags {
+	return DispositionFlags(astikit.BitFlags(fs).Del(uint64(f)))
+}
+
+func (fs DispositionFlags) Has(f DispositionFlag) bool { return astikit.BitFlags(fs).Has(uint64(f)) }
+
+type ErrorRecognitionFlags astikit.BitFlags
+
+func NewErrorRecognitionFlags(fs ...ErrorRecognitionFlag) ErrorRecognitionFlags {
+	o := ErrorRecognitionFlags(0)
+	for _, f := range fs {
+		o = o.Add(f)
+	}
+	return o
+}
+
+func (fs ErrorRecognitionFlags) Add(f ErrorRecognitionFlag) ErrorRecognitionFlags {
+	return ErrorRecognitionFlags(astikit.BitFlags(fs).Add(uint64(f)))
+}
+
+func (fs ErrorRecognitionFlags) Del(f ErrorRecognitionFlag) ErrorRecognitionFlags {
+	return ErrorRecognitionFlags(astikit.BitFlags(fs).Del(uint64(f)))
+}
+
+func (fs ErrorRecognitionFlags) Has(f ErrorRecognitionFlag) bool { return astikit.BitFlags(fs).Has(uint64(f)) }
+
 type FilterFlags astikit.BitFlags
 
 func NewFilterFlags(fs ...FilterFlag) FilterFlags {

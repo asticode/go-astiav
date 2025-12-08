@@ -105,9 +105,19 @@ func (cc *CodecContext) ColorPrimaries() ColorPrimaries {
 	return ColorPrimaries(cc.c.color_primaries)
 }
 
+// https://ffmpeg.org/doxygen/7.0/structAVCodecContext.html#a3a41b3e5bde23b877799f6e72dac8ef3
+func (cc *CodecContext) SetColorPrimaries(p ColorPrimaries) {
+	cc.c.color_primaries = C.enum_AVColorPrimaries(p)
+}
+
 // https://ffmpeg.org/doxygen/7.0/structAVCodecContext.html#a255bf7100a4ba6dcb6ee5d87740a4f35
 func (cc *CodecContext) ColorRange() ColorRange {
 	return ColorRange(cc.c.color_range)
+}
+
+// https://ffmpeg.org/doxygen/7.0/structAVCodecContext.html#a255bf7100a4ba6dcb6ee5d87740a4f35
+func (cc *CodecContext) SetColorRange(r ColorRange) {
+	cc.c.color_range = C.enum_AVColorRange(r)
 }
 
 // https://ffmpeg.org/doxygen/7.0/structAVCodecContext.html#a8cd8caa7d40319324ce3d879a2edbd9f
@@ -115,9 +125,29 @@ func (cc *CodecContext) ColorSpace() ColorSpace {
 	return ColorSpace(cc.c.colorspace)
 }
 
+// https://ffmpeg.org/doxygen/7.0/structAVCodecContext.html#a8cd8caa7d40319324ce3d879a2edbd9f
+func (cc *CodecContext) SetColorSpace(s ColorSpace) {
+	cc.c.colorspace = C.enum_AVColorSpace(s)
+}
+
 // https://ffmpeg.org/doxygen/7.0/structAVCodecContext.html#ab649e8c599f5a0e2a30448e67a36deb6
 func (cc *CodecContext) ColorTransferCharacteristic() ColorTransferCharacteristic {
 	return ColorTransferCharacteristic(cc.c.color_trc)
+}
+
+// https://ffmpeg.org/doxygen/7.0/structAVCodecContext.html#ab649e8c599f5a0e2a30448e67a36deb6
+func (cc *CodecContext) SetColorTransferCharacteristic(tc ColorTransferCharacteristic) {
+	cc.c.color_trc = C.enum_AVColorTransferCharacteristic(tc)
+}
+
+// https://ffmpeg.org/doxygen/7.0/structAVCodecContext.html#af9978d9bd6ac80a494ef1b78fe1d004f
+func (cc *CodecContext) ErrorRecognitionFlags() ErrorRecognitionFlags {
+	return ErrorRecognitionFlags(cc.c.err_recognition)
+}
+
+// https://ffmpeg.org/doxygen/7.0/structAVCodecContext.html#af9978d9bd6ac80a494ef1b78fe1d004f
+func (cc *CodecContext) SetErrorRecognitionFlags(fs ErrorRecognitionFlags) {
+	cc.c.err_recognition = C.int(fs)
 }
 
 // https://ffmpeg.org/doxygen/7.0/structAVCodecContext.html#abe964316aaaa61967b012efdcced79c4

@@ -153,7 +153,7 @@ func (h *helper) inputLastFrame(name string, mediaType MediaType, ifmt *InputFor
 
 		c := FindDecoder(v.CodecParameters().CodecID())
 		if c == nil {
-			return nil, errors.New("astiav_test: no codec")
+			return nil, fmt.Errorf("astiav_test: no decoder found for %s", v.CodecParameters().CodecID())
 		}
 
 		s.cc = AllocCodecContext(c)

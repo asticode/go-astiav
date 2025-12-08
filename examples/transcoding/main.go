@@ -29,6 +29,7 @@ type stream struct {
 	decCodec          *astiav.Codec
 	decCodecContext   *astiav.CodecContext
 	decFrame          *astiav.Frame
+	decLastPTS        *int64
 	encCodec          *astiav.Codec
 	encCodecContext   *astiav.CodecContext
 	encPkt            *astiav.Packet
@@ -65,17 +66,20 @@ func main() {
 
 	// Open input file
 	if err := openInputFile(); err != nil {
-		log.Fatal(fmt.Errorf("main: opening input file failed: %w", err))
+		log.Println(fmt.Errorf("main: opening input file failed: %w", err))
+		return
 	}
 
 	// Open output file
 	if err := openOutputFile(); err != nil {
-		log.Fatal(fmt.Errorf("main: opening output file failed: %w", err))
+		log.Println(fmt.Errorf("main: opening output file failed: %w", err))
+		return
 	}
 
 	// Init filters
 	if err := initFilters(); err != nil {
-		log.Fatal(fmt.Errorf("main: initializing filters failed: %w", err))
+		log.Println(fmt.Errorf("main: initializing filters failed: %w", err))
+		return
 	}
 
 	// Allocate packet
@@ -88,10 +92,10 @@ func main() {
 		if stop := func() bool {
 			// Read frame
 			if err := inputFormatContext.ReadFrame(pkt); err != nil {
-				if errors.Is(err, astiav.ErrEof) {
-					return true
+				if !errors.Is(err, astiav.ErrEof) {
+					log.Println(fmt.Errorf("main: reading frame failed: %w", err))
 				}
-				log.Fatal(fmt.Errorf("main: reading frame failed: %w", err))
+				return true
 			}
 
 			// Make sure to unreference the packet
@@ -108,7 +112,8 @@ func main() {
 
 			// Send packet
 			if err := s.decCodecContext.SendPacket(pkt); err != nil {
-				log.Fatal(fmt.Errorf("main: sending packet failed: %w", err))
+				log.Println(fmt.Errorf("main: sending packet failed: %w", err))
+				return true
 			}
 
 			// Loop
@@ -117,18 +122,25 @@ func main() {
 				if stop := func() bool {
 					// Receive frame
 					if err := s.decCodecContext.ReceiveFrame(s.decFrame); err != nil {
-						if errors.Is(err, astiav.ErrEof) || errors.Is(err, astiav.ErrEagain) {
-							return true
+						if !errors.Is(err, astiav.ErrEof) && !errors.Is(err, astiav.ErrEagain) {
+							log.Println(fmt.Errorf("main: receiving frame failed: %w", err))
 						}
-						log.Fatal(fmt.Errorf("main: receiving frame failed: %w", err))
+						return true
 					}
 
 					// Make sure to unreference the frame
 					defer s.decFrame.Unref()
 
+					// Ignore frames with non monotonic PTS
+					if s.decLastPTS != nil && *s.decLastPTS >= s.decFrame.Pts() {
+						return false
+					}
+					s.decLastPTS = astikit.Int64Ptr(s.decFrame.Pts())
+
 					// Filter, encode and write frame
 					if err := filterEncodeWriteFrame(s.decFrame, s); err != nil {
-						log.Fatal(fmt.Errorf("main: filtering, encoding and writing frame failed: %w", err))
+						log.Println(fmt.Errorf("main: filtering, encoding and writing frame failed: %w", err))
+						return true
 					}
 					return false
 				}(); stop {
@@ -145,22 +157,25 @@ func main() {
 	for _, s := range streams {
 		// Flush filter
 		if err := filterEncodeWriteFrame(nil, s); err != nil {
-			log.Fatal(fmt.Errorf("main: filtering, encoding and writing frame failed: %w", err))
+			log.Println(fmt.Errorf("main: filtering, encoding and writing frame failed: %w", err))
+			return
 		}
 
 		// Flush encoder
 		if err := encodeWriteFrame(nil, s); err != nil {
-			log.Fatal(fmt.Errorf("main: encoding and writing frame failed: %w", err))
+			log.Println(fmt.Errorf("main: encoding and writing frame failed: %w", err))
+			return
 		}
 	}
 
 	// Write trailer
 	if err := outputFormatContext.WriteTrailer(); err != nil {
-		log.Fatal(fmt.Errorf("main: writing trailer failed: %w", err))
+		log.Println(fmt.Errorf("main: writing trailer failed: %w", err))
+		return
 	}
 
-	// Success
-	log.Println("success")
+	// Done
+	log.Println("done")
 }
 
 func openInputFile() (err error) {

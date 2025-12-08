@@ -1,0 +1,29 @@
+{
+	"build": {
+		"args": {
+			"FFMPEG_VERSION": "n7.0",
+			"GO_VERSION": "1.25.3"
+		},
+		"dockerfile": "Dockerfile"
+	},
+	"containerEnv": {
+		"CGO_LDFLAGS": "-L/opt/ffmpeg/lib/",
+		"CGO_CFLAGS": "-I/opt/ffmpeg/include/",
+		"PKG_CONFIG_PATH": "/opt/ffmpeg/lib/pkgconfig"
+	},
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"ms-vscode.cpptools-extension-pack",
+				"golang.go"
+			],
+			"settings": {
+				"remote.autoForwardPorts": false
+			}
+		}
+	},
+	"mounts": [
+		"source=${localEnv:HOME}${localEnv:USERPROFILE}/.ssh,target=/root/.ssh,readonly,type=bind"
+	],
+	"name": "asticode/go-astiav"
+}

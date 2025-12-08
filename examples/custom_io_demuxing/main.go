@@ -44,14 +44,16 @@ func main() {
 	// Allocate input format context
 	inputFormatContext := astiav.AllocFormatContext()
 	if inputFormatContext == nil {
-		log.Fatal(errors.New("main: input format context is nil"))
+		log.Println(errors.New("main: input format context is nil"))
+		return
 	}
 	defer inputFormatContext.Free()
 
 	// Open file
 	f, err := os.Open(*input)
 	if err != nil {
-		log.Fatal(fmt.Errorf("main: opening %s failed: %w", *input, err))
+		log.Println(fmt.Errorf("main: opening %s failed: %w", *input, err))
+		return
 	}
 	defer f.Close()
 
@@ -68,7 +70,8 @@ func main() {
 		nil,
 	)
 	if err != nil {
-		log.Fatal(fmt.Errorf("main: allocating io context failed: %w", err))
+		log.Println(fmt.Errorf("main: allocating io context failed: %w", err))
+		return
 	}
 	defer ioContext.Free()
 
@@ -77,13 +80,15 @@ func main() {
 
 	// Open input
 	if err := inputFormatContext.OpenInput("", nil, nil); err != nil {
-		log.Fatal(fmt.Errorf("main: opening input failed: %w", err))
+		log.Println(fmt.Errorf("main: opening input failed: %w", err))
+		return
 	}
 	defer inputFormatContext.CloseInput()
 
 	// Find stream info
 	if err := inputFormatContext.FindStreamInfo(nil); err != nil {
-		log.Fatal(fmt.Errorf("main: finding stream info failed: %w", err))
+		log.Println(fmt.Errorf("main: finding stream info failed: %w", err))
+		return
 	}
 
 	// Loop through packets
@@ -92,10 +97,10 @@ func main() {
 		if stop := func() bool {
 			// Read frame
 			if err := inputFormatContext.ReadFrame(pkt); err != nil {
-				if errors.Is(err, astiav.ErrEof) {
-					return true
+				if !errors.Is(err, astiav.ErrEof) {
+					log.Println(fmt.Errorf("main: reading frame failed: %w", err))
 				}
-				log.Fatal(fmt.Errorf("main: reading frame failed: %w", err))
+				return true
 			}
 
 			// Make sure to unreference the packet
@@ -109,6 +114,6 @@ func main() {
 		}
 	}
 
-	// Success
-	log.Println("success")
+	// Done
+	log.Println("done")
 }

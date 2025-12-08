@@ -244,6 +244,20 @@ func (f *Frame) SideData() *FrameSideData {
 	return newFrameSideDataFromC(&f.c.side_data, &f.c.nb_side_data)
 }
 
+// https://ffmpeg.org/doxygen/7.0/structAVFrame.html#a5bde87fd101f66d6263bb451056dba13
+func (f *Frame) Metadata() *Dictionary {
+	return newDictionaryFromC(f.c.metadata)
+}
+
+// https://ffmpeg.org/doxygen/7.0/structAVFrame.html#a5bde87fd101f66d6263bb451056dba13
+func (f *Frame) SetMetadata(d *Dictionary) {
+	if d == nil {
+		f.c.metadata = nil
+	} else {
+		f.c.metadata = d.c
+	}
+}
+
 // https://ffmpeg.org/doxygen/7.0/structAVFrame.html#a1e71ce60cedd5f3b6811714a9f7f9e0a
 func (f *Frame) Width() int {
 	return int(f.c.width)

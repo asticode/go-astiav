@@ -1,6 +1,7 @@
 package astiav
 
 import (
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -49,7 +50,7 @@ func TestFormatContext(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, s1.Index(), s2.Index())
 	require.Equal(t, s1.CodecParameters().CodecID(), c1.ID())
-	s2, c1, err = fc1.FindBestStream(MediaTypeAudio, 1, 0)
+	s2, _, err = fc1.FindBestStream(MediaTypeAudio, 1, 0)
 	require.NoError(t, err)
 	require.Equal(t, 1, s2.Index())
 
@@ -133,7 +134,7 @@ func TestFormatContext(t *testing.T) {
 	require.NoError(t, fc6.ReadFrame(pkt1))
 	require.Equal(t, int64(48), pkt1.Pos())
 
-	const outputPath = "tmp/test-format-context-output.mp4"
+	var outputPath = filepath.Join(t.TempDir(), "test-format-context-output.mp4")
 	fc7, err := AllocOutputFormatContext(nil, "", outputPath)
 	require.NoError(t, err)
 	defer fc7.Free()
@@ -144,6 +145,8 @@ func TestFormatContext(t *testing.T) {
 	}
 	ic, err := OpenIOContext(outputPath, NewIOContextFlags(IOContextFlagWrite), nil, nil)
 	require.NoError(t, err)
+	defer ic.Free()
+	defer ic.Close()
 	fc7.SetPb(ic)
 	require.NoError(t, fc7.WriteHeader(nil))
 	require.NoError(t, fc7.WriteFrame(pkt1))
@@ -154,6 +157,7 @@ func TestFormatContext(t *testing.T) {
 	require.NotNil(t, fc8)
 	defer fc8.Free()
 	require.NoError(t, fc8.OpenInput(outputPath, nil, nil))
+	defer fc8.CloseInput()
 	require.NoError(t, fc8.FindStreamInfo(nil))
 	require.Equal(t, 2, fc8.NbStreams())
 	pkt3 := AllocPacket()

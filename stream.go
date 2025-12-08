@@ -49,6 +49,16 @@ func (s *Stream) SetDiscard(d Discard) {
 	s.c.discard = C.enum_AVDiscard(d)
 }
 
+// https://ffmpeg.org/doxygen/7.0/structAVStream.html#aea05abdb8e45405048d7923a68c23ef5
+func (s *Stream) DispositionFlags() DispositionFlags {
+	return DispositionFlags(s.c.disposition)
+}
+
+// https://ffmpeg.org/doxygen/7.0/structAVStream.html#aea05abdb8e45405048d7923a68c23ef5
+func (s *Stream) SetDispositionFlags(f DispositionFlags) {
+	s.c.disposition = C.int(f)
+}
+
 // https://ffmpeg.org/doxygen/7.0/structAVStream.html#a4e04af7a5a4d8298649850df798dd0bc
 func (s *Stream) Duration() int64 {
 	return int64(s.c.duration)
