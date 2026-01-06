@@ -3,7 +3,7 @@ package astiav
 //#include <libavutil/samplefmt.h>
 import "C"
 
-// https://ffmpeg.org/doxygen/7.0/group__lavu__sampfmts.html#gaf9a51ca15301871723577c730b5865c5
+// https://ffmpeg.org/doxygen/7.1/group__lavu__sampfmts.html#gaf9a51ca15301871723577c730b5865c5
 type SampleFormat C.enum_AVSampleFormat
 
 const (
@@ -23,7 +23,7 @@ const (
 	SampleFormatU8P  = SampleFormat(C.AV_SAMPLE_FMT_U8P)
 )
 
-// https://ffmpeg.org/doxygen/7.0/group__lavu__sampfmts.html#ga31b9d149b2de9821a65f4f5612970838
+// https://ffmpeg.org/doxygen/7.1/group__lavu__sampfmts.html#ga31b9d149b2de9821a65f4f5612970838
 func (f SampleFormat) Name() string {
 	return C.GoString(C.av_get_sample_fmt_name((C.enum_AVSampleFormat)(f)))
 }
@@ -32,12 +32,12 @@ func (f SampleFormat) String() string {
 	return f.Name()
 }
 
-// https://ffmpeg.org/doxygen/7.0/group__lavu__sampfmts.html#ga0c3c218e1dd570ad4917c69a35a6c77d
+// https://ffmpeg.org/doxygen/7.1/group__lavu__sampfmts.html#ga0c3c218e1dd570ad4917c69a35a6c77d
 func (f SampleFormat) BytesPerSample() int {
 	return int(C.av_get_bytes_per_sample((C.enum_AVSampleFormat)(f)))
 }
 
-// https://ffmpeg.org/doxygen/7.0/group__lavu__sampfmts.html#ga06ba8a64dc4382c422789a5d0b6bf592
+// https://ffmpeg.org/doxygen/7.1/group__lavu__sampfmts.html#ga06ba8a64dc4382c422789a5d0b6bf592
 func (f SampleFormat) IsPlanar() bool {
 	return C.av_sample_fmt_is_planar((C.enum_AVSampleFormat)(f)) > 0
 }

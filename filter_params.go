@@ -3,7 +3,7 @@ package astiav
 //#include <libavfilter/avfilter.h>
 import "C"
 
-// https://ffmpeg.org/doxygen/7.0/structAVFilterParams.html
+// https://ffmpeg.org/doxygen/7.1/structAVFilterParams.html
 type FilterParams struct {
 	c *C.AVFilterParams
 }
@@ -15,7 +15,7 @@ func newFilterParamsFromC(c *C.AVFilterParams) *FilterParams {
 	return &FilterParams{c: c}
 }
 
-// https://ffmpeg.org/doxygen/7.0/structAVFilterParams.html#a90edb3817b62f2ca70ea70001b84d001
+// https://ffmpeg.org/doxygen/7.1/structAVFilterParams.html#a90edb3817b62f2ca70ea70001b84d001
 func (fp *FilterParams) FilterName() string {
 	return C.GoString(fp.c.filter_name)
 }

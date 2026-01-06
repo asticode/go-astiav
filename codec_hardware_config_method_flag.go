@@ -3,7 +3,7 @@ package astiav
 //#include <libavcodec/avcodec.h>
 import "C"
 
-// https://ffmpeg.org/doxygen/7.0/group__lavc__core.html#gga9334a5b9057f32da96db9b5c6a045d67a680870b80f0ed65e9ba97ea0905eb2fa
+// https://ffmpeg.org/doxygen/7.1/group__lavc__core.html#ggadbaf9202177df73e6880eab6e6aab329a680870b80f0ed65e9ba97ea0905eb2fa
 type CodecHardwareConfigMethodFlag int64
 
 const (

@@ -3,7 +3,7 @@ package astiav
 //#include <libavcodec/avcodec.h>
 import "C"
 
-// https://ffmpeg.org/doxygen/7.0/avcodec_8h.html#a116c7fb56ac57ccca3e08b80467b2a40
+// https://ffmpeg.org/doxygen/7.1/avcodec_8h.html#a116c7fb56ac57ccca3e08b80467b2a40
 type ThreadType int
 
 const (

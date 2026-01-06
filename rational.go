@@ -4,7 +4,7 @@ package astiav
 import "C"
 import "strconv"
 
-// https://ffmpeg.org/doxygen/7.0/structAVRational.html
+// https://ffmpeg.org/doxygen/7.1/structAVRational.html
 type Rational struct {
 	c C.AVRational
 }

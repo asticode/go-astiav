@@ -3,7 +3,7 @@ package astiav
 //#include <libavfilter/buffersrc.h>
 import "C"
 
-// https://ffmpeg.org/doxygen/7.0/group__lavfi__buffersrc.html#gga9e9505a91a84992d04ba4e85217fb4e4a6efcf61145ec6d60d3a773fcd0797872
+// https://ffmpeg.org/doxygen/7.1/group__lavfi__buffersrc.html#ggac998c8f2ed6a3c0d0ae07b3822c16f9da6efcf61145ec6d60d3a773fcd0797872
 type BuffersrcFlag int64
 
 const (
