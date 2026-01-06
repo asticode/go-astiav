@@ -18,6 +18,8 @@ func TestFilterGraph(t *testing.T) {
 	require.Equal(t, 2, fg1.ThreadCount())
 	fg1.SetThreadType(ThreadTypeSlice)
 	require.Equal(t, ThreadTypeSlice, fg1.ThreadType())
+	fg1.SetMaxBufferedFrames(10)
+	require.Equal(t, 10, fg1.MaxBufferedFrames())
 
 	type command struct {
 		args      string

@@ -4,7 +4,7 @@ package astiav
 //#include <libavformat/avformat.h>
 import "C"
 
-// https://ffmpeg.org/doxygen/7.1/group__lavc__core.html#gaadca229ad2c20e060a14fec08a5cc7ce
+// https://ffmpeg.org/doxygen/8.0/group__lavc__core.html#gaadca229ad2c20e060a14fec08a5cc7ce
 type CodecID C.enum_AVCodecID
 
 const (
@@ -247,10 +247,12 @@ const (
 	CodecIDInterplayDpcm            = CodecID(C.AV_CODEC_ID_INTERPLAY_DPCM)
 	CodecIDInterplayVideo           = CodecID(C.AV_CODEC_ID_INTERPLAY_VIDEO)
 	CodecIDIpu                      = CodecID(C.AV_CODEC_ID_IPU)
+	CodecIDIvtvVbi                  = CodecID(C.AV_CODEC_ID_IVTV_VBI)
 	CodecIDJacosub                  = CodecID(C.AV_CODEC_ID_JACOSUB)
 	CodecIDJpeg2000                 = CodecID(C.AV_CODEC_ID_JPEG2000)
 	CodecIDJpegls                   = CodecID(C.AV_CODEC_ID_JPEGLS)
 	CodecIDJpegxl                   = CodecID(C.AV_CODEC_ID_JPEGXL)
+	CodecIDJpegxlAnim               = CodecID(C.AV_CODEC_ID_JPEGXL_ANIM)
 	CodecIDJv                       = CodecID(C.AV_CODEC_ID_JV)
 	CodecIDKgv1                     = CodecID(C.AV_CODEC_ID_KGV1)
 	CodecIDKmvc                     = CodecID(C.AV_CODEC_ID_KMVC)
@@ -384,6 +386,7 @@ const (
 	CodecIDPpm                      = CodecID(C.AV_CODEC_ID_PPM)
 	CodecIDProbe                    = CodecID(C.AV_CODEC_ID_PROBE)
 	CodecIDProres                   = CodecID(C.AV_CODEC_ID_PRORES)
+	CodecIDProresRaw                = CodecID(C.AV_CODEC_ID_PRORES_RAW)
 	CodecIDProsumer                 = CodecID(C.AV_CODEC_ID_PROSUMER)
 	CodecIDPsd                      = CodecID(C.AV_CODEC_ID_PSD)
 	CodecIDPtx                      = CodecID(C.AV_CODEC_ID_PTX)
@@ -437,6 +440,7 @@ const (
 	CodecIDSmackvideo               = CodecID(C.AV_CODEC_ID_SMACKVIDEO)
 	CodecIDSmc                      = CodecID(C.AV_CODEC_ID_SMC)
 	CodecIDSmpte2038                = CodecID(C.AV_CODEC_ID_SMPTE_2038)
+	CodecIDSmpte436mAnc             = CodecID(C.AV_CODEC_ID_SMPTE_436M_ANC)
 	CodecIDSmpteKlv                 = CodecID(C.AV_CODEC_ID_SMPTE_KLV)
 	CodecIDSmv                      = CodecID(C.AV_CODEC_ID_SMV)
 	CodecIDSmvjpeg                  = CodecID(C.AV_CODEC_ID_SMVJPEG)

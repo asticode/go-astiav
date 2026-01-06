@@ -88,6 +88,16 @@ func (g *FilterGraph) SetThreadType(t ThreadType) {
 	g.c.thread_type = C.int(t)
 }
 
+// https://ffmpeg.org/doxygen/8.0/structAVFilterGraph.html#a27983cb70845ac1fbf848e4d02a17cd6
+func (g *FilterGraph) MaxBufferedFrames() int {
+	return int(g.c.max_buffered_frames)
+}
+
+// https://ffmpeg.org/doxygen/8.0/structAVFilterGraph.html#a27983cb70845ac1fbf848e4d02a17cd6
+func (g *FilterGraph) SetMaxBufferedFrames(maxBufferedFrames int) {
+	g.c.max_buffered_frames = C.uint(maxBufferedFrames)
+}
+
 // https://ffmpeg.org/doxygen/7.1/group__lavfi.html#gac0788a9ab6966dba9318b5d5c7524fea
 func (g *FilterGraph) NewBuffersinkFilterContext(f *Filter, name string) (*BuffersinkFilterContext, error) {
 	cname := C.CString(name)
