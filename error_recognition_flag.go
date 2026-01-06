@@ -3,7 +3,7 @@ package astiav
 //#include <libavcodec/defs.h>
 import "C"
 
-// https://ffmpeg.org/doxygen/7.1/defs_8h.html#a16258b3283a3d34c893dd9a39e29e369
+// https://ffmpeg.org/doxygen/8.0/defs_8h.html#a16258b3283a3d34c893dd9a39e29e369
 type ErrorRecognitionFlag int64
 
 const (

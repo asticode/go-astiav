@@ -6,7 +6,7 @@ import (
 	"unsafe"
 )
 
-// https://ffmpeg.org/doxygen/7.1/structAVFilter.html
+// https://ffmpeg.org/doxygen/8.0/structAVFilter.html
 type Filter struct {
 	c *C.AVFilter
 }
@@ -18,19 +18,19 @@ func newFilterFromC(c *C.AVFilter) *Filter {
 	return &Filter{c: c}
 }
 
-// https://ffmpeg.org/doxygen/7.1/group__lavfi.html#gadd774ec49e50edf00158248e1bfe4ae6
+// https://ffmpeg.org/doxygen/8.0/group__lavfi.html#gadd774ec49e50edf00158248e1bfe4ae6
 func FindFilterByName(n string) *Filter {
 	cn := C.CString(n)
 	defer C.free(unsafe.Pointer(cn))
 	return newFilterFromC(C.avfilter_get_by_name(cn))
 }
 
-// https://ffmpeg.org/doxygen/7.1/structAVFilter.html#a632c76418742ad4f4dccbd4db40badd0
+// https://ffmpeg.org/doxygen/8.0/structAVFilter.html#a632c76418742ad4f4dccbd4db40badd0
 func (f *Filter) Flags() FilterFlags {
 	return FilterFlags(f.c.flags)
 }
 
-// https://ffmpeg.org/doxygen/7.1/structAVFilter.html#a28a4776f344f91055f42a4c2a1b15c0c
+// https://ffmpeg.org/doxygen/8.0/structAVFilter.html#a28a4776f344f91055f42a4c2a1b15c0c
 func (f *Filter) Name() string {
 	return C.GoString(f.c.name)
 }

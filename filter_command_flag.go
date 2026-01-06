@@ -3,7 +3,7 @@ package astiav
 //#include <libavfilter/avfilter.h>
 import "C"
 
-// https://ffmpeg.org/doxygen/7.1/group__lavfi.html#gace41bae000b621fc8804a93ce9f2d6e9
+// https://ffmpeg.org/doxygen/8.0/group__lavfi.html#gace41bae000b621fc8804a93ce9f2d6e9
 type FilterCommandFlag int64
 
 const (

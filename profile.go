@@ -3,7 +3,7 @@ package astiav
 //#include <libavcodec/avcodec.h>
 import "C"
 
-// https://ffmpeg.org/doxygen/7.1/defs_8h.html#a1c4e97fd8f802ee87dbc1713a993dc5c
+// https://ffmpeg.org/doxygen/8.0/defs_8h.html#a1c4e97fd8f802ee87dbc1713a993dc5c
 type Profile int
 
 const (

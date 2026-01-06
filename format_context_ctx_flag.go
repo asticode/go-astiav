@@ -3,7 +3,7 @@ package astiav
 //#include <libavformat/avformat.h>
 import "C"
 
-// https://ffmpeg.org/doxygen/7.1/avformat_8h.html#a42e3c3d72e561fdc501613962fccc4aa
+// https://ffmpeg.org/doxygen/8.0/avformat_8h.html#a42e3c3d72e561fdc501613962fccc4aa
 type FormatContextCtxFlag int64
 
 const (

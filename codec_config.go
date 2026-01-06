@@ -5,7 +5,7 @@ package astiav
 */
 import "C"
 
-// https://ffmpeg.org/doxygen/7.1/group__lavc__decoding.html#ga9abe043ed40f3c270dff77235fcfcd0b
+// https://ffmpeg.org/doxygen/8.0/group__lavc__decoding.html#ga9abe043ed40f3c270dff77235fcfcd0b
 type CodecConfig C.enum_AVCodecConfig
 
 const (

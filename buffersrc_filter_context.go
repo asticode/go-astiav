@@ -11,7 +11,7 @@ func newBuffersrcFilterContext(fc *FilterContext) *BuffersrcFilterContext {
 	return &BuffersrcFilterContext{fc: fc}
 }
 
-// https://ffmpeg.org/doxygen/7.1/group__lavfi__buffersrc.html#ga73ed90c3c3407f36e54d65f91faaaed9
+// https://ffmpeg.org/doxygen/8.0/group__lavfi__buffersrc.html#ga73ed90c3c3407f36e54d65f91faaaed9
 func (bfc *BuffersrcFilterContext) AddFrame(f *Frame, fs BuffersrcFlags) error {
 	var cf *C.AVFrame
 	if f != nil {
@@ -24,7 +24,7 @@ func (bfc *BuffersrcFilterContext) FilterContext() *FilterContext {
 	return bfc.fc
 }
 
-// https://ffmpeg.org/doxygen/7.1/group__lavfi.html#ga8c15af28902395399fe455f6f8236848
+// https://ffmpeg.org/doxygen/8.0/group__lavfi.html#ga8c15af28902395399fe455f6f8236848
 func (bfc *BuffersrcFilterContext) Initialize(d *Dictionary) error {
 	var dc **C.AVDictionary
 	if d != nil {
@@ -33,7 +33,7 @@ func (bfc *BuffersrcFilterContext) Initialize(d *Dictionary) error {
 	return newError(C.avfilter_init_dict(bfc.fc.c, dc))
 }
 
-// https://ffmpeg.org/doxygen/7.1/group__lavfi__buffersrc.html#ga398cd2a84f8b4a588197ab9d90135048
+// https://ffmpeg.org/doxygen/8.0/group__lavfi__buffersrc.html#ga398cd2a84f8b4a588197ab9d90135048
 func (bfc *BuffersrcFilterContext) SetParameters(bfcp *BuffersrcFilterContextParameters) error {
 	return newError(C.av_buffersrc_parameters_set(bfc.fc.c, bfcp.c))
 }

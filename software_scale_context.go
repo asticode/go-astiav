@@ -78,7 +78,7 @@ func (ssc *SoftwareScaleContext) Free() {
 
 var _ Classer = (*SoftwareScaleContext)(nil)
 
-// https://ffmpeg.org/doxygen/7.1/structSwsContext.html#a6866f52574bc730833d2580abc806261
+// https://ffmpeg.org/doxygen/8.0/structSwsContext.html#a6866f52574bc730833d2580abc806261
 func (ssc *SoftwareScaleContext) Class() *Class {
 	if ssc.c == nil {
 		return nil

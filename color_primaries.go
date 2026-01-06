@@ -3,7 +3,7 @@ package astiav
 //#include <libavutil/pixfmt.h>
 import "C"
 
-// https://ffmpeg.org/doxygen/7.1/pixfmt_8h.html#ad384ee5a840bafd73daef08e6d9cafe7
+// https://ffmpeg.org/doxygen/8.0/pixfmt_8h.html#ad384ee5a840bafd73daef08e6d9cafe7
 type ColorPrimaries C.enum_AVColorPrimaries
 
 const (
