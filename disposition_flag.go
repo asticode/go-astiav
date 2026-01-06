@@ -3,7 +3,7 @@ package astiav
 //#include <libavformat/avformat.h>
 import "C"
 
-// https://ffmpeg.org/doxygen/7.0/avformat_8h.html#af09f200b4cd9bf0baa05671436eef2fb
+// https://ffmpeg.org/doxygen/7.1/avformat_8h.html#af09f200b4cd9bf0baa05671436eef2fb
 type DispositionFlag int64
 
 const (
@@ -25,4 +25,5 @@ const (
 	DispositionFlagMetadata        = DispositionFlag(C.AV_DISPOSITION_METADATA)
 	DispositionFlagDependent       = DispositionFlag(C.AV_DISPOSITION_DEPENDENT)
 	DispositionFlagStillImage      = DispositionFlag(C.AV_DISPOSITION_STILL_IMAGE)
+	DispositionFlagMultilayer      = DispositionFlag(C.AV_DISPOSITION_MULTILAYER)
 )
