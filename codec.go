@@ -33,18 +33,19 @@ func (c *Codec) ID() CodecID {
 	return CodecID(c.c.id)
 }
 
-// https://ffmpeg.org/doxygen/7.0/structAVCodec.html#a710e3bd3081124ef3364b0c520379dd8
+// https://ffmpeg.org/doxygen/7.1/group__lavc__decoding.html#gadd58e6b0bbca99fdbc547efbaa6b0ef1
 func (c *Codec) ChannelLayouts() (o []ChannelLayout) {
-	if c.c.ch_layouts == nil {
-		return nil
-	}
-	size := unsafe.Sizeof(*c.c.ch_layouts)
-	for i := 0; ; i++ {
-		v, _ := newChannelLayoutFromC((*C.AVChannelLayout)(unsafe.Pointer(uintptr(unsafe.Pointer(c.c.ch_layouts)) + uintptr(i)*size))).clone()
-		if !v.Valid() {
-			break
+	const codecConfig = C.enum_AVCodecConfig(CodecConfigChannelLayout)
+	var outConfigs unsafe.Pointer
+	var outNumConfigs C.int
+	ret := C.avcodec_get_supported_config(nil, c.c, codecConfig, 0, &outConfigs, &outNumConfigs)
+	if ret >= 0 && outConfigs != nil {
+		numConfigs := uintptr(outNumConfigs)
+		for i := uintptr(0); i < numConfigs; i++ {
+			size := unsafe.Sizeof(C.AVChannelLayout{})
+			v, _ := newChannelLayoutFromC((*C.AVChannelLayout)(unsafe.Pointer(uintptr(outConfigs) + i*size))).clone()
+			o = append(o, v)
 		}
-		o = append(o, v)
 	}
 	return
 }
@@ -59,34 +60,98 @@ func (c *Codec) IsEncoder() bool {
 	return int(C.av_codec_is_encoder(c.c)) != 0
 }
 
-// https://ffmpeg.org/doxygen/7.0/structAVCodec.html#ac2b97bd3c19686025e1b7d577329c250
-func (c *Codec) PixelFormats() (o []PixelFormat) {
-	if c.c.pix_fmts == nil {
-		return nil
-	}
-	size := unsafe.Sizeof(*c.c.pix_fmts)
-	for i := 0; ; i++ {
-		p := *(*C.int)(unsafe.Pointer(uintptr(unsafe.Pointer(c.c.pix_fmts)) + uintptr(i)*size))
-		if p == C.AV_PIX_FMT_NONE {
-			break
+// https://ffmpeg.org/doxygen/7.1/group__lavc__decoding.html#gadd58e6b0bbca99fdbc547efbaa6b0ef1
+func (c *Codec) ColorRanges() (o []ColorRange) {
+	const codecConfig = C.enum_AVCodecConfig(CodecConfigColorRange)
+	var outConfigs unsafe.Pointer
+	var outNumConfigs C.int
+	ret := C.avcodec_get_supported_config(nil, c.c, codecConfig, 0, &outConfigs, &outNumConfigs)
+	if ret >= 0 && outConfigs != nil {
+		numConfigs := uintptr(outNumConfigs)
+		for i := uintptr(0); i < numConfigs; i++ {
+			size := unsafe.Sizeof(C.enum_AVColorRange(0))
+			o = append(o, ColorRange(*(*C.enum_AVColorRange)(unsafe.Pointer(uintptr(outConfigs) + i*size))))
 		}
-		o = append(o, PixelFormat(p))
 	}
 	return
 }
 
-// https://ffmpeg.org/doxygen/7.0/structAVCodec.html#aac19f4c45370f715412ad5c7b78daacf
-func (c *Codec) SampleFormats() (o []SampleFormat) {
-	if c.c.sample_fmts == nil {
-		return nil
-	}
-	size := unsafe.Sizeof(*c.c.sample_fmts)
-	for i := 0; ; i++ {
-		p := *(*C.int)(unsafe.Pointer(uintptr(unsafe.Pointer(c.c.sample_fmts)) + uintptr(i)*size))
-		if p == C.AV_SAMPLE_FMT_NONE {
-			break
+// https://ffmpeg.org/doxygen/7.1/group__lavc__decoding.html#gadd58e6b0bbca99fdbc547efbaa6b0ef1
+func (c *Codec) ColorSpaces() (o []ColorSpace) {
+	const codecConfig = C.enum_AVCodecConfig(CodecConfigColorSpace)
+	var outConfigs unsafe.Pointer
+	var outNumConfigs C.int
+	ret := C.avcodec_get_supported_config(nil, c.c, codecConfig, 0, &outConfigs, &outNumConfigs)
+	if ret >= 0 && outConfigs != nil {
+		numConfigs := uintptr(outNumConfigs)
+		for i := uintptr(0); i < numConfigs; i++ {
+			size := unsafe.Sizeof(C.enum_AVColorSpace(0))
+			o = append(o, ColorSpace(*(*C.enum_AVColorSpace)(unsafe.Pointer(uintptr(outConfigs) + i*size))))
 		}
-		o = append(o, SampleFormat(p))
+	}
+	return
+}
+
+// https://ffmpeg.org/doxygen/7.1/group__lavc__decoding.html#gadd58e6b0bbca99fdbc547efbaa6b0ef1
+func (c *Codec) PixelFormats() (o []PixelFormat) {
+	const codecConfig = C.enum_AVCodecConfig(CodecConfigPixFormat)
+	var outConfigs unsafe.Pointer
+	var outNumConfigs C.int
+	ret := C.avcodec_get_supported_config(nil, c.c, codecConfig, 0, &outConfigs, &outNumConfigs)
+	if ret >= 0 && outConfigs != nil {
+		numConfigs := uintptr(outNumConfigs)
+		for i := uintptr(0); i < numConfigs; i++ {
+			size := unsafe.Sizeof(C.enum_AVPixelFormat(0))
+			o = append(o, PixelFormat(*(*C.enum_AVPixelFormat)(unsafe.Pointer(uintptr(outConfigs) + i*size))))
+		}
+	}
+	return
+}
+
+// https://ffmpeg.org/doxygen/7.1/group__lavc__decoding.html#gadd58e6b0bbca99fdbc547efbaa6b0ef1
+func (c *Codec) SampleFormats() (o []SampleFormat) {
+	const codecConfig = C.enum_AVCodecConfig(CodecConfigSampleFormat)
+	var outConfigs unsafe.Pointer
+	var outNumConfigs C.int
+	ret := C.avcodec_get_supported_config(nil, c.c, codecConfig, 0, &outConfigs, &outNumConfigs)
+	if ret >= 0 && outConfigs != nil {
+		numConfigs := uintptr(outNumConfigs)
+		for i := uintptr(0); i < numConfigs; i++ {
+			size := unsafe.Sizeof(C.enum_AVSampleFormat(0))
+			o = append(o, SampleFormat(*(*C.enum_AVSampleFormat)(unsafe.Pointer(uintptr(outConfigs) + i*size))))
+		}
+	}
+	return
+}
+
+// https://ffmpeg.org/doxygen/7.1/group__lavc__decoding.html#gadd58e6b0bbca99fdbc547efbaa6b0ef1
+func (c *Codec) SupportedFramerates() (o []Rational) {
+	const codecConfig = C.enum_AVCodecConfig(CodecConfigFrameRate)
+	var outConfigs unsafe.Pointer
+	var outNumConfigs C.int
+	ret := C.avcodec_get_supported_config(nil, c.c, codecConfig, 0, &outConfigs, &outNumConfigs)
+	if ret >= 0 && outConfigs != nil {
+		numConfigs := uintptr(outNumConfigs)
+		for i := uintptr(0); i < numConfigs; i++ {
+			size := unsafe.Sizeof(C.AVRational{})
+			o = append(o, newRationalFromC(*(*C.AVRational)(unsafe.Pointer(uintptr(outConfigs) + i*size))))
+		}
+	}
+	return
+}
+
+// https://ffmpeg.org/doxygen/7.1/group__lavc__decoding.html#gadd58e6b0bbca99fdbc547efbaa6b0ef1
+func (c *Codec) SupportedSamplerates() (o []int) {
+	const codecConfig = C.enum_AVCodecConfig(CodecConfigSampleRate)
+	var outConfigs unsafe.Pointer
+	var outNumConfigs C.int
+	ret := C.avcodec_get_supported_config(nil, c.c, codecConfig, 0, &outConfigs, &outNumConfigs)
+	if ret >= 0 && outConfigs != nil {
+		numConfigs := uintptr(outNumConfigs)
+		for i := uintptr(0); i < numConfigs; i++ {
+			size := unsafe.Sizeof(C.int(0))
+			o = append(o, int(*(*C.int)(unsafe.Pointer(uintptr(outConfigs) + i*size))))
+		}
 	}
 	return
 }

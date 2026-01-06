@@ -27,6 +27,7 @@ var list = []listItem{
 	{Name: "FormatContext"},
 	{Name: "FormatContextCtx"},
 	{Name: "FormatEvent"},
+	{Name: "Frame"},
 	{Name: "IOContext"},
 	{Name: "IOFormat"},
 	{Name: "OptionSearch"},

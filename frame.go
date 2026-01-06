@@ -92,18 +92,28 @@ func (f *Frame) SetHeight(h int) {
 	f.c.height = C.int(h)
 }
 
-// https://ffmpeg.org/doxygen/7.0/structAVFrame.html#afe0345882416bbb9d3a86720dcaa9252
+// https://ffmpeg.org/doxygen/7.1/group__lavu__frame__flags.html#gafe155269fc8dc3a484490bd19b86cc40
 func (f *Frame) KeyFrame() bool {
-	return int(f.c.key_frame) > 0
+	return f.Flags().Has(FrameFlagKey)
 }
 
-// https://ffmpeg.org/doxygen/7.0/structAVFrame.html#afe0345882416bbb9d3a86720dcaa9252
+// https://ffmpeg.org/doxygen/7.1/group__lavu__frame__flags.html#gafe155269fc8dc3a484490bd19b86cc40
 func (f *Frame) SetKeyFrame(k bool) {
-	i := 0
 	if k {
-		i = 1
+		f.SetFlags(f.Flags().Add(FrameFlagKey))
+	} else {
+		f.SetFlags(f.Flags().Del(FrameFlagKey))
 	}
-	f.c.key_frame = C.int(i)
+}
+
+// https://ffmpeg.org/doxygen/7.0/structAVFrame.html#a36417730e61ec2b323c9146e27632626
+func (f *Frame) Flags() FrameFlags {
+	return FrameFlags(f.c.flags)
+}
+
+// https://ffmpeg.org/doxygen/7.0/structAVFrame.html#a36417730e61ec2b323c9146e27632626
+func (f *Frame) SetFlags(fs FrameFlags) {
+	f.c.flags = C.int(fs)
 }
 
 // https://ffmpeg.org/doxygen/7.0/group__lavu__picture.html#ga24a67963c3ae0054a2a4bab35930e694

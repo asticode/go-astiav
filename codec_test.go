@@ -67,6 +67,8 @@ func TestCodec(t *testing.T) {
 	}, c.PixelFormats())
 	require.Equal(t, "mjpeg", c.Name())
 	require.Equal(t, "mjpeg", c.String())
+	require.Equal(t, []ColorRange{ColorRangeJpeg}, c.ColorRanges())
+	require.Nil(t, c.ColorSpaces())
 
 	c = FindDecoderByName("invalid")
 	require.Nil(t, c)
