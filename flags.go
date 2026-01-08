@@ -265,6 +265,26 @@ func (fs FormatEventFlags) Del(f FormatEventFlag) FormatEventFlags {
 
 func (fs FormatEventFlags) Has(f FormatEventFlag) bool { return astikit.BitFlags(fs).Has(uint64(f)) }
 
+type FrameFlags astikit.BitFlags
+
+func NewFrameFlags(fs ...FrameFlag) FrameFlags {
+	o := FrameFlags(0)
+	for _, f := range fs {
+		o = o.Add(f)
+	}
+	return o
+}
+
+func (fs FrameFlags) Add(f FrameFlag) FrameFlags {
+	return FrameFlags(astikit.BitFlags(fs).Add(uint64(f)))
+}
+
+func (fs FrameFlags) Del(f FrameFlag) FrameFlags {
+	return FrameFlags(astikit.BitFlags(fs).Del(uint64(f)))
+}
+
+func (fs FrameFlags) Has(f FrameFlag) bool { return astikit.BitFlags(fs).Has(uint64(f)) }
+
 type IOContextFlags astikit.BitFlags
 
 func NewIOContextFlags(fs ...IOContextFlag) IOContextFlags {

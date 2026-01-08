@@ -15,7 +15,7 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
 
     env:
-      FFMPEG_VERSION: n7.0
+      FFMPEG_VERSION: n8.0
     
     runs-on: ${{ matrix.os }}
     steps:
@@ -52,18 +52,18 @@ jobs:
     - if: ${{ steps.load-ffmpeg-cache.outputs.cache-hit != 'true' && runner.os == 'Linux' }}
       name: Prepare linux ffmpeg install
       run: |
-        sudo apt-get install yasm
+        sudo apt-get install nasm
 
     - if: ${{ steps.load-ffmpeg-cache.outputs.cache-hit != 'true' && runner.os == 'macOS' }}
       name: Prepare macos ffmpeg install
       run: |
-        brew install yasm
+        brew install nasm
 
     - if: ${{ steps.load-ffmpeg-cache.outputs.cache-hit != 'true' && runner.os == 'Windows' }}
       name: Prepare windows ffmpeg install
       run: |
         choco install make
-        choco install yasm
+        choco install nasm
         echo "FFMPEG_PATCH_PATH='$(cygpath -u ${{ github.WORKSPACE }})/.github/workflows/windows.patch'" >> $env:GITHUB_ENV
 
     - if: ${{ steps.load-ffmpeg-cache.outputs.cache-hit != 'true' }}

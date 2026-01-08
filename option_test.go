@@ -14,7 +14,7 @@ func TestOption(t *testing.T) {
 	os := pd.Options()
 	require.NotNil(t, os)
 	l := os.List()
-	require.Len(t, l, 55)
+	require.Len(t, l, 56)
 	const name = "brand"
 	o := l[0]
 	require.Equal(t, name, o.Name())

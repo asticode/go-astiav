@@ -5,7 +5,7 @@
 
 `astiav` is a Golang library providing C bindings for [ffmpeg](https://github.com/FFmpeg/FFmpeg)
 
-It's only compatible with `ffmpeg` `n7.0`.
+It's only compatible with `ffmpeg` `n8.0`.
 
 Its main goals are to:
 
@@ -14,29 +14,29 @@ Its main goals are to:
     - typed constants and flags
     - struct-based functions
     - ...
-- [x] provide the GO version of [ffmpeg examples](https://github.com/FFmpeg/FFmpeg/tree/n7.0/doc/examples)
+- [x] provide the GO version of [ffmpeg examples](https://github.com/FFmpeg/FFmpeg/tree/n8.0/doc/examples)
 - [x] be fully tested
 
 :warning: breaking changes will be introduced in `go-astiav` **without** using the `v2` golang pattern. You can see the list of breaking changes [here](BREAKING_CHANGES.md).
 
 # Examples
 
-Examples are located in the [examples](examples) directory and mirror as much as possible the [ffmpeg examples](https://github.com/FFmpeg/FFmpeg/tree/n7.0/doc/examples).
+Examples are located in the [examples](examples) directory and mirror as much as possible the [ffmpeg examples](https://github.com/FFmpeg/FFmpeg/tree/n8.0/doc/examples).
 
 |name|astiav|ffmpeg|
 |---|---|---|
 |BitStream Filtering|[see](examples/bit_stream_filtering/main.go)|X
-|Custom IO Demuxing|[see](examples/custom_io_demuxing/main.go)|[see](https://github.com/FFmpeg/FFmpeg/blob/n7.0/doc/examples/avio_read_callback.c)
+|Custom IO Demuxing|[see](examples/custom_io_demuxing/main.go)|[see](https://github.com/FFmpeg/FFmpeg/blob/n8.0/doc/examples/avio_read_callback.c)
 |Custom IO Muxing|[see](examples/custom_io_muxing/main.go)|X
-|Demuxing/Decoding|[see](examples/demuxing_decoding/main.go)|[see](https://github.com/FFmpeg/FFmpeg/blob/n7.0/doc/examples/demux_decode.c)
-|Filtering|[see](examples/filtering/main.go)|[see](https://github.com/FFmpeg/FFmpeg/blob/n7.0/doc/examples/decode_filter_video.c)
+|Demuxing/Decoding|[see](examples/demuxing_decoding/main.go)|[see](https://github.com/FFmpeg/FFmpeg/blob/n8.0/doc/examples/demux_decode.c)
+|Filtering|[see](examples/filtering/main.go)|[see](https://github.com/FFmpeg/FFmpeg/blob/n8.0/doc/examples/decode_filter_video.c)
 |Frame data manipulation|[see](examples/frame_data_manipulation/main.go)|X
-|Hardware Decoding/Filtering|[see](examples/hardware_decoding_filtering/main.go)|[see](https://github.com/FFmpeg/FFmpeg/blob/n7.0/doc/examples/hw_decode.c)
-|Hardware Encoding|[see](examples/hardware_encoding/main.go)|[see](https://github.com/FFmpeg/FFmpeg/blob/n7.0/doc/examples/vaapi_encode.c)
-|Remuxing|[see](examples/remuxing/main.go)|[see](https://github.com/FFmpeg/FFmpeg/blob/n7.0/doc/examples/remux.c)
-|Resampling audio|[see](examples/resampling_audio/main.go)|[see](https://github.com/FFmpeg/FFmpeg/blob/n7.0/doc/examples/resample_audio.c)
-|Scaling video|[see](examples/scaling_video/main.go)|[see](https://github.com/FFmpeg/FFmpeg/blob/n7.0/doc/examples/scale_video.c)
-|Transcoding|[see](examples/transcoding/main.go)|[see](https://github.com/FFmpeg/FFmpeg/blob/n7.0/doc/examples/transcode.c)
+|Hardware Decoding/Filtering|[see](examples/hardware_decoding_filtering/main.go)|[see](https://github.com/FFmpeg/FFmpeg/blob/n8.0/doc/examples/hw_decode.c)
+|Hardware Encoding|[see](examples/hardware_encoding/main.go)|[see](https://github.com/FFmpeg/FFmpeg/blob/n8.0/doc/examples/vaapi_encode.c)
+|Remuxing|[see](examples/remuxing/main.go)|[see](https://github.com/FFmpeg/FFmpeg/blob/n8.0/doc/examples/remux.c)
+|Resampling audio|[see](examples/resampling_audio/main.go)|[see](https://github.com/FFmpeg/FFmpeg/blob/n8.0/doc/examples/resample_audio.c)
+|Scaling video|[see](examples/scaling_video/main.go)|[see](https://github.com/FFmpeg/FFmpeg/blob/n8.0/doc/examples/scale_video.c)
+|Transcoding|[see](examples/transcoding/main.go)|[see](https://github.com/FFmpeg/FFmpeg/blob/n8.0/doc/examples/transcode.c)
 
 *Tip: you can use the video sample located in the `testdata` directory for your tests*
 
@@ -99,7 +99,7 @@ Once complete run the Mingw64 shell from the installation folder, run the below 
 # Update Packages
 pacman -Syu
 # Install Requirements to Build
-pacman -S --noconfirm --needed git diffutils mingw-w64-x86_64-toolchain pkg-config make yasm
+pacman -S --noconfirm --needed git diffutils mingw-w64-x86_64-toolchain pkg-config make nasm
 # Clone the repository using git
 git clone https://github.com/asticode/go-astiav
 cd go-astiav

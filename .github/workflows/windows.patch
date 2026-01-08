@@ -1,15 +1,24 @@
 # https://trac.ffmpeg.org/ticket/6620
 diff --git a/ffbuild/library.mak b/ffbuild/library.mak
-index 793e9d41fa..e3c15e1d67 100644
 --- a/ffbuild/library.mak
 +++ b/ffbuild/library.mak
-@@ -35,7 +35,8 @@ OBJS += $(SHLIBOBJS)
- endif
+@@ -36,8 +36,8 @@ $(SUBDIR)$(LIBNAME): $(OBJS) $(STLIBOBJS)
  $(SUBDIR)$(LIBNAME): $(OBJS) $(STLIBOBJS)
  	$(RM) $@
--	$(AR) $(ARFLAGS) $(AR_O) $^
-+	$(file > objs.txt, $^)
-+	$(AR) $(ARFLAGS) $(AR_O) @objs.txt
- 	$(RANLIB) $@
- 
- install-headers: install-lib$(NAME)-headers install-lib$(NAME)-pkgconfig
+ ifeq ($(RESPONSE_FILES),yes)
+-	$(Q)echo $^ > $@.objs
++	$(file >$@.objs,$^)
+ 	$(AR) $(ARFLAGS) $(AR_O) @$@.objs
+ else
+ 	$(AR) $(ARFLAGS) $(AR_O) $^
+ endif
+@@ -73,8 +73,8 @@ $(SUBDIR)$(SLIBNAME_WITH_MAJOR): $(OBJS) $(SHLIBOBJS) $(SUBDIR)lib$(NAME).ver
+ $(SUBDIR)$(SLIBNAME_WITH_MAJOR): $(OBJS) $(SHLIBOBJS) $(SUBDIR)lib$(NAME).ver
+ 	$(SLIB_CREATE_DEF_CMD)
+ ifeq ($(RESPONSE_FILES),yes)
+-	$(Q)echo $$(filter %.o,$$^) > $$@.objs
++	$(file >$$@.objs,$$(filter %.o,$$^))
+ 	$$(LD) $(SHFLAGS) $(LDFLAGS) $(LDSOFLAGS) $$(LD_O) @$$@.objs $(FFEXTRALIBS)
+ else
+ 	$$(LD) $(SHFLAGS) $(LDFLAGS) $(LDSOFLAGS) $$(LD_O) $$(filter %.o,$$^) $(FFEXTRALIBS)
+ endif

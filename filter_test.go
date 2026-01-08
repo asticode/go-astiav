@@ -11,5 +11,6 @@ func TestFilter(t *testing.T) {
 	require.NotNil(t, f)
 	require.Equal(t, "format", f.Name())
 	require.Equal(t, "format", f.String())
+	require.Equal(t, "Convert the input video to one of the specified pixel formats.", f.Description())
 	require.True(t, f.Flags().Has(FilterFlagMetadataOnly))
 }
