@@ -92,16 +92,6 @@ func (fc *FormatContext) Duration() int64 {
 	return int64(fc.c.duration)
 }
 
-// https://ffmpeg.org/doxygen/8.0/structAVFormatContext.html#a97d077089349adeaa2b760c5b6822428
-func (fc *FormatContext) DurationProbesize() int64 {
-	return int64(fc.c.duration_probesize)
-}
-
-// https://ffmpeg.org/doxygen/8.0/structAVFormatContext.html#a97d077089349adeaa2b760c5b6822428
-func (fc *FormatContext) SetDurationProbesize(durationProbesize int64) {
-	fc.c.duration_probesize = C.int64_t(durationProbesize)
-}
-
 // https://ffmpeg.org/doxygen/8.0/structAVFormatContext.html#a0302506d4b3434da77b8b3db43821aa0
 func (fc *FormatContext) EventFlags() FormatEventFlags {
 	return FormatEventFlags(fc.c.event_flags)

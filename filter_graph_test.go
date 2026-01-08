@@ -18,8 +18,6 @@ func TestFilterGraph(t *testing.T) {
 	require.Equal(t, 2, fg1.ThreadCount())
 	fg1.SetThreadType(ThreadTypeSlice)
 	require.Equal(t, ThreadTypeSlice, fg1.ThreadType())
-	fg1.SetMaxBufferedFrames(10)
-	require.Equal(t, 10, fg1.MaxBufferedFrames())
 
 	type command struct {
 		args      string
@@ -249,8 +247,8 @@ func TestFilterGraph(t *testing.T) {
 	require.Equal(t, 1, len(fs))
 	f := FindFilterByName(fs[0].FilterName())
 	require.NotNil(t, f)
-	require.Equal(t, 0, f.CountPads(false))
-	require.Equal(t, 1, f.CountPads(true))
+	require.Equal(t, 0, f.NbInputs())
+	require.Equal(t, 1, f.NbOutputs())
 	os := f.Outputs()
 	require.Equal(t, 1, len(os))
 	require.Equal(t, MediaTypeAudio, os[0].MediaType())

@@ -92,20 +92,6 @@ func (f *Frame) SetHeight(h int) {
 	f.c.height = C.int(h)
 }
 
-// https://ffmpeg.org/doxygen/8.0/group__lavu__frame__flags.html#gafe155269fc8dc3a484490bd19b86cc40
-func (f *Frame) KeyFrame() bool {
-	return f.Flags().Has(FrameFlagKey)
-}
-
-// https://ffmpeg.org/doxygen/8.0/group__lavu__frame__flags.html#gafe155269fc8dc3a484490bd19b86cc40
-func (f *Frame) SetKeyFrame(k bool) {
-	if k {
-		f.SetFlags(f.Flags().Add(FrameFlagKey))
-	} else {
-		f.SetFlags(f.Flags().Del(FrameFlagKey))
-	}
-}
-
 // https://ffmpeg.org/doxygen/8.0/structAVFrame.html#a49020cc320b8fb1f5449167b6c97515b
 func (f *Frame) Flags() FrameFlags {
 	return FrameFlags(f.c.flags)

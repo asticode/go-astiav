@@ -37,9 +37,6 @@ func (f *Filter) Name() string {
 
 // https://ffmpeg.org/doxygen/8.0/structAVFilter.html#afb208213ea814c722279962fb0228241
 func (f *Filter) Description() string {
-	if f.c.description == nil {
-		return ""
-	}
 	return C.GoString(f.c.description)
 }
 
@@ -48,16 +45,18 @@ func (f *Filter) String() string {
 }
 
 // https://ffmpeg.org/doxygen/8.0/group__lavfi.html#ga54dd15771603f3406c124259595e142b
-func (f *Filter) CountPads(isOutput bool) int {
-	if isOutput {
-		return int(C.avfilter_filter_pad_count(f.c, 1))
-	}
+func (f *Filter) NbInputs() int {
 	return int(C.avfilter_filter_pad_count(f.c, 0))
+}
+
+// https://ffmpeg.org/doxygen/8.0/group__lavfi.html#ga54dd15771603f3406c124259595e142b
+func (f *Filter) NbOutputs() int {
+	return int(C.avfilter_filter_pad_count(f.c, 1))
 }
 
 // https://ffmpeg.org/doxygen/8.0/structAVFilter.html#ad311151fe6e8c87a89f895bef7c8b98b
 func (f *Filter) Inputs() (ps []*FilterPad) {
-	for idx := 0; idx < f.CountPads(false); idx++ {
+	for idx := 0; idx < f.NbInputs(); idx++ {
 		ps = append(ps, newFilterPad(MediaType(C.avfilter_pad_get_type(f.c.inputs, C.int(idx)))))
 	}
 	return
@@ -65,7 +64,7 @@ func (f *Filter) Inputs() (ps []*FilterPad) {
 
 // https://ffmpeg.org/doxygen/8.0/structAVFilter.html#ad0608786fa3e1ca6e4cc4b67039f77d7
 func (f *Filter) Outputs() (ps []*FilterPad) {
-	for idx := 0; idx < f.CountPads(true); idx++ {
+	for idx := 0; idx < f.NbOutputs(); idx++ {
 		ps = append(ps, newFilterPad(MediaType(C.avfilter_pad_get_type(f.c.outputs, C.int(idx)))))
 	}
 	return
