@@ -1,3 +1,8 @@
+# v0.40.0
+
+- `Codec`.`ChannelLayouts`, `Codec`.`PixelFormats` and `Codec`.`SampleFormats` have been renamed to `Codec`.`SupportedChannelLayouts`, `Codec`.`SupportedPixelFormats` and `Codec`.`SupportedSampleFormats`
+- `Frame`.`KeyFrame` and `Frame`.`SetKeyFrame` have been removed. Use `Frame`.`Flags` and `Frame`.`SetFlags` instead
+
 # v0.31.0
 
 - removed `AllocImage` and `AllocSamples` that are considered useless using CGO until proven otherwise
