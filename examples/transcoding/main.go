@@ -299,13 +299,13 @@ func openOutputFile() (err error) {
 
 		// Update codec context
 		if s.decCodecContext.MediaType() == astiav.MediaTypeAudio {
-			if v := s.encCodec.ChannelLayouts(); len(v) > 0 {
+			if v := s.encCodec.SupportedChannelLayouts(); len(v) > 0 {
 				s.encCodecContext.SetChannelLayout(v[0])
 			} else {
 				s.encCodecContext.SetChannelLayout(s.decCodecContext.ChannelLayout())
 			}
 			s.encCodecContext.SetSampleRate(s.decCodecContext.SampleRate())
-			if v := s.encCodec.SampleFormats(); len(v) > 0 {
+			if v := s.encCodec.SupportedSampleFormats(); len(v) > 0 {
 				s.encCodecContext.SetSampleFormat(v[0])
 			} else {
 				s.encCodecContext.SetSampleFormat(s.decCodecContext.SampleFormat())
@@ -313,7 +313,7 @@ func openOutputFile() (err error) {
 			s.encCodecContext.SetTimeBase(astiav.NewRational(1, s.encCodecContext.SampleRate()))
 		} else {
 			s.encCodecContext.SetHeight(s.decCodecContext.Height())
-			if v := s.encCodec.PixelFormats(); len(v) > 0 {
+			if v := s.encCodec.SupportedPixelFormats(); len(v) > 0 {
 				s.encCodecContext.SetPixelFormat(v[0])
 			} else {
 				s.encCodecContext.SetPixelFormat(s.decCodecContext.PixelFormat())

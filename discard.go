@@ -3,7 +3,7 @@ package astiav
 //#include <libavcodec/defs.h>
 import "C"
 
-// https://ffmpeg.org/doxygen/7.0/group__lavc__decoding.html#ga352363bce7d3ed82c101b3bc001d1c16
+// https://ffmpeg.org/doxygen/8.0/group__lavc__decoding.html#ga352363bce7d3ed82c101b3bc001d1c16
 type Discard C.enum_AVDiscard
 
 const (

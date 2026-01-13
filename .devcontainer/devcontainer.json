@@ -1,8 +1,8 @@
 {
 	"build": {
 		"args": {
-			"FFMPEG_VERSION": "n7.0",
-			"GO_VERSION": "1.25.3"
+			"FFMPEG_VERSION": "n8.0",
+			"GO_VERSION": "1.25.5"
 		},
 		"dockerfile": "Dockerfile"
 	},
