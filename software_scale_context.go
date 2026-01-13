@@ -33,7 +33,7 @@ func newSoftwareScaleContextFromC(c *C.struct_SwsContext) *SoftwareScaleContext 
 func CreateSoftwareScaleContext(srcW, srcH int, srcFormat PixelFormat, dstW, dstH int, dstFormat PixelFormat, flags SoftwareScaleContextFlags) (*SoftwareScaleContext, error) {
 	ssc := newSoftwareScaleContextFromC(C.sws_getContext(C.int(srcW), C.int(srcH), C.enum_AVPixelFormat(srcFormat), C.int(dstW), C.int(dstH), C.enum_AVPixelFormat(dstFormat), C.int(flags), nil, nil, nil))
 	if ssc == nil {
-		return nil, errors.New("astiav: create sws context failed")
+		return nil, errors.New("astiav: empty new context")
 	}
 
 	classers.set(ssc)
@@ -42,15 +42,17 @@ func CreateSoftwareScaleContext(srcW, srcH int, srcFormat PixelFormat, dstW, dst
 
 // https://ffmpeg.org/doxygen/8.0/group__libsws.html#gad90b463ceeafdfd526994742f9954dbb
 func (ssc *SoftwareScaleContext) Free() {
-	// Make sure to clone the classer before freeing the object since
-	// the C free method may reset the pointer
-	c := newClonedClasser(ssc)
-	C.sws_freeContext(ssc.c)
-	ssc.c = nil
-	// Make sure to remove from classers after freeing the object since
-	// the C free method may use methods needing the classer
-	if c != nil {
-		classers.del(c)
+	if ssc.c != nil {
+		// Make sure to clone the classer before freeing the object since
+		// the C free method may reset the pointer
+		c := newClonedClasser(ssc)
+		C.sws_freeContext(ssc.c)
+		ssc.c = nil
+		// Make sure to remove from classers after freeing the object since
+		// the C free method may use methods needing the classer
+		if c != nil {
+			classers.del(c)
+		}
 	}
 }
 
@@ -58,6 +60,9 @@ var _ Classer = (*SoftwareScaleContext)(nil)
 
 // https://ffmpeg.org/doxygen/8.0/structSwsContext.html#a6866f52574bc730833d2580abc806261
 func (ssc *SoftwareScaleContext) Class() *Class {
+	if ssc.c == nil {
+		return nil
+	}
 	return newClassFromC(unsafe.Pointer(ssc.c))
 }
 
@@ -67,7 +72,7 @@ func (ssc *SoftwareScaleContext) ScaleFrame(src, dst *Frame) error {
 }
 
 // https://ffmpeg.org/doxygen/8.0/group__libsws.html#ga9fd74ceaf0f126f762b81e3677f70c75
-func (ssc *SoftwareScaleContext) update(swsUpdate func(update *softwareScaleContextUpdate)) error {
+func (ssc *SoftwareScaleContext) update(fn func(update *softwareScaleContextUpdate)) error {
 	u := &softwareScaleContextUpdate{
 		dstFormat: ssc.DestinationPixelFormat(),
 		dstH:      ssc.DestinationHeight(),
@@ -78,9 +83,19 @@ func (ssc *SoftwareScaleContext) update(swsUpdate func(update *softwareScaleCont
 		srcW:      ssc.SourceWidth(),
 	}
 
-	swsUpdate(u)
+	fn(u)
 
-	c := C.sws_getCachedContext(ssc.c, C.int(u.srcW), C.int(u.srcH), C.enum_AVPixelFormat(u.srcFormat), C.int(u.dstW), C.int(u.dstH), C.enum_AVPixelFormat(u.dstFormat), C.int(u.flags), nil, nil, nil)
+	c := C.sws_getCachedContext(
+		ssc.c,
+		C.int(u.srcW),
+		C.int(u.srcH),
+		C.enum_AVPixelFormat(u.srcFormat),
+		C.int(u.dstW),
+		C.int(u.dstH),
+		C.enum_AVPixelFormat(u.dstFormat),
+		C.int(u.flags),
+		nil, nil, nil,
+	)
 	if c == nil {
 		return errors.New("astiav: empty new context")
 	}
