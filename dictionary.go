@@ -5,6 +5,7 @@ package astiav
 //#include <stdlib.h>
 import "C"
 import (
+	"iter"
 	"unsafe"
 )
 
@@ -82,4 +83,25 @@ func (d *Dictionary) Unpack(b []byte) error {
 // https://ffmpeg.org/doxygen/8.0/group__lavu__dict.html#ga59a6372b124b306e3a2233723c5cdc78
 func (d *Dictionary) Copy(dst *Dictionary, flags DictionaryFlags) error {
 	return newError(C.av_dict_copy(&dst.c, d.c, C.int(flags)))
+}
+
+// Seq returns an iterator ([iter.Seq2]) over the key-value pairs in an [Dictionary].
+//
+// It provides a convenient way to iterate over FFmpeg's metadata dictionaries (AVDictionary).
+func (d *Dictionary) Seq() iter.Seq2[string, string] {
+	return func(yield func(string, string) bool) {
+		flags := DictionaryFlags(DictionaryFlagIgnoreSuffix)
+		var entry *DictionaryEntry
+
+		for {
+			entry = d.Get("", entry, flags)
+			if entry == nil {
+				return
+			}
+
+			if !yield(entry.Key(), entry.Value()) {
+				return
+			}
+		}
+	}
 }

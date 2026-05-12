@@ -1,6 +1,7 @@
 package astiav
 
 import (
+	"maps"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -48,4 +49,20 @@ func TestDictionary(t *testing.T) {
 	require.Equal(t, "k4", e.Key())
 	require.Equal(t, "v4", e.Value())
 
+	d3 := NewDictionary()
+	defer d3.Free()
+	err = d3.Set("k1", "v1", 0)
+	require.NoError(t, err)
+	err = d3.Set("k2", "v2", 0)
+	require.NoError(t, err)
+	err = d3.Set("k3", "v3", 0)
+	require.NoError(t, err)
+
+	m1 := maps.Collect(d3.Seq())
+	m2 := map[string]string{
+		"k1": "v1",
+		"k2": "v2",
+		"k3": "v3",
+	}
+	require.Equal(t, m1, m2)
 }
