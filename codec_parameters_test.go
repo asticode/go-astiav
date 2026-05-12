@@ -28,6 +28,7 @@ func TestCodecParameters(t *testing.T) {
 	require.Equal(t, MediaTypeVideo, cp1.MediaType())
 	require.Equal(t, PixelFormatYuv420P, cp1.PixelFormat())
 	require.Equal(t, ProfileH264ConstrainedBaseline, cp1.Profile())
+	require.Equal(t, "Constrained Baseline", cp1.ProfileName())
 	require.Equal(t, NewRational(1, 1), cp1.SampleAspectRatio())
 	require.Equal(t, 320, cp1.Width())
 
@@ -86,6 +87,7 @@ func TestCodecParameters(t *testing.T) {
 	require.Equal(t, MediaTypeAudio, cp6.MediaType())
 	cp1.SetProfile(ProfileH264Extended)
 	require.Equal(t, ProfileH264Extended, cp1.Profile())
+	require.Equal(t, "Extended", cp1.ProfileName())
 	cp6.SetPixelFormat(PixelFormat0Bgr)
 	require.Equal(t, PixelFormat0Bgr, cp6.PixelFormat())
 	cp6.SetSampleAspectRatio(NewRational(1, 2))
