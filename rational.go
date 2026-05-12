@@ -54,22 +54,22 @@ func (r Rational) Invert() Rational {
 	return NewRational(r.Den(), r.Num())
 }
 
+// https://ffmpeg.org/doxygen/8.0/group__lavu__math__rational.html#ga2eb3a275aabacd8421f140a12bab4a91
 func (r Rational) Add(v Rational) Rational {
-	c := C.av_add_q(r.c, v.c)
-	return newRationalFromC(c)
+	return newRationalFromC(C.av_add_q(r.c, v.c))
 }
 
+// https://ffmpeg.org/doxygen/8.0/group__lavu__math__rational.html#gac66c6198ce5e8a8caf88dfc20782fa59
 func (r Rational) Sub(v Rational) Rational {
-	c := C.av_sub_q(r.c, v.c)
-	return newRationalFromC(c)
+	return newRationalFromC(C.av_sub_q(r.c, v.c))
 }
 
+// https://ffmpeg.org/doxygen/8.0/group__lavu__math__rational.html#ga3f9c69432582e2857147bcba3c75dc32
 func (r Rational) Mul(v Rational) Rational {
-	c := C.av_mul_q(r.c, v.c)
-	return newRationalFromC(c)
+	return newRationalFromC(C.av_mul_q(r.c, v.c))
 }
 
+// https://ffmpeg.org/doxygen/8.0/group__lavu__math__rational.html#gaffa24e7bd38e12dbac540d8b66461f97
 func (r Rational) Div(v Rational) Rational {
-	c := C.av_div_q(r.c, v.c)
-	return newRationalFromC(c)
+	return newRationalFromC(C.av_div_q(r.c, v.c))
 }

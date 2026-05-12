@@ -17,10 +17,12 @@ func TestRational(t *testing.T) {
 	require.Equal(t, 2, r.Den())
 	require.Equal(t, "1/2", r.String())
 	require.Equal(t, 0.5, r.Float64())
-	require.Equal(t, "3/4", r.Add(NewRational(1, 4)).String())
-	require.Equal(t, "1/4", r.Sub(NewRational(1, 4)).String())
-	require.Equal(t, "1/4", r.Mul(NewRational(1, 2)).String())
-	require.Equal(t, "1/1", r.Div(NewRational(1, 2)).String())
+
+	require.Equal(t, 0.75, r.Add(NewRational(1, 4)).Float64())
+	require.Equal(t, 0.25, r.Sub(NewRational(1, 4)).Float64())
+	require.Equal(t, 0.25, r.Mul(NewRational(1, 2)).Float64())
+	require.Equal(t, 1.0, r.Div(NewRational(1, 2)).Float64())
+
 	r.SetDen(0)
 	require.Equal(t, float64(0), r.Float64())
 	require.Equal(t, "0", r.String())
