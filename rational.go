@@ -53,3 +53,23 @@ func (r Rational) String() string {
 func (r Rational) Invert() Rational {
 	return NewRational(r.Den(), r.Num())
 }
+
+func (r Rational) Add(v Rational) Rational {
+	c := C.av_add_q(r.c, v.c)
+	return newRationalFromC(c)
+}
+
+func (r Rational) Sub(v Rational) Rational {
+	c := C.av_sub_q(r.c, v.c)
+	return newRationalFromC(c)
+}
+
+func (r Rational) Mul(v Rational) Rational {
+	c := C.av_mul_q(r.c, v.c)
+	return newRationalFromC(c)
+}
+
+func (r Rational) Div(v Rational) Rational {
+	c := C.av_div_q(r.c, v.c)
+	return newRationalFromC(c)
+}
