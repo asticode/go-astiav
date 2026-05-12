@@ -204,6 +204,11 @@ func (fc *FormatContext) StartTime() int64 {
 	return int64(fc.c.start_time)
 }
 
+// https://ffmpeg.org/doxygen/8.0/structAVFormatContext.html#a65f11f94f40f83866ebe651c8ae111cf
+func (fc *FormatContext) ProbeScore() int {
+	return int(fc.c.probe_score)
+}
+
 // https://ffmpeg.org/doxygen/8.0/structAVFormatContext.html#a5017684cf0a84c990f60c8d50adec144
 func (fc *FormatContext) StrictStdCompliance() StrictStdCompliance {
 	return StrictStdCompliance(fc.c.strict_std_compliance)
