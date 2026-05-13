@@ -173,12 +173,7 @@ func (cp *CodecParameters) SetProfile(p Profile) {
 
 // https://ffmpeg.org/doxygen/8.0/group__lavc__core.html#ga7f9d1f2fbf0978fc1ddc2fe196f29fa4
 func (cp *CodecParameters) ProfileName() string {
-	name := C.avcodec_profile_name(cp.c.codec_id, cp.c.profile)
-	if name != nil {
-		return C.GoString(name)
-	} else {
-		return ""
-	}
+	return C.GoString(C.avcodec_profile_name(cp.c.codec_id, cp.c.profile))
 }
 
 // https://ffmpeg.org/doxygen/8.0/structAVCodecParameters.html#a7d6ef91120ffe80040c699e747a1ad68
