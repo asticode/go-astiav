@@ -26,11 +26,7 @@ func (c *Codec) Name() string {
 
 // https://ffmpeg.org/doxygen/8.0/structAVCodec.html#acb4afcfce3b6541ed70aa7f21d507422
 func (c *Codec) LongName() string {
-	if c.c.long_name != nil {
-		return C.GoString(c.c.long_name)
-	} else {
-		return ""
-	}
+	return C.GoString(c.c.long_name)
 }
 
 func (c *Codec) String() string {
