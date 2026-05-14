@@ -16,6 +16,7 @@ func TestCodec(t *testing.T) {
 	require.Nil(t, c.SupportedPixelFormats())
 	require.Equal(t, []SampleFormat{SampleFormatFltp, SampleFormatFlt}, c.SupportedSampleFormats())
 	require.Equal(t, "mp3float", c.Name())
+	require.Equal(t, "MP3 (MPEG audio layer 3)", c.LongName())
 	require.Equal(t, "mp3float", c.String())
 
 	c = FindDecoderByName("aac")
@@ -42,6 +43,7 @@ func TestCodec(t *testing.T) {
 	require.False(t, c.IsEncoder())
 	require.Equal(t, []SampleFormat{SampleFormatFltp}, c.SupportedSampleFormats())
 	require.Equal(t, "aac", c.Name())
+	require.Equal(t, "AAC (Advanced Audio Coding)", c.LongName())
 	require.Equal(t, "aac", c.String())
 
 	c = FindEncoderByName("aac")
@@ -55,6 +57,7 @@ func TestCodec(t *testing.T) {
 	require.Contains(t, c.SupportedPixelFormats(), PixelFormatYuvj420P)
 	require.Nil(t, c.SupportedSampleFormats())
 	require.Contains(t, c.Name(), "mjpeg")
+	require.Equal(t, "MJPEG (Motion JPEG)", c.LongName())
 	require.Contains(t, c.String(), "mjpeg")
 
 	c = FindEncoderByName("mjpeg")
@@ -70,6 +73,7 @@ func TestCodec(t *testing.T) {
 		PixelFormatYuv444P,
 	}, c.SupportedPixelFormats())
 	require.Equal(t, "mjpeg", c.Name())
+	require.Equal(t, "MJPEG (Motion JPEG)", c.LongName())
 	require.Equal(t, "mjpeg", c.String())
 	require.Equal(t, []ColorRange{ColorRangeJpeg}, c.SupportedColorRanges())
 	require.Nil(t, c.SupportedColorSpaces())
