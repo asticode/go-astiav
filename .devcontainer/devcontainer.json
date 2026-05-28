@@ -23,6 +23,7 @@
 		}
 	},
 	"mounts": [
+		//"source=${localEnv:HOME}${localEnv:USERPROFILE}/shared,target=/opt/shared,type=bind",
 		"source=${localEnv:HOME}${localEnv:USERPROFILE}/.ssh,target=/root/.ssh,readonly,type=bind"
 	],
 	"name": "asticode/go-astiav"
