@@ -145,6 +145,20 @@ func (fc *FormatContext) SetMetadata(d *Dictionary) {
 	}
 }
 
+// https://ffmpeg.org/doxygen/8.0/structAVFormatContext.html#a6f60043baf4abd0d201ccefc27bb4306
+func (fc *FormatContext) NbChapters() int {
+	return int(fc.c.nb_chapters)
+}
+
+// https://ffmpeg.org/doxygen/8.0/structAVFormatContext.html#ac17d5fc2dcdb00806cc83b02d9f940f3
+func (fc *FormatContext) Chapters() (cs []*Chapter) {
+	ccs := (*[(math.MaxInt32 - 1) / unsafe.Sizeof((*C.AVChapter)(nil))](*C.AVChapter))(unsafe.Pointer(fc.c.chapters))
+	for i := 0; i < fc.NbChapters(); i++ {
+		cs = append(cs, newChapterFromC(ccs[i]))
+	}
+	return
+}
+
 // https://ffmpeg.org/doxygen/8.0/structAVFormatContext.html#a58c8c4d0ea974e0fcb0ce06fb1174f9f
 func (fc *FormatContext) NbPrograms() int {
 	return int(fc.c.nb_programs)
