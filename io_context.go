@@ -174,13 +174,12 @@ func (ic *IOContext) Free() {
 			classers.del(c)
 		}
 	}
-	return
 }
 
 // https://ffmpeg.org/doxygen/8.0/avio_8h.html#a53843d2cbe6282d994fcf59c03d59294
 func (ic *IOContext) Read(b []byte) (n int, err error) {
 	// Nothing to read
-	if b == nil || len(b) <= 0 {
+	if len(b) <= 0 {
 		return
 	}
 
@@ -219,7 +218,7 @@ func (ic *IOContext) Seek(offset int64, whence int) (int64, error) {
 // https://ffmpeg.org/doxygen/8.0/avio_8h.html#acc3626afc6aa3964b75d02811457164e
 func (ic *IOContext) Write(b []byte) {
 	// Nothing to write
-	if b == nil || len(b) <= 0 {
+	if len(b) <= 0 {
 		return
 	}
 
@@ -277,7 +276,7 @@ func goAstiavIOContextReadFunc(opaque unsafe.Pointer, buf *C.uint8_t, bufSize C.
 	}
 
 	// Create go buffer
-	b := make([]byte, int(bufSize), int(bufSize))
+	b := make([]byte, int(bufSize))
 
 	// Read
 	n, err := h.r(b)
