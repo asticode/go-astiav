@@ -279,6 +279,24 @@ func (fc *FormatContext) CloseInput() {
 	}
 }
 
+func (fc *FormatContext) NewChapter() (*Chapter, error) {
+	ch := (*C.AVChapter)(C.av_mallocz(C.size_t(unsafe.Sizeof(C.AVChapter{}))))
+	if ch == nil {
+		return nil, fmt.Errorf("astiav: allocation is nil")
+	}
+
+	ret := C.av_dynarray_add_nofree(
+		unsafe.Pointer(&fc.c.chapters),
+		(*C.int)(unsafe.Pointer(&fc.c.nb_chapters)),
+		unsafe.Pointer(ch),
+	)
+	if ret < 0 {
+		C.av_free(unsafe.Pointer(ch))
+		return nil, newError(ret)
+	}
+	return newChapterFromC(ch), nil
+}
+
 // https://ffmpeg.org/doxygen/8.0/group__lavf__core.html#gab31f7c7c99dcadead38e8e83e0fdb828
 func (fc *FormatContext) NewProgram(id int) *Program {
 	return newProgramFromC(C.av_new_program(fc.c, C.int(id)), fc)
