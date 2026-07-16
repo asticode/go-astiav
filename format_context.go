@@ -279,6 +279,7 @@ func (fc *FormatContext) CloseInput() {
 	}
 }
 
+// https://ffmpeg.org/doxygen/8.0/demux__utils_8c.html#a29bbc47c9d4d0f26439da347eba9a15a
 func (fc *FormatContext) NewChapter() (*Chapter, error) {
 	ch := (*C.AVChapter)(C.av_mallocz(C.size_t(unsafe.Sizeof(C.AVChapter{}))))
 	if ch == nil {
