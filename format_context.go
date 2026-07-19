@@ -281,17 +281,12 @@ func (fc *FormatContext) CloseInput() {
 
 // https://ffmpeg.org/doxygen/8.0/demux__utils_8c.html#a29bbc47c9d4d0f26439da347eba9a15a
 func (fc *FormatContext) NewChapter() (*Chapter, error) {
-	ch := (*C.AVChapter)(C.av_mallocz(C.size_t(unsafe.Sizeof(C.AVChapter{}))))
+	ch := (*C.AVChapter)(C.av_mallocz(C.sizeof_AVChapter))
 	if ch == nil {
 		return nil, fmt.Errorf("astiav: allocation is nil")
 	}
 
-	ret := C.av_dynarray_add_nofree(
-		unsafe.Pointer(&fc.c.chapters),
-		(*C.int)(unsafe.Pointer(&fc.c.nb_chapters)),
-		unsafe.Pointer(ch),
-	)
-	if ret < 0 {
+	if ret := C.av_dynarray_add_nofree(unsafe.Pointer(&fc.c.chapters), (*C.int)(unsafe.Pointer(&fc.c.nb_chapters)), unsafe.Pointer(ch)); ret < 0 {
 		C.av_free(unsafe.Pointer(ch))
 		return nil, newError(ret)
 	}
