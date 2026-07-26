@@ -109,11 +109,3 @@ jobs:
     - name: Run tests
       run: |
         go test -v -race -covermode atomic -coverprofile=covprofile ./...
-
-    - if: github.event_name != 'pull_request'
-      name: Send coverage
-      env:
-        COVERALLS_TOKEN: ${{ secrets.COVERALLS_TOKEN }}
-      run: |
-        go install github.com/mattn/goveralls@latest
-        goveralls -coverprofile=covprofile -service=github
