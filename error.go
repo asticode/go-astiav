@@ -16,6 +16,7 @@ const (
 	ErrDemuxerNotFound  = Error(C.AVERROR_DEMUXER_NOT_FOUND)
 	ErrEagain           = Error(-(C.EAGAIN))
 	ErrEio              = Error(-(C.EIO))
+	ErrEnoent           = Error(-(C.ENOENT))
 	ErrEncoderNotFound  = Error(C.AVERROR_ENCODER_NOT_FOUND)
 	ErrEof              = Error(C.AVERROR_EOF)
 	ErrEperm            = Error(-(C.EPERM))
