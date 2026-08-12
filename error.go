@@ -17,6 +17,7 @@ const (
 	ErrEagain           = Error(-(C.EAGAIN))
 	ErrEio              = Error(-(C.EIO))
 	ErrEncoderNotFound  = Error(C.AVERROR_ENCODER_NOT_FOUND)
+	ErrEnoent           = Error(-(C.ENOENT))
 	ErrEof              = Error(C.AVERROR_EOF)
 	ErrEperm            = Error(-(C.EPERM))
 	ErrEpipe            = Error(-(C.EPIPE))
