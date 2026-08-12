@@ -171,4 +171,9 @@ func TestFormatContext(t *testing.T) {
 	defer pkt4.Free()
 	require.NoError(t, fc8.ReadFrame(pkt4))
 	require.Equal(t, int64(261), pkt4.Pos())
+
+	fc10, err := globalHelper.inputFormatContext("video_with_chapters.mp4", nil)
+	require.NoError(t, err)
+	require.Equal(t, 2, fc10.NbChapters())
+	require.Len(t, fc10.Chapters(), 2)
 }
