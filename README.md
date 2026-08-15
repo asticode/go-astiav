@@ -33,6 +33,7 @@ Examples are located in the [examples](examples) directory and mirror as much as
 |Frame data manipulation|[see](examples/frame_data_manipulation/main.go)|X
 |Hardware Decoding/Filtering|[see](examples/hardware_decoding_filtering/main.go)|[see](https://github.com/FFmpeg/FFmpeg/blob/n8.0/doc/examples/hw_decode.c)
 |Hardware Encoding|[see](examples/hardware_encoding/main.go)|[see](https://github.com/FFmpeg/FFmpeg/blob/n8.0/doc/examples/vaapi_encode.c)
+|Metadata|[see](examples/metadata/main.go)|X
 |Remuxing|[see](examples/remuxing/main.go)|[see](https://github.com/FFmpeg/FFmpeg/blob/n8.0/doc/examples/remux.c)
 |Resampling audio|[see](examples/resampling_audio/main.go)|[see](https://github.com/FFmpeg/FFmpeg/blob/n8.0/doc/examples/resample_audio.c)
 |Scaling video|[see](examples/scaling_video/main.go)|[see](https://github.com/FFmpeg/FFmpeg/blob/n8.0/doc/examples/scale_video.c)
