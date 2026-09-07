@@ -2,4 +2,6 @@
 #include <stdatomic.h>
 
 int astiavInterruptCallback(void *ret);
-AVIOInterruptCB* astiavNewInterruptCallback(atomic_int *ret);
+AVIOInterruptCB* astiavNewInterruptCallback();
+int astiavInterruptCallbackLoad(AVIOInterruptCB* c);
+void astiavInterruptCallbackStore(AVIOInterruptCB* c, int v);
