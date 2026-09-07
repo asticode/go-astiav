@@ -104,6 +104,10 @@ func main() {
 	// Store io context
 	outputFormatContext.SetPb(ioContext)
 
+	// You can also use outputFormatContext.SetIOOpener() instead of .SetPb() if
+	// the muxer needs to generate several files (e.g. HLS). In that case you'll need
+	// to allocate the IOContext in the openFunc of .SetIOOpener() instead.
+
 	// Loop through streams
 	inputStreams := make(map[int]*astiav.Stream)  // Indexed by input stream index
 	outputStreams := make(map[int]*astiav.Stream) // Indexed by input stream index

@@ -2,10 +2,13 @@ package astiav
 
 //#include <libavcodec/avcodec.h>
 //#include <libavformat/avformat.h>
+//#include "format_context.h"
 import "C"
 import (
+	"errors"
 	"fmt"
 	"math"
+	"sync"
 	"unsafe"
 )
 
@@ -56,6 +59,7 @@ func AllocOutputFormatContext(of *OutputFormat, formatName, filename string) (*F
 // https://ffmpeg.org/doxygen/8.0/group__lavf__core.html#gac2990b13b68e831a408fce8e1d0d6445
 func (fc *FormatContext) Free() {
 	if fc.c != nil {
+		formatContextIOOpeners.del(fc)
 		// Make sure to clone the classer before freeing the object since
 		// the C free method may reset the pointer
 		c := newClonedClasser(fc)
@@ -105,6 +109,27 @@ func (fc *FormatContext) Flags() FormatContextFlags {
 // https://ffmpeg.org/doxygen/8.0/structAVFormatContext.html#a32379cc371463b235d54235d4af06a15
 func (fc *FormatContext) SetFlags(f FormatContextFlags) {
 	fc.c.flags = C.int(f)
+}
+
+type FormatContextIOCloseFunc func(s *IOContext) error
+type FormatContextIOOpenFunc func(filename string, flags IOContextFlags, d *Dictionary) (*IOContext, error)
+
+// https://ffmpeg.org/doxygen/8.0/structAVFormatContext.html#af3f615ad9ff79fb90f4eb136a1f58065
+// https://ffmpeg.org/doxygen/8.0/structAVFormatContext.html#a17bbcfc18f75f119dd6c0a15a1c7d935
+func (fc *FormatContext) SetIOOpener(openFunc FormatContextIOOpenFunc, closeFunc FormatContextIOCloseFunc) {
+	if openFunc != nil {
+		formatContextIOOpeners.setIOOpener(fc, openFunc, closeFunc)
+		fc.c.io_open = (*[0]byte)(C.astiavFormatContextIOOpen)
+		if closeFunc != nil {
+			fc.c.io_close2 = (*[0]byte)(C.astiavFormatContextIOClose)
+		} else {
+			fc.c.io_close2 = nil
+		}
+	} else {
+		formatContextIOOpeners.del(fc)
+		fc.c.io_open = nil
+		fc.c.io_close2 = nil
+	}
 }
 
 // https://ffmpeg.org/doxygen/8.0/structAVFormatContext.html#a5b37acfe4024d92ee510064e80920b40
@@ -423,4 +448,114 @@ func (fc *FormatContext) Dump(streamIndex int, url string, isOutput bool) {
 		cisOutput = 1
 	}
 	C.av_dump_format(fc.c, C.int(streamIndex), curl, C.int(cisOutput))
+}
+
+var formatContextIOOpeners = newFormatContextIOOpenerPool()
+
+type formatContextIOOpenerPool struct {
+	m sync.Mutex
+	p map[unsafe.Pointer]*formatContextIOOpenerPoolItem
+}
+
+type formatContextIOOpenerPoolItem struct {
+	closeFunc FormatContextIOCloseFunc
+	openFunc  FormatContextIOOpenFunc
+	pbs       map[*C.AVIOContext]*IOContext
+}
+
+func newFormatContextIOOpenerPool() *formatContextIOOpenerPool {
+	return &formatContextIOOpenerPool{p: make(map[unsafe.Pointer]*formatContextIOOpenerPoolItem)}
+}
+
+func newFormatContextIOOpenerPoolItem(openFunc FormatContextIOOpenFunc, closeFunc FormatContextIOCloseFunc) *formatContextIOOpenerPoolItem {
+	return &formatContextIOOpenerPoolItem{
+		closeFunc: closeFunc,
+		openFunc:  openFunc,
+		pbs:       make(map[*C.AVIOContext]*IOContext),
+	}
+}
+
+func (p *formatContextIOOpenerPool) setIOOpener(f *FormatContext, openFunc FormatContextIOOpenFunc, closeFunc FormatContextIOCloseFunc) {
+	p.m.Lock()
+	defer p.m.Unlock()
+
+	p.p[f.c.opaque] = newFormatContextIOOpenerPoolItem(openFunc, closeFunc)
+}
+
+func (p *formatContextIOOpenerPool) setIOContext(cf *C.AVFormatContext, pb *IOContext) {
+	p.m.Lock()
+	defer p.m.Unlock()
+
+	i, ok := p.p[cf.opaque]
+	if !ok {
+		return
+	}
+
+	i.pbs[pb.c] = pb
+}
+
+func (p *formatContextIOOpenerPool) getCloseFunc(cf *C.AVFormatContext, cpb *C.AVIOContext) (FormatContextIOCloseFunc, *IOContext, bool) {
+	p.m.Lock()
+	defer p.m.Unlock()
+
+	i, ok := p.p[cf.opaque]
+	if !ok {
+		return nil, nil, false
+	}
+
+	c, ok := i.pbs[cpb]
+	return i.closeFunc, c, ok
+}
+
+func (p *formatContextIOOpenerPool) getOpenFunc(cf *C.AVFormatContext) (FormatContextIOOpenFunc, bool) {
+	p.m.Lock()
+	defer p.m.Unlock()
+
+	i, ok := p.p[cf.opaque]
+	return i.openFunc, ok
+}
+
+func (p *formatContextIOOpenerPool) del(f *FormatContext) {
+	p.m.Lock()
+	defer p.m.Unlock()
+
+	delete(p.p, f.c.opaque)
+}
+
+//export goAstiavFormatContextIOOpen
+func goAstiavFormatContextIOOpen(cf *C.AVFormatContext, cpb **C.AVIOContext, curl *C.char, cflags C.int, cdict **C.AVDictionary) C.int {
+	openFunc, ok := formatContextIOOpeners.getOpenFunc(cf)
+	if !ok {
+		return C.AVERROR_UNKNOWN
+	}
+
+	pb, err := openFunc(C.GoString(curl), IOContextFlags(cflags), newDictionaryFromC(*cdict))
+	if err != nil {
+		var e Error
+		if errors.As(err, &e) {
+			return C.int(e)
+		}
+		return C.AVERROR_UNKNOWN
+	}
+
+	formatContextIOOpeners.setIOContext(cf, pb)
+	*cpb = pb.c
+	return 0
+}
+
+//export goAstiavFormatContextIOClose
+func goAstiavFormatContextIOClose(cf *C.AVFormatContext, cpb *C.AVIOContext) C.int {
+	closeFunc, pb, ok := formatContextIOOpeners.getCloseFunc(cf, cpb)
+	if !ok {
+		return C.AVERROR_UNKNOWN
+	}
+
+	if err := closeFunc(pb); err != nil {
+		var e Error
+		if errors.As(err, &e) {
+			return C.int(e)
+		}
+		return C.AVERROR_UNKNOWN
+	}
+	return 0
 }

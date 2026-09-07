@@ -78,9 +78,9 @@ func TestFormatContext(t *testing.T) {
 	require.NotNil(t, s4)
 	require.Equal(t, 1, s4.Index())
 
-	d := NewDictionary()
-	d.Set("k", "v", 0)
-	fc3.SetMetadata(d)
+	d1 := NewDictionary()
+	d1.Set("k", "v", 0)
+	fc3.SetMetadata(d1)
 	e := fc3.Metadata().Get("k", nil, 0)
 	require.NotNil(t, e)
 	require.Equal(t, "v", e.Value())
@@ -144,11 +144,11 @@ func TestFormatContext(t *testing.T) {
 		require.NotNil(t, os)
 		require.NoError(t, is.CodecParameters().Copy(os.CodecParameters()))
 	}
-	ic, err := OpenIOContext(outputPath, NewIOContextFlags(IOContextFlagWrite), nil, nil)
+	ic1, err := OpenIOContext(outputPath, NewIOContextFlags(IOContextFlagWrite), nil, nil)
 	require.NoError(t, err)
-	defer ic.Free()
-	defer ic.Close()
-	fc7.SetPb(ic)
+	defer ic1.Free()
+	defer ic1.Close()
+	fc7.SetPb(ic1)
 	require.NoError(t, fc7.WriteHeader(nil))
 	require.NoError(t, fc7.WriteFrame(pkt1))
 	require.NoError(t, fc7.WriteInterleavedFrame(pkt2))
@@ -176,4 +176,70 @@ func TestFormatContext(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 2, fc10.NbChapters())
 	require.Len(t, fc10.Chapters(), 2)
+
+	fc11, err := AllocOutputFormatContext(nil, "hls", "out.m3u8")
+	require.NoError(t, err)
+	defer fc11.Free()
+	for _, is := range fc6.Streams() {
+		os := fc11.NewStream(nil)
+		require.NotNil(t, os)
+		require.NoError(t, is.CodecParameters().Copy(os.CodecParameters()))
+	}
+	type ioContext struct {
+		b        []byte
+		closed   bool
+		filename string
+	}
+	fns := make(map[string]*ioContext)
+	ics := make(map[*IOContext]*ioContext)
+	fc11.SetIOOpener(
+		func(filename string, flags IOContextFlags, d *Dictionary) (*IOContext, error) {
+			var ic *IOContext
+			var err error
+			ic, err = AllocIOContext(4096, true, nil, nil, func(b []byte) (n int, err error) {
+				ics[ic].b = append(ics[ic].b, b...)
+				return len(b), nil
+			})
+			_, ok := fns[filename]
+			require.False(t, ok)
+			t := &ioContext{filename: filename}
+			fns[filename] = t
+			ics[ic] = t
+			return ic, err
+		},
+		func(s *IOContext) error {
+			ics[s].closed = true
+			s.Flush()
+			s.Free()
+			return nil
+		},
+	)
+	d2 := NewDictionary()
+	require.NoError(t, d2.ParseString("hls_playlist_type=vod,hls_segment_filename=%04d.ts", "=", ",", NewDictionaryFlags()))
+	require.NoError(t, fc11.WriteHeader(d2))
+	require.NoError(t, fc11.WriteFrame(pkt3))
+	require.NoError(t, fc11.WriteInterleavedFrame(pkt4))
+	require.NoError(t, fc11.WriteTrailer())
+	require.Len(t, fns, 2)
+	require.Len(t, ics, 2)
+	for _, v := range ics {
+		require.True(t, v.closed)
+		switch v.filename {
+		case "0000.ts":
+			require.Len(t, v.b, 1504)
+		case "out.m3u8":
+			require.Equal(t, `#EXTM3U
+#EXT-X-VERSION:3
+#EXT-X-TARGETDURATION:0
+#EXT-X-MEDIA-SEQUENCE:0
+#EXT-X-PLAYLIST-TYPE:VOD
+#EXTINF:0.005689,
+0000.ts
+#EXT-X-ENDLIST
+`, string(v.b))
+		default:
+			t.Errorf("invalid filename '%s'", v.filename)
+			t.FailNow()
+		}
+	}
 }
