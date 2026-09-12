@@ -16,6 +16,7 @@ func NewIOInterrupter() *IOInterrupter {
 
 func (i *IOInterrupter) Free() {
 	if i.c != nil {
+		C.av_free(unsafe.Pointer(i.c.opaque))
 		C.av_free(unsafe.Pointer(i.c))
 		i.c = nil
 	}
