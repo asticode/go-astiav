@@ -1,3 +1,7 @@
+# v0.43.0
+
+- `CodecIDV308`, `CodecIDV408` and `CodecIDV410` have been removed. Use `CodecIDRawvideo` instead
+
 # v0.40.0
 
 - `Codec`.`ChannelLayouts`, `Codec`.`PixelFormats` and `Codec`.`SampleFormats` have been renamed to `Codec`.`SupportedChannelLayouts`, `Codec`.`SupportedPixelFormats` and `Codec`.`SupportedSampleFormats`

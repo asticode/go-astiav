@@ -3,7 +3,7 @@ package astiav
 //#include <libswscale/swscale.h>
 import "C"
 
-// https://ffmpeg.org/doxygen/8.0/group__libsws.html#ggade664a46fb2652e6050985ebcd316798ae366a8f172c83a868c4a149ef844f2a7
+// https://ffmpeg.org/doxygen/9.0/group__libsws.html#ggade664a46fb2652e6050985ebcd316798ae366a8f172c83a868c4a149ef844f2a7
 type SoftwareScaleContextFlag int64
 
 const (
