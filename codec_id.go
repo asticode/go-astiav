@@ -4,7 +4,7 @@ package astiav
 //#include <libavformat/avformat.h>
 import "C"
 
-// https://ffmpeg.org/doxygen/8.0/group__lavc__core.html#gaadca229ad2c20e060a14fec08a5cc7ce
+// https://ffmpeg.org/doxygen/9.0/group__lavc__core.html#gaadca229ad2c20e060a14fec08a5cc7ce
 type CodecID C.enum_AVCodecID
 
 const (
@@ -493,9 +493,6 @@ const (
 	CodecIDUtvideo                  = CodecID(C.AV_CODEC_ID_UTVIDEO)
 	CodecIDV210                     = CodecID(C.AV_CODEC_ID_V210)
 	CodecIDV210X                    = CodecID(C.AV_CODEC_ID_V210X)
-	CodecIDV308                     = CodecID(C.AV_CODEC_ID_V308)
-	CodecIDV408                     = CodecID(C.AV_CODEC_ID_V408)
-	CodecIDV410                     = CodecID(C.AV_CODEC_ID_V410)
 	CodecIDVb                       = CodecID(C.AV_CODEC_ID_VB)
 	CodecIDVble                     = CodecID(C.AV_CODEC_ID_VBLE)
 	CodecIDVbn                      = CodecID(C.AV_CODEC_ID_VBN)

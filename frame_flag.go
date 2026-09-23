@@ -3,7 +3,7 @@ package astiav
 //#include <libavutil/frame.h>
 import "C"
 
-// https://ffmpeg.org/doxygen/8.0/group__lavu__frame__flags.html#gadddbce4ec0cc2ad4298cf6f266f97f6a
+// https://ffmpeg.org/doxygen/9.0/group__lavu__frame__flags.html#gadddbce4ec0cc2ad4298cf6f266f97f6a
 type FrameFlag int64
 
 const (
