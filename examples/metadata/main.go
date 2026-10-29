@@ -74,14 +74,14 @@ func main() {
 		fmt.Printf("\tprofile: %s\n", params.ProfileName())
 
 		fmt.Printf("\ttime base: %s\n", stream.TimeBase())
-		fmt.Printf("\tstart time: %f\n", float64(stream.StartTime())/float64(astiav.TimeBaseQ.Den()))
+		fmt.Printf("\tstart time: %f\n", float64(stream.StartTime())*stream.TimeBase().Float64())
 		fmt.Printf("\tduration (stream timebase): %d\n", stream.Duration())
-		fmt.Printf("\tduration (seconds): %f\n", float64(stream.Duration())/float64(stream.TimeBase().Den()))
+		fmt.Printf("\tduration (seconds): %f\n", float64(stream.Duration())*stream.TimeBase().Float64())
 		fmt.Printf("\tcodec id: %d\n", params.CodecID())
 
 		flags := stream.DispositionFlags()
 		fmt.Printf("\tdefault: %t\n", flags.Has(astiav.DispositionFlagDefault))
-		fmt.Printf("\tforced: %t\n", flags.Has(astiav.DispositionFlagDefault))
+		fmt.Printf("\tforced: %t\n", flags.Has(astiav.DispositionFlagForced))
 
 		// Dispatch based on media type and build the appropriate stream struct.
 		switch params.MediaType() {
@@ -112,8 +112,8 @@ func main() {
 	for i, chapter := range inputFormatContext.Chapters() {
 		fmt.Printf("chapter index: %d\n", i)
 		fmt.Printf("\tid: %d\n", chapter.ID())
-		fmt.Printf("\tstart time: %f\n", float64(chapter.Start())/float64(chapter.TimeBase().Den()))
-		fmt.Printf("\tend time: %f\n", float64(chapter.End())/float64(chapter.TimeBase().Den()))
+		fmt.Printf("\tstart time: %f\n", float64(chapter.Start())*chapter.TimeBase().Float64())
+		fmt.Printf("\tend time: %f\n", float64(chapter.End())*chapter.TimeBase().Float64())
 		printDictionary(chapter.Metadata())
 		fmt.Printf("\n")
 	}
